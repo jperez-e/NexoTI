@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-class Database
+class Conexion
 {
     private static ?PDO $instance = null;
 
-    public static function getConnection(): PDO
+    public static function get(): PDO
     {
         if (self::$instance !== null) {
             return self::$instance;
