@@ -5,7 +5,7 @@ require_once __DIR__ . "/../Models/ComentarioModel.php";
 
 $model = new ComentarioModel();
 
-$ticketId = 1;
+$ticketId = 4;
 $usuarioId = 1;
 $comentario = "Se reinicio el servicio y el equipo volvio a imprimir.";
 
