@@ -5,7 +5,7 @@ require_once __DIR__ . "/../Models/PrioridadModel.php";
 
 $model = new PrioridadModel();
 
-$nombre = "Prioridad Demo " . date("His");
+$nombre = "Criticidad " . date("His");
 $nivel = rand(10, 99);
 
 echo "Insertando prioridad...\n";

@@ -6,8 +6,8 @@ require_once __DIR__ . "/../Models/TicketModel.php";
 $model = new TicketModel();
 
 $codigo = "TCK-" . date("YmdHis");
-$titulo = "Ticket Demo " . date("His");
-$descripcion = "Ticket creado desde script de prueba";
+$titulo = "Impresora sin conexion en Oficina 2";
+$descripcion = "La impresora HP no responde desde las 9:00 AM. Se requiere revision.";
 $usuarioId = 1;
 $categoriaId = 1;
 $prioridadId = 1;

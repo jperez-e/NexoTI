@@ -5,8 +5,8 @@ require_once __DIR__ . "/../Models/CategoriaModel.php";
 
 $model = new CategoriaModel();
 
-$nombre = "Categoria Demo " . date("His");
-$descripcion = "Categoria creada desde script de prueba";
+$nombre = "Impresoras " . date("His");
+$descripcion = "Incidencias relacionadas con impresoras y toner";
 
 echo "Insertando categoria...\n";
 $ok = $model->insert($nombre, $descripcion);

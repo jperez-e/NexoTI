@@ -7,7 +7,7 @@ $model = new ComentarioModel();
 
 $ticketId = 1;
 $usuarioId = 1;
-$comentario = "Comentario demo " . date("His");
+$comentario = "Se reinicio el servicio y el equipo volvio a imprimir.";
 
 echo "Insertando comentario...\n";
 $ok = $model->insert($ticketId, $usuarioId, $comentario);

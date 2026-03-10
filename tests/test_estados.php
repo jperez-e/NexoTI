@@ -5,7 +5,7 @@ require_once __DIR__ . "/../Models/EstadoTicketModel.php";
 
 $model = new EstadoTicketModel();
 
-$nombre = "Estado Demo " . date("His");
+$nombre = "En Revision " . date("His");
 
 echo "Insertando estado...\n";
 $ok = $model->insert($nombre);

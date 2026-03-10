@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../Models/RolModel.php";
 
 $model = new RolModel();
-$nombre = "Rol Demo " . date("His");
+$nombre = "Operador TI " . date("His");
 
 echo "Insertando rol...\n";
 $ok = $model->insert($nombre);

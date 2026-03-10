@@ -5,9 +5,9 @@ require_once __DIR__ . "/../Models/UsuarioModel.php";
 
 $model = new UsuarioModel();
 
-$nombre = "Usuario Demo " . date("His");
-$email = "demo_" . date("His") . "@nexoti.local";
-$claveHash = password_hash("123456", PASSWORD_BCRYPT);
+$nombre = "Carlos Medina";
+$email = "carlos.medina+" . date("His") . "@nexoti.local";
+$claveHash = password_hash("Soporte2026", PASSWORD_BCRYPT);
 $rolId = 3;
 
 echo "Insertando usuario...\n";
