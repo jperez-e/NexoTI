@@ -113,6 +113,6 @@ class AuthController
 
     public function home(): void
     {
-        require __DIR__ . "/../Views/app/home.php";
+        require __DIR__ . "/../Views/home/home.php";
     }
 }
