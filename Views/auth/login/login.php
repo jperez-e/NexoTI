@@ -3,7 +3,7 @@
 <head>  
     <meta charset=UTF-8>  
     <meta name=viewport content=width=device-width,initial-scale=1.0>  
-    <title>NexoTI | Iniciar sesion</title>  
+    <title>NexoTI | Iniciar sesión</title>  
     <link rel=stylesheet href=/NexoTI/Views/auth/login/login.css>  
 </head>  
 <body>  
@@ -16,8 +16,9 @@
         <section class=form>  
             <h2>Iniciar sesión</h2>  
             <p>Ingresa tus datos para acceder al sistema.</p>  
-            <?php if (!empty($error)) : ?>  
-                <div class=error><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div>  
+            <?php if (!empty($_SESSION['flash_error'])) : ?>  
+                <div class=error id=login-error><?php echo htmlspecialchars($_SESSION['flash_error'], ENT_QUOTES, 'UTF-8'); ?></div>  
+                <?php unset($_SESSION['flash_error']); ?>  
             <?php endif; ?>  
             <form method=POST action=index.php?r=login>  
                 <label for=login>Correo o usuario</label>  
@@ -29,5 +30,13 @@
             <div class=register>Solicita tu usuario al administrador del sistema.</div>  
         </section>  
     </div>  
+    <script>  
+        const errorBox = document.getElementById('login-error');  
+        if (errorBox) {  
+            setTimeout(function () {  
+                errorBox.style.display = 'none';  
+            }, 3000);  
+        }  
+    </script>  
 </body>  
 </html> 

@@ -34,19 +34,22 @@ class AuthController
         $password = (string) ($_POST["password"] ?? "");
 
         if ($login === "" || $password === "") {
-            $this->showLogin("Debes completar los campos.");
-            return;
+            $_SESSION["flash_error"] = "Debes completar los campos.";
+            header("Location: index.php?r=login");
+            exit;
         }
 
         $user = $this->usuarios->findByLogin($login);
         if (!$user || (int) $user["activo"] !== 1) {
-            $this->showLogin("Credenciales invalidas.");
-            return;
+            $_SESSION["flash_error"] = "Credenciales inválidas.";
+            header("Location: index.php?r=login");
+            exit;
         }
 
         if (!password_verify($password, $user["clave_hash"])) {
-            $this->showLogin("Credenciales invalidas.");
-            return;
+            $_SESSION["flash_error"] = "Credenciales inválidas.";
+            header("Location: index.php?r=login");
+            exit;
         }
 
         $_SESSION["user_id"] = (int) $user["id"];
