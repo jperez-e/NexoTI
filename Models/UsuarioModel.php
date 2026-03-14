@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . "/../config/Conexion.php";
+require_once __DIR__ . "/../Config/Conexion.php";
 
 class UsuarioModel
 {
@@ -32,5 +32,20 @@ class UsuarioModel
                 FROM usuarios
                 ORDER BY id DESC";
         return $this->db->query($sql)->fetchAll();
+    }
+
+    public function findByLogin(string $login): ?array
+    {
+        $sql = "SELECT id, nombre, email, clave_hash, rol_id, activo
+                FROM usuarios
+                WHERE email = :login_email OR nombre = :login_nombre
+                LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ":login_email" => $login,
+            ":login_nombre" => $login,
+        ]);
+        $row = $stmt->fetch();
+        return $row ?: null;
     }
 }

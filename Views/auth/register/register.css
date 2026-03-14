@@ -1,0 +1,17 @@
+:root{--bg:#1f3556;--panel:#fff;--accent:#3b82f6;--text:#0f172a;--muted:#64748b} 
+*{box-sizing:border-box}
+body{margin:0;font-family:Trebuchet MS,Segoe UI,sans-serif;background:radial-gradient(circle at top,#4b6cb7 0%,var(--bg) 55%);color:var(--text);min-height:100vh;display:grid;place-items:center;padding:24px}
+.card{width:980px;max-width:95vw;display:grid;grid-template-columns:1fr 1fr;background:var(--panel);border-radius:16px;overflow:hidden;box-shadow:0 25px 40px rgba(15,23,42,.35)}
+.brand{padding:36px;background:linear-gradient(180deg,#f8fafc 0%,#eef2f7 100%);display:grid;align-content:center;gap:18px;text-align:center}
+.brand h1{margin:0;font-size:2.4rem;letter-spacing:1px;color:#1e3a8a}
+.brand p{margin:0;font-size:1.1rem;color:var(--muted)}
+.logo{display:inline-flex;align-items:center;justify-content:center;width:160px;height:160px;margin:0 auto;border-radius:50%;background:#1e3a8a;color:#fff;font-size:2rem;font-weight:700;letter-spacing:2px}
+.form{padding:36px 42px;display:grid;gap:18px;align-content:center}
+.form h2{margin:0;font-size:1.6rem}
+.form p{margin:0;color:var(--muted)}
+label{font-weight:600;font-size:.95rem}
+input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #cbd5f5;font-size:1rem}
+button{padding:12px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:1rem;font-weight:600;cursor:pointer}
+.register{font-size:.95rem}
+.register a{color:var(--accent);text-decoration:none;font-weight:600}
+@media(max-width:860px){.card{grid-template-columns:1fr}}

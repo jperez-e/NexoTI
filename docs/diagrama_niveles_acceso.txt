@@ -1,0 +1,5 @@
+NIVELES DE ACCESO - NexoTI
+ 
+Admin: puede gestionar usuarios, roles, catalogos y tickets. 
+Tecnico: puede atender y actualizar tickets asignados. 
+Usuario: puede crear tickets y ver sus propios tickets.

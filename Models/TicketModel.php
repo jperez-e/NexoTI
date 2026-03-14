@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . "/../config/Conexion.php";
+require_once __DIR__ . "/../Config/Conexion.php";
 
 class TicketModel
 {
