@@ -14,7 +14,7 @@
             <p>Gestiona incidencias, asignaciones y soluciones desde un solo lugar.</p>  
         </section>  
         <section class=form>  
-            <h2>Iniciar sesion</h2>  
+            <h2>Iniciar sesión</h2>  
             <p>Ingresa tus datos para acceder al sistema.</p>  
             <?php if (!empty($error)) : ?>  
                 <div class=error><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></div>  
@@ -22,7 +22,7 @@
             <form method=POST action=index.php?r=login>  
                 <label for=login>Correo o usuario</label>  
                 <input id=login name=login type=text placeholder=correo@dominio.com required>  
-                <label for=password>Contrasena</label>  
+                <label for=password>Contraseña</label>  
                 <input id=password name=password type=password required>  
                 <button type=submit>Ingresar</button>  
             </form>  
