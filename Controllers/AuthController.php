@@ -19,6 +19,7 @@ class AuthController
 
     public function showLogin(?string $error = null): void
     {
+        $error = $error ?? null;
         require __DIR__ . "/../Views/auth/login/login.php";
     }
 
