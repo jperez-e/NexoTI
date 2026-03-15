@@ -21,7 +21,7 @@
                 <input id=nombre name=nombre type=text required> 
                 <label for=email>Correo</label> 
                 <input id=email name=email type=email required> 
-                <label for=password>Contrasena</label> 
+                <label for=password>Contraseña</label> 
                 <input id=password name=password type=password required> 
                 <button type=submit>Crear cuenta</button> 
             </form> 
