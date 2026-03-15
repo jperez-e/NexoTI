@@ -122,6 +122,10 @@ ul {
     border: none;  
 }  
  
+.btn:hover {  
+    background: #2563eb;  
+}
+
 .ghost {  
     padding: 10px 16px;  
     border-radius: 10px;  

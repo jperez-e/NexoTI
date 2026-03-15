@@ -13,7 +13,7 @@
             <h1>Mesa de Ayuda TI</h1>  
             <p>Panel principal del sistema de tickets</p>  
         </div>  
-        <a class='btn' href='/NexoTI/index.php?r=logout'>Cerrar sesion</a>  
+        <a class='btn' href='/NexoTI/index.php?r=logout'>Cerrar sesión</a>  
     </header>  
     <main class='home'>  
         <section class='hero'>  
