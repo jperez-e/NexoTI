@@ -41,7 +41,11 @@
                     </button>  
                 </div>  
                 <button type=submit>Ingresar</button>  
-            </form>  
+            </form> 
+            <button type=button class=m365-btn aria-disabled=true>
+               <span class=m365-icon aria-hidden=true></span>
+                Entrar con M365/Microsoft
+             </button>
             <div class=register>Solicita tu usuario al administrador del sistema.</div>  
         </section>  
     </div>  
