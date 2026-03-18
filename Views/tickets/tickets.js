@@ -352,3 +352,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+  
+function syncAdminAssignState() {  
+    const ticketSelect = document.getElementById('assign_ticket_id');  
+    const stateSelect = document.getElementById('assign_estado_id');  
+    if (!ticketSelect || !stateSelect) { return; }  
+    const selected = allTickets.find(function (ticket) { return String(ticket.id) === String(ticketSelect.value); });  
+    if (selected && selected.estado_id) {  
+        stateSelect.value = String(selected.estado_id);  
+    }  
+}  
+  
+const originalLoadTickets = loadTickets;  
+loadTickets = async function () {  
+    await originalLoadTickets();  
+    syncAdminAssignState();  
+};  
+  
+document.addEventListener('DOMContentLoaded', function () {  
+    const assignState = document.getElementById('assign_estado_id');  
+    if (assignState) {  
+        assignState.required = false;  
+        const assignLabel = assignState.closest('label');  
+        if (assignLabel) { assignLabel.style.display = 'none'; }  
+    }  
+    const assignTicket = document.getElementById('assign_ticket_id');  
+    if (assignTicket) { assignTicket.addEventListener('change', syncAdminAssignState); }  
+    window.setTimeout(syncAdminAssignState, 300);  
+}); 

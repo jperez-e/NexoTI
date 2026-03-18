@@ -1,69 +1,163 @@
-async function fetchJSON(url) { 
-    const res = await fetch(url); 
-    return res.json(); 
+let editingId = 0;  
+let usuariosCache = [];  
+  
+async function fetchJSON(url, options = {}) {  
+    const response = await fetch(url, options);  
+    return response.json();  
+}  
+  
+function getNode(id) {  
+    return document.getElementById(id);  
+}  
+  
+function showMessage(text, type) {  
+    const node = getNode('form-message');  
+    if (!node) { return; }  
+    node.textContent = text;  
+    node.className = type ? 'message ' + type : 'message';  
+}  
+  
+function ensureFormTools() {  
+    const form = getNode('usuario-form');  
+    if (!form) { return; }  
+    const actions = form.querySelector('.actions');  
+    const title = form.closest('.card').querySelector('h2');  
+    if (title) { title.id = 'form-title'; }  
+    const password = form.querySelector('input[name=\"password\"]');  
+    if (password) { password.required = false; } 
+    if (!getNode('cancel-btn') && actions) {  
+        const cancel = document.createElement('button');  
+        cancel.type = 'button';  
+        cancel.id = 'cancel-btn';  
+        cancel.className = 'btn ghost hidden';  
+        cancel.textContent = 'Cancelar edicion';  
+        actions.insertBefore(cancel, getNode('form-message'));  
+    }  
+    if (!getNode('usuario-id')) {  
+        const hidden = document.createElement('input');  
+        hidden.type = 'hidden';  
+        hidden.id = 'usuario-id';  
+        hidden.name = 'id';  
+        form.prepend(hidden);  
+    }  
 } 
- 
-function renderUsuarios(list) { 
-    const container = document.getElementById('usuarios-list'); 
-    container.innerHTML = ''; 
-    list.forEach(function (row) { 
-        const item = document.createElement('div'); 
+  
+function fillRoles(roles) {  
+    const select = getNode('rol-select');  
+    if (!select) { return; }  
+    select.innerHTML = '';  
+    const first = document.createElement('option');  
+    first.value = '';  
+    first.textContent = 'Seleccione un rol';  
+    select.appendChild(first);  
+    roles.forEach(function (row) {  
+        const option = document.createElement('option');  
+        option.value = row.id;  
+        option.textContent = row.nombre;  
+        select.appendChild(option);  
+    });  
+}  
+  
+function resetForm() {  
+    editingId = 0;  
+    const form = getNode('usuario-form');  
+    form.reset();  
+    getNode('usuario-id').value = '';  
+    getNode('submit-btn') ? getNode('submit-btn').textContent = 'Crear usuario' : null;  
+    getNode('form-title') ? getNode('form-title').textContent = 'Registrar usuario' : null;  
+    getNode('cancel-btn') ? getNode('cancel-btn').classList.add('hidden') : null;  
+    showMessage('', '');  
+} 
+  
+function startEdit(user) {  
+    editingId = Number(user.id);  
+    getNode('usuario-id').value = user.id;  
+    getNode('nombre') ? getNode('nombre').value = user.nombre : null;  
+    getNode('email') ? getNode('email').value = user.email : null;  
+    getNode('password') ? getNode('password').value = '' : null;  
+    getNode('rol-select') ? getNode('rol-select').value = user.rol_id : null;  
+    getNode('submit-btn') ? getNode('submit-btn').textContent = 'Actualizar usuario' : null;  
+    getNode('form-title') ? getNode('form-title').textContent = 'Editar usuario' : null;  
+    getNode('cancel-btn') ? getNode('cancel-btn').classList.remove('hidden') : null;  
+    showMessage('', '');  
+    window.scrollTo({ top: 0, behavior: 'smooth' });  
+}  
+  
+function renderUsuarios(list) {  
+    const container = getNode('usuarios-list');  
+    if (!container) { return; }  
+    container.innerHTML = '';  
+    if (list.length === 0) {  
+        container.innerHTML = '<p class=\"message\">No hay usuarios registrados.</p>';  
+        return;  
+    }  
+    list.forEach(function (row) {  
+        const item = document.createElement('div');  
         item.className = 'item'; 
-        const title = document.createElement('h3'); 
-        title.textContent = row.nombre; 
-        const meta = document.createElement('p'); 
-        meta.textContent = 'Correo: ' + row.email + ' - Rol ID: ' + row.rol_id + ' - Activo: ' + (row.activo == 1 ? 'Si' : 'No'); 
-        item.appendChild(title); 
-        item.appendChild(meta); 
-        container.appendChild(item); 
-    }); 
-} 
- 
-function renderRolesOptions(list) { 
-    const select = document.getElementById('rol-select'); 
-    select.innerHTML = ''; 
-    const defaultOption = document.createElement('option'); 
-    defaultOption.value = ''; 
-    defaultOption.textContent = 'Seleccione un rol'; 
-    select.appendChild(defaultOption); 
-    list.forEach(function (row) { 
-        const option = document.createElement('option'); 
-        option.value = row.id; 
-        option.textContent = row.nombre; 
-        select.appendChild(option); 
-    }); 
-} 
- 
-async function loadUsuarios() { 
-    const data = await fetchJSON('api.php?c=usuario&m=list'); 
-    const rows = data.data ? data.data : []; 
-    renderUsuarios(rows); 
-} 
- 
-async function loadRoles() { 
-    const data = await fetchJSON('api.php?c=rol&m=list'); 
-    const rows = data.data ? data.data : []; 
-    renderRolesOptions(rows); 
-} 
- 
-document.addEventListener('DOMContentLoaded', async function () { 
-    await loadRoles(); 
-    await loadUsuarios(); 
-    document.getElementById('refresh-btn').addEventListener('click', loadUsuarios); 
-    document.getElementById('usuario-form').addEventListener('submit', async function (e) { 
-        e.preventDefault(); 
-        const form = e.target; 
-        const formData = new FormData(form); 
-        const res = await fetch('api.php?c=usuario&m=create', { 
-            method: 'POST', 
-            body: formData 
+        const title = document.createElement('h3');  
+        title.textContent = row.nombre;  
+        const meta = document.createElement('p');  
+        meta.textContent = 'Correo: ' + row.email + ' - Rol: ' + row.rol_nombre + ' - Activo: ' + (Number(row.activo) === 1 ? 'Si' : 'No');  
+        const actions = document.createElement('div');  
+        actions.className = 'item-actions';  
+        const editBtn = document.createElement('button');  
+        editBtn.type = 'button';  
+        editBtn.className = 'btn ghost';  
+        editBtn.textContent = 'Editar';  
+        editBtn.addEventListener('click', function () {  
+            startEdit(row);  
+        });  
+        const deleteBtn = document.createElement('button');  
+        deleteBtn.type = 'button';  
+        deleteBtn.className = 'btn danger';  
+        deleteBtn.textContent = 'Eliminar';  
+        deleteBtn.addEventListener('click', async function () {  
+            const ok = window.confirm('Se eliminara el usuario ' + row.nombre + '. Deseas continuar?');  
+            if (!ok) { return; }  
+            const data = await fetchJSON('api.php?c=usuario&m=delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: row.id }) });  
+            showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
+            if (data.status) {  
+                if (editingId === Number(row.id)) { resetForm(); }  
+                await loadUsuarios();  
+            }  
         }); 
-        const data = await res.json(); 
-        const message = data.message ? data.message : ''; 
-        document.getElementById('form-message').textContent = message; 
-        if (data.status) { 
-            form.reset(); 
-            await loadUsuarios(); 
-        } 
-    }); 
-});
+        actions.appendChild(editBtn);  
+        actions.appendChild(deleteBtn);  
+        item.appendChild(title);  
+        item.appendChild(meta);  
+        item.appendChild(actions);  
+        container.appendChild(item);  
+    });  
+}  
+  
+async function loadRoles() {  
+    const data = await fetchJSON('api.php?c=rol&m=list');  
+    fillRoles(data.data ? data.data : []);  
+}  
+  
+async function loadUsuarios() {  
+    const data = await fetchJSON('api.php?c=usuario&m=list');  
+    usuariosCache = data.data ? data.data : [];  
+    renderUsuarios(usuariosCache);  
+}  
+  
+document.addEventListener('DOMContentLoaded', async function () {  
+    ensureFormTools();  
+    resetForm();  
+    await loadRoles();  
+    await loadUsuarios();  
+    getNode('refresh-btn').addEventListener('click', loadUsuarios);  
+    getNode('cancel-btn').addEventListener('click', resetForm);  
+    getNode('usuario-form').addEventListener('submit', async function (event) {  
+        event.preventDefault();  
+        const formData = new FormData(getNode('usuario-form'));  
+        const url = editingId > 0 ? 'api.php?c=usuario&m=update' : 'api.php?c=usuario&m=create';  
+        if (editingId > 0) { formData.set('id', String(editingId)); } 
+        const data = await fetchJSON(url, { method: 'POST', body: formData });  
+        showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
+        if (data.status) {  
+            resetForm();  
+            await loadUsuarios();  
+        }  
+    });  
+}); 

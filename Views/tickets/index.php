@@ -84,10 +84,12 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             Prioridad
                             <select name='prioridad_id' id='prioridad_id' required></select>
                         </label>
+                        <?php if (!$isUser): ?>
                         <label>
                             Estado
                             <select name='estado_id' id='estado_id' required></select>
                         </label>
+                        <?php endif; ?>
                     </div>
                     <label>
                         Descripcion
@@ -117,10 +119,12 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             Tecnico
                             <select name='tecnico_id' id='assign_tecnico_id'></select>
                         </label>
+                        <?php if (!$isUser): ?>
                         <label>
                             Estado
                             <select name='estado_id' id='assign_estado_id' required></select>
                         </label>
+                        <?php endif; ?>
                     </div>
                     <div class='actions'>
                         <button type='submit' class='btn primary'>Actualizar ticket</button>
@@ -139,10 +143,12 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             Ticket
                             <select name='ticket_id' id='status_ticket_id' required></select>
                         </label>
+                        <?php if (!$isUser): ?>
                         <label>
                             Estado
                             <select name='estado_id' id='status_estado_id' required></select>
                         </label>
+                        <?php endif; ?>
                     </div>
                     <div class='actions'>
                         <button type='submit' class='btn primary'>Actualizar estado</button>
