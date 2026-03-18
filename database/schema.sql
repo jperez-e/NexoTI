@@ -13,6 +13,7 @@ CREATE TABLE usuarios (
     clave_hash VARCHAR(255) NOT NULL,
     rol_id INT NOT NULL,
     activo TINYINT(1) NOT NULL DEFAULT 1,
+    foto VARCHAR(255) NULL,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_usuarios_roles FOREIGN KEY (rol_id) REFERENCES roles(id)
 );
@@ -61,6 +62,15 @@ CREATE TABLE comentarios_ticket (
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_com_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
     CONSTRAINT fk_com_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+CREATE TABLE ticket_adjuntos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ticket_id INT NOT NULL,
+    archivo VARCHAR(255) NOT NULL,
+    nombre_original VARCHAR(255) NOT NULL,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_adj_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
 );
 
 INSERT INTO roles(nombre) VALUES ("Admin"), ("Tecnico"), ("Usuario");

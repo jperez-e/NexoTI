@@ -14,6 +14,7 @@ $map = [
     "usuario" => "UsuarioController",
     "ticket" => "TicketController",
     "comentario" => "ComentarioController",
+    "reporte" => "ReporteController",
 ];
 
 if (!isset($map[$controller])) {
