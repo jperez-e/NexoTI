@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>NexoTI | Categorias</title>
+    <link rel="stylesheet" href="/NexoTI/Views/categorias/categorias.css">
+    <script src="/NexoTI/Views/categorias/categorias.js" defer></script>
+</head>
+<body>
+    <main class="page">
+        <header class="page-header">
+            <div>
+                <h1>Categorias</h1>
+                <p>Gestiona las categorias de soporte.</p>
+            </div>
+            <a class="btn" href="/NexoTI/index.php?r=home">Volver al inicio</a>
+        </header>
+
+        <section class="card">
+            <h2>Nueva categoria</h2>
+            <form id="categoria-form">
+                <label>
+                    Nombre
+                    <input name="nombre" type="text" placeholder="Ej: Soporte general" required>
+                </label>
+                <label>
+                    Descripcion
+                    <textarea name="descripcion" rows="3" placeholder="Detalle opcional"></textarea>
+                </label>
+                <div class="actions">
+                    <button type="submit" class="btn primary">Guardar categoria</button>
+                    <span id="form-message" class="message"></span>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="list-header">
+                <h2>Listado</h2>
+                <button class="btn ghost" id="refresh-btn" type="button">Actualizar</button>
+            </div>
+            <div id="categorias-list" class="list"></div>
+        </section>
+    </main>
+</body>
+</html>

@@ -29,6 +29,36 @@ if ($route === "home" || $route === "") {
     exit;
 }
 
+if ($route === "tickets") {
+    require __DIR__ . "/Views/tickets/index.php";
+    exit;
+}
+
+if ($route === "categorias") {
+    require __DIR__ . "/Views/categorias/index.php";
+    exit;
+}
+
+if ($route === "prioridades") {
+    require __DIR__ . "/Views/prioridades/index.php";
+    exit;
+}
+
+if ($route === "estados") {
+    require __DIR__ . "/Views/estados/index.php";
+    exit;
+}
+
+if ($route === "roles") {
+    require __DIR__ . "/Views/roles/index.php";
+    exit;
+}
+
+if ($route === "usuarios") {
+    require __DIR__ . "/Views/usuarios/index.php";
+    exit;
+}
+
 if ($route === "show-register" || $route === "register") {
     $auth->{$route === "register" ? "register" : "showRegister"}();
     exit;
