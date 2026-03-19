@@ -5,6 +5,7 @@ $foto = (string) ($usuario['foto'] ?? '');
 $fotoUrl = $foto !== '' ? '/NexoTI/' . ltrim($foto, '/') : '';
 $nombre = (string) ($usuario['nombre'] ?? 'Usuario');
 $email = (string) ($usuario['email'] ?? '');
+$rol = (string) ($usuario['rol_nombre'] ?? 'Sin rol');
 $parts = preg_split('/\s+/', trim($nombre));
 $initials = 'U';
 if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
@@ -47,6 +48,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     <div class='profile-data'>
                         <p><strong>Nombre:</strong> <?php echo htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8'); ?></p>
                         <p><strong>Correo:</strong> <?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?></p>
+                        <p><strong>Rol:</strong> <span class='role-badge'><?php echo htmlspecialchars($rol, ENT_QUOTES, 'UTF-8'); ?></span></p>
                     </div>
 
                     <?php if ($message !== null): ?>
@@ -58,6 +60,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     <?php endif; ?>
 
                     <form action='/NexoTI/index.php?r=perfil-update' method='post' enctype='multipart/form-data' class='profile-form'>
+                        <input type='hidden' name='_token' value='<?php echo htmlspecialchars((string) ($_SESSION['csrf_token'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>'>
                         <label>
                             Foto de perfil
                             <input type='file' name='foto' accept='image/png,image/jpeg,image/webp' required>
@@ -70,3 +73,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     </div>
 </body>
 </html>
+
+
+
+

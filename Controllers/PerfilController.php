@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../Config/Csrf.php';
 require_once __DIR__ . '/../Models/UsuarioModel.php';
 
 class PerfilController
@@ -39,6 +40,11 @@ class PerfilController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->index();
+            return;
+        }
+
+        if (!Csrf::isValidRequest()) {
+            $this->index(null, 'La sesion del formulario expiro. Intenta de nuevo.');
             return;
         }
 

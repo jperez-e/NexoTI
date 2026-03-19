@@ -25,9 +25,9 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Tickets</title>
     <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css'>
-    <script src='/NexoTI/Views/tickets/tickets.js' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.js?v=5' defer></script>
 </head>
-<body>
+<body data-role-id='<?php echo (int) $rolId; ?>'>
     <div class='layout'>
         <?php require __DIR__ . '/../partials/sidebar.php'; ?>
         <main class='page'>
@@ -134,30 +134,6 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
             </section>
             <?php endif; ?>
 
-            <?php if ($isTech): ?>
-            <section class='card'>
-                <h2>Actualizar estado</h2>
-                <form id='status-form'>
-                    <div class='grid'>
-                        <label>
-                            Ticket
-                            <select name='ticket_id' id='status_ticket_id' required></select>
-                        </label>
-                        <?php if (!$isUser): ?>
-                        <label>
-                            Estado
-                            <select name='estado_id' id='status_estado_id' required></select>
-                        </label>
-                        <?php endif; ?>
-                    </div>
-                    <div class='actions'>
-                        <button type='submit' class='btn primary'>Actualizar estado</button>
-                        <span id='status-message' class='message'></span>
-                    </div>
-                </form>
-            </section>
-            <?php endif; ?>
-
             <?php if ($isUser): ?>
             <section class='card'>
                 <h2>Confirmar cierre</h2>
@@ -185,3 +161,4 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     </div>
 </body>
 </html>
+

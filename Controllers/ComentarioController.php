@@ -19,14 +19,15 @@ class ComentarioController extends BaseController
     public function list(): void
     {
         $this->requireLogin();
-        $rolId = (int) ($_SESSION['rol_id'] ?? 0);
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
-        $rows = $this->model->getAll();
+        $rolId = $this->currentRoleId();
+        $userId = $this->currentUserId();
 
         if ($rolId === 3) {
-            $rows = array_values(array_filter($rows, static function (array $row) use ($userId): bool { return (int) ($row['ticket_usuario_id'] ?? 0) === $userId; }));
+            $rows = $this->model->getByUsuario($userId);
         } elseif ($rolId === 2) {
-            $rows = array_values(array_filter($rows, static function (array $row) use ($userId): bool { return (int) ($row['ticket_tecnico_id'] ?? 0) === $userId; }));
+            $rows = $this->model->getByTecnico($userId);
+        } else {
+            $rows = $this->model->getAll();
         }
 
         $this->jsonOk('Comentarios cargados', $rows);
@@ -36,18 +37,29 @@ class ComentarioController extends BaseController
     {
         $this->requireLogin();
         $this->requirePost();
-        $payload = json_decode((string) file_get_contents('php://input'), true);
-        if (!is_array($payload)) { $payload = $_POST; }
+
+        $payload = $this->requestData();
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         $comentario = trim(strip_tags((string) ($payload['comentario'] ?? '')));
-        $rolId = (int) ($_SESSION['rol_id'] ?? 0);
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
-        if ($ticketId <= 0 || $comentario === '') { $this->jsonError('Datos invalidos'); }
+        $rolId = $this->currentRoleId();
+        $userId = $this->currentUserId();
+
+        if ($ticketId <= 0 || $comentario === '') {
+            $this->jsonError('Datos invalidos.');
+        }
+
         $ticket = $this->tickets->getById($ticketId);
-        if (!$ticket) { $this->jsonError('Ticket no encontrado.'); }
-        if ($rolId === 3 && (int) $ticket['usuario_id'] !== $userId) { $this->jsonError('No puedes comentar este ticket.'); }
-        if ($rolId === 2 && (int) ($ticket['tecnico_id'] ?? 0) !== $userId) { $this->jsonError('No puedes comentar este ticket.'); }
+        if (!$ticket) {
+            $this->jsonError('Ticket no encontrado.', 404);
+        }
+        if ($rolId === 3 && (int) $ticket['usuario_id'] !== $userId) {
+            $this->jsonError('No puedes comentar este ticket.', 403);
+        }
+        if ($rolId === 2 && (int) ($ticket['tecnico_id'] ?? 0) !== $userId) {
+            $this->jsonError('No puedes comentar este ticket.', 403);
+        }
+
         $ok = $this->model->insert($ticketId, $userId, $comentario);
-        $ok ? $this->jsonOk('Comentario creado') : $this->jsonError('No se pudo crear');
+        $ok ? $this->jsonOk('Comentario creado') : $this->jsonError('No se pudo crear.');
     }
 }

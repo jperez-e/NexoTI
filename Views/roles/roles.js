@@ -2,6 +2,11 @@ async function fetchJSON(url) {
     const res = await fetch(url); 
     return res.json(); 
 } 
+
+function getCsrfToken() {
+    const node = document.getElementById('csrf-token');
+    return node ? node.value : '';
+}
  
 function renderRoles(list) { 
     const container = document.getElementById('roles-list'); 
@@ -29,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         e.preventDefault(); 
         const form = e.target; 
         const formData = new FormData(form); 
+        formData.set('_token', getCsrfToken());
         const res = await fetch('api.php?c=rol&m=create', { 
             method: 'POST', 
             body: formData 

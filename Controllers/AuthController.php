@@ -1,6 +1,7 @@
 <?php  
 declare(strict_types=1);  
   
+require_once __DIR__ . '/../Config/Csrf.php';  
 require_once __DIR__ . '/../Models/UsuarioModel.php';  
 require_once __DIR__ . '/../Models/TicketModel.php';  
   
@@ -30,6 +31,12 @@ class AuthController
             $this->showLogin();  
             return;  
         }  
+
+        if (!Csrf::isValidRequest()) {
+            $_SESSION['flash_error'] = 'La sesion del formulario expiro. Intenta de nuevo.';
+            header('Location: index.php?r=login');
+            exit;
+        }
   
         $login = trim(strip_tags((string) ($_POST['login'] ?? '')));  
         $password = (string) ($_POST['password'] ?? '');  
@@ -52,7 +59,8 @@ class AuthController
             header('Location: index.php?r=login');  
             exit;  
         }  
-  
+
+        session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];  
         $_SESSION['nombre'] = $user['nombre'];  
         $_SESSION['rol_id'] = (int) $user['rol_id'];  
@@ -83,6 +91,11 @@ class AuthController
             $this->showRegister();  
             return;  
         }  
+
+        if (!Csrf::isValidRequest()) {
+            $this->showRegister('La sesion del formulario expiro. Intenta de nuevo.');
+            return;
+        }
   
         $nombre = trim(strip_tags((string) ($_POST['nombre'] ?? '')));  
         $email = trim((string) ($_POST['email'] ?? ''));  
@@ -113,6 +126,8 @@ class AuthController
     {  
         session_unset();  
         session_destroy();  
+        session_start();
+        session_regenerate_id(true);
         header('Location: index.php?r=login');  
         exit;  
     }  

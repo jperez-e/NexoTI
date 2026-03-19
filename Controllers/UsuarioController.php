@@ -45,7 +45,7 @@ class UsuarioController extends BaseController
             $ok = $this->model->insert($nombre, $email, $hash, $rolId, 1);
             $ok ? $this->jsonOk('Usuario creado correctamente.') : $this->jsonError('No se pudo crear el usuario.');
         } catch (Throwable $e) {
-            $this->jsonError('No se pudo crear el usuario. Verifica que el correo no exista.');
+            $this->jsonError('No se pudo crear el usuario. Verifica que el correo no exista.', 409);
         }
     }
 
@@ -79,7 +79,7 @@ class UsuarioController extends BaseController
             $ok = $this->model->update($id, $nombre, $email, $rolId, $hash, 1);
             $ok ? $this->jsonOk('Usuario actualizado correctamente.') : $this->jsonError('No se pudo actualizar el usuario.');
         } catch (Throwable $e) {
-            $this->jsonError('No se pudo actualizar el usuario. Verifica el correo y los datos.');
+            $this->jsonError('No se pudo actualizar el usuario. Verifica el correo y los datos.', 409);
         }
     }
 
@@ -89,17 +89,14 @@ class UsuarioController extends BaseController
         $this->requireRole([1]);
         $this->requirePost();
 
-        $payload = json_decode((string) file_get_contents('php://input'), true);
-        if (!is_array($payload)) {
-            $payload = $_POST;
-        }
+        $payload = $this->requestData();
 
         $id = (int) ($payload['id'] ?? 0);
         if ($id <= 0) {
             $this->jsonError('Usuario invalido.');
         }
 
-        if ($id === (int) ($_SESSION['user_id'] ?? 0)) {
+        if ($id === $this->currentUserId()) {
             $this->jsonError('No puedes eliminar tu propio usuario.');
         }
 
@@ -112,7 +109,7 @@ class UsuarioController extends BaseController
             $ok = $this->model->delete($id);
             $ok ? $this->jsonOk('Usuario eliminado correctamente.') : $this->jsonError('No se pudo eliminar el usuario.');
         } catch (Throwable $e) {
-            $this->jsonError('No se puede eliminar este usuario porque tiene informacion relacionada en el sistema.');
+            $this->jsonError('No se puede eliminar este usuario porque tiene informacion relacionada en el sistema.', 409);
         }
     }
 

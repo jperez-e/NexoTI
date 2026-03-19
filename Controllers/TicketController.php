@@ -19,8 +19,8 @@ class TicketController extends BaseController
     public function list(): void
     {
         $this->requireLogin();
-        $rolId = (int) ($_SESSION['rol_id'] ?? 0);
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $rolId = $this->currentRoleId();
+        $userId = $this->currentUserId();
 
         if ($rolId === 3) {
             $rows = $this->model->getByUsuario($userId);
@@ -44,10 +44,11 @@ class TicketController extends BaseController
         $prioridadId = (int) ($_POST['prioridad_id'] ?? 0);
         $estadoId = (int) ($_POST['estado_id'] ?? 0);
 
-        $sessionUserId = (int) ($_SESSION['user_id'] ?? 0);
-        $rolId = (int) ($_SESSION['rol_id'] ?? 0);
+        $sessionUserId = $this->currentUserId();
+        $rolId = $this->currentRoleId();
         $usuarioId = (int) ($_POST['usuario_id'] ?? $sessionUserId);
         if ($rolId === 3) {
+            // Regla de negocio: los tickets creados por el usuario final siempre nacen abiertos.
             $usuarioId = $sessionUserId;
             $estadoInicialId = $this->model->getEstadoIdByNombre('Abierto');
             if ($estadoInicialId !== null) {
@@ -113,10 +114,7 @@ class TicketController extends BaseController
         $this->requireRole([1]);
         $this->requirePost();
 
-        $payload = json_decode((string) file_get_contents('php://input'), true);
-        if (!is_array($payload)) {
-            $payload = $_POST;
-        }
+        $payload = $this->requestData();
 
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         $estadoId = (int) ($payload['estado_id'] ?? 0);
@@ -140,10 +138,7 @@ class TicketController extends BaseController
         $this->requireRole([1, 2]);
         $this->requirePost();
 
-        $payload = json_decode((string) file_get_contents('php://input'), true);
-        if (!is_array($payload)) {
-            $payload = $_POST;
-        }
+        $payload = $this->requestData();
 
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         $estadoId = (int) ($payload['estado_id'] ?? 0);
@@ -157,10 +152,10 @@ class TicketController extends BaseController
             $this->jsonError('Ticket no encontrado.');
         }
 
-        $rolId = (int) ($_SESSION['rol_id'] ?? 0);
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $rolId = $this->currentRoleId();
+        $userId = $this->currentUserId();
         if ($rolId === 2 && (int) $ticket['tecnico_id'] !== $userId) {
-            $this->jsonError('No puedes actualizar este ticket.');
+            $this->jsonError('No puedes actualizar este ticket.', 403);
         }
 
         $cerradoId = $this->model->getEstadoIdByNombre('Cerrado');
@@ -182,10 +177,7 @@ class TicketController extends BaseController
         $this->requireRole([3]);
         $this->requirePost();
 
-        $payload = json_decode((string) file_get_contents('php://input'), true);
-        if (!is_array($payload)) {
-            $payload = $_POST;
-        }
+        $payload = $this->requestData();
 
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         if ($ticketId <= 0) {
@@ -194,12 +186,12 @@ class TicketController extends BaseController
 
         $ticket = $this->model->getById($ticketId);
         if (!$ticket) {
-            $this->jsonError('Ticket no encontrado.');
+            $this->jsonError('Ticket no encontrado.', 404);
         }
 
-        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $userId = $this->currentUserId();
         if ((int) $ticket['usuario_id'] !== $userId) {
-            $this->jsonError('No puedes cerrar este ticket.');
+            $this->jsonError('No puedes cerrar este ticket.', 403);
         }
 
         $cerradoId = $this->model->getEstadoIdByNombre('Cerrado');

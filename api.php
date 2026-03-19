@@ -3,49 +3,78 @@ declare(strict_types=1);
 
 session_start();
 
-$controller = strtolower(trim((string) ($_GET["c"] ?? "")));
-$method = trim((string) ($_GET["m"] ?? ""));
+require_once __DIR__ . '/Config/Csrf.php';
 
-$map = [
-    "categoria" => "CategoriaController",
-    "prioridad" => "PrioridadController",
-    "estado" => "EstadoTicketController",
-    "rol" => "RolController",
-    "usuario" => "UsuarioController",
-    "ticket" => "TicketController",
-    "comentario" => "ComentarioController",
-    "reporte" => "ReporteController",
-];
+Csrf::token();
 
-if (!isset($map[$controller])) {
-    http_response_code(404);
-    echo json_encode(["status" => false, "message" => "Controlador no encontrado"]);
+function respondJsonError(string $message, int $statusCode): void
+{
+    http_response_code($statusCode);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['status' => false, 'message' => $message]);
     exit;
 }
 
-$class = $map[$controller];
-$file = __DIR__ . "/Controllers/" . $class . ".php";
+$controller = strtolower(trim((string) ($_GET['c'] ?? '')));
+$method = trim((string) ($_GET['m'] ?? ''));
+
+$map = [
+    'categoria' => [
+        'class' => 'CategoriaController',
+        'methods' => ['list', 'create'],
+    ],
+    'prioridad' => [
+        'class' => 'PrioridadController',
+        'methods' => ['list', 'create'],
+    ],
+    'estado' => [
+        'class' => 'EstadoTicketController',
+        'methods' => ['list', 'create'],
+    ],
+    'rol' => [
+        'class' => 'RolController',
+        'methods' => ['list', 'create'],
+    ],
+    'usuario' => [
+        'class' => 'UsuarioController',
+        'methods' => ['list', 'create', 'update', 'delete', 'tecnicos'],
+    ],
+    'ticket' => [
+        'class' => 'TicketController',
+        'methods' => ['list', 'create', 'assign', 'updateStatus', 'closeTicket'],
+    ],
+    'comentario' => [
+        'class' => 'ComentarioController',
+        'methods' => ['list', 'create'],
+    ],
+    'reporte' => [
+        'class' => 'ReporteController',
+        'methods' => ['index', 'ticketsCsv', 'ticketsPdf', 'resumen', 'preview'],
+    ],
+];
+
+if (!isset($map[$controller])) {
+    respondJsonError('Controlador no encontrado', 404);
+}
+
+$class = $map[$controller]['class'];
+$allowedMethods = $map[$controller]['methods'];
+$file = __DIR__ . '/Controllers/' . $class . '.php';
 if (!file_exists($file)) {
-    http_response_code(500);
-    echo json_encode(["status" => false, "message" => "Archivo de controlador no encontrado"]);
-    exit;
+    respondJsonError('Archivo de controlador no encontrado', 500);
 }
 
 require_once $file;
 
 if (!class_exists($class)) {
-    http_response_code(500);
-    echo json_encode(["status" => false, "message" => "Clase no encontrada"]);
-    exit;
+    respondJsonError('Clase no encontrada', 500);
 }
 
 $instance = new $class();
 
-if (!method_exists($instance, $method)) {
-    http_response_code(404);
-    echo json_encode(["status" => false, "message" => "Metodo no encontrado"]);
-    exit;
+if (!in_array($method, $allowedMethods, true) || !method_exists($instance, $method)) {
+    respondJsonError('Metodo no encontrado', 404);
 }
 
-header("Content-Type: application/json; charset=utf-8");
+header('Content-Type: application/json; charset=utf-8');
 $instance->{$method}();

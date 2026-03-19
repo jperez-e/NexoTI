@@ -5,7 +5,7 @@
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>  
     <title>NexoTI - Usuarios</title>  
     <link rel='stylesheet' href='/NexoTI/Views/usuarios/usuarios.css'>  
-    <script src='/NexoTI/Views/usuarios/usuarios.js' defer></script>  
+    <script src='/NexoTI/Views/usuarios/usuarios.js?v=2' defer></script>  
 </head>  
 <body>  
     <div class='layout'>  

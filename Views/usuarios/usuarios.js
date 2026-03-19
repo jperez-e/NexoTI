@@ -5,6 +5,11 @@ async function fetchJSON(url, options = {}) {
     const response = await fetch(url, options);  
     return response.json();  
 }  
+
+function getCsrfToken() {
+    const node = getNode('csrf-token');
+    return node ? node.value : '';
+}
   
 function getNode(id) {  
     return document.getElementById(id);  
@@ -114,7 +119,7 @@ function renderUsuarios(list) {
         deleteBtn.addEventListener('click', async function () {  
             const ok = window.confirm('Se eliminara el usuario ' + row.nombre + '. Deseas continuar?');  
             if (!ok) { return; }  
-            const data = await fetchJSON('api.php?c=usuario&m=delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: row.id }) });  
+            const data = await fetchJSON('api.php?c=usuario&m=delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() }, body: JSON.stringify({ id: row.id }) });  
             showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
             if (data.status) {  
                 if (editingId === Number(row.id)) { resetForm(); }  
@@ -151,6 +156,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     getNode('usuario-form').addEventListener('submit', async function (event) {  
         event.preventDefault();  
         const formData = new FormData(getNode('usuario-form'));  
+        formData.set('_token', getCsrfToken());
         const url = editingId > 0 ? 'api.php?c=usuario&m=update' : 'api.php?c=usuario&m=create';  
         if (editingId > 0) { formData.set('id', String(editingId)); } 
         const data = await fetchJSON(url, { method: 'POST', body: formData });  

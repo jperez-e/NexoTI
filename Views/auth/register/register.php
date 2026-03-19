@@ -17,6 +17,7 @@
             <h2>Registro de usuario</h2> 
             <p>Completa los datos del nuevo usuario.</p> 
             <form method=POST action=index.php?r=register> 
+                <input type=hidden name=_token value='<?php echo htmlspecialchars((string) ($_SESSION['csrf_token'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>'>
                 <label for=nombre>Nombre completo</label> 
                 <input id=nombre name=nombre type=text required> 
                 <label for=email>Correo</label> 

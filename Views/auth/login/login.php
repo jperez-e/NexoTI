@@ -22,6 +22,7 @@
                 <?php unset($_SESSION['flash_error']); ?>  
             <?php endif; ?>  
             <form method=POST action=index.php?r=login>  
+                <input type=hidden name=_token value='<?php echo htmlspecialchars((string) ($_SESSION['csrf_token'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>'>
                 <label for=login>Correo o usuario</label>  
                 <input id=login name=login type=text placeholder=correo@dominio.com required>  
                 <label for=password>Contraseña</label>  

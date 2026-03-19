@@ -170,3 +170,20 @@ body {
         margin-top: 0;  
     }  
 } 
+
+.profile-data {
+ display: grid;
+ gap: 10px;
+}
+.profile-data p {
+ margin: 0;
+}
+.role-badge {
+ display: inline-flex;
+ align-items: center;
+ padding: 4px 10px;
+ border-radius: 999px;
+ background: #dbeafe;
+ color: #1d4ed8;
+ font-weight: 700;
+}
