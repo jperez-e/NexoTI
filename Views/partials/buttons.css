@@ -49,6 +49,26 @@
         opacity 0.18s ease;
 }
 
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+}
+
+.btn-icon svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+.btn-label {
+    display: inline-flex;
+    align-items: center;
+}
+
 .btn:hover {
     background: var(--btn-surface-hover);
     border-color: #bfd1ea;

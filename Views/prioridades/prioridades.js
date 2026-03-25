@@ -5,6 +5,13 @@ function getNode(id) {
     return document.getElementById(id);
 }
 
+function setButtonContent(button, iconName, label) {
+    if (!button) {
+        return;
+    }
+    button.innerHTML = window.UiIcons ? window.UiIcons.buttonContent(iconName, label) : label;
+}
+
 async function fetchJSON(url, options = {}) {
     const response = await fetch(url, options);
     return response.json();
@@ -21,14 +28,14 @@ function setButtonLoading(button, loading, loadingText) {
     }
 
     if (loading) {
-        button.dataset.label = button.textContent;
+        button.dataset.labelHtml = button.innerHTML;
         button.textContent = loadingText;
         button.disabled = true;
         button.classList.add('is-loading');
         return;
     }
 
-    button.textContent = button.dataset.label ? button.dataset.label : button.textContent;
+    button.innerHTML = button.dataset.labelHtml ? button.dataset.labelHtml : button.innerHTML;
     button.disabled = false;
     button.classList.remove('is-loading');
 }
@@ -104,7 +111,7 @@ function ensureFormTools() {
         cancel.type = 'button';
         cancel.id = 'cancel-btn';
         cancel.className = 'btn ghost hidden';
-        cancel.textContent = 'Cancelar edicion';
+        setButtonContent(cancel, 'close', 'Cancelar edicion');
         actions.insertBefore(cancel, getNode('form-message'));
     }
 }
@@ -114,7 +121,7 @@ function resetForm() {
     getNode('prioridad-form').reset();
     getNode('prioridad-id').value = '';
     getNode('form-title').textContent = 'Nueva prioridad';
-    getNode('submit-btn').textContent = 'Guardar prioridad';
+    setButtonContent(getNode('submit-btn'), 'save', 'Guardar prioridad');
     getNode('cancel-btn').classList.add('hidden');
     showMessage('', '');
 }
@@ -125,7 +132,7 @@ function startEdit(row) {
     getNode('nombre').value = row.nombre;
     getNode('nivel').value = row.nivel;
     getNode('form-title').textContent = 'Editar prioridad';
-    getNode('submit-btn').textContent = 'Actualizar prioridad';
+    setButtonContent(getNode('submit-btn'), 'save', 'Actualizar prioridad');
     getNode('cancel-btn').classList.remove('hidden');
     showMessage('', '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -153,7 +160,7 @@ function renderPrioridades(list) {
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
         editBtn.className = 'btn ghost';
-        editBtn.textContent = 'Editar';
+        setButtonContent(editBtn, 'edit', 'Editar');
         editBtn.addEventListener('click', function () {
             startEdit(row);
         });
@@ -161,7 +168,7 @@ function renderPrioridades(list) {
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn danger';
-        deleteBtn.textContent = 'Eliminar';
+        setButtonContent(deleteBtn, 'delete', 'Eliminar');
         deleteBtn.addEventListener('click', async function () {
             const ok = window.confirm('Se eliminara la prioridad ' + row.nombre + '. Deseas continuar?');
             if (!ok) {

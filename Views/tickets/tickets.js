@@ -32,13 +32,13 @@ async function postJSON(url, payload) {
 function setButtonLoading(button, loading, loadingText) {
     if (!button) { return; }
     if (loading) {
-        button.dataset.label = button.textContent;
+        button.dataset.labelHtml = button.innerHTML;
         button.textContent = loadingText;
         button.disabled = true;
         button.classList.add('is-loading');
         return;
     }
-    button.textContent = button.dataset.label ? button.dataset.label : button.textContent;
+    button.innerHTML = button.dataset.labelHtml ? button.dataset.labelHtml : button.innerHTML;
     button.disabled = false;
     button.classList.remove('is-loading');
 }
@@ -152,6 +152,13 @@ function createAvatar(name, photoUrl, className) {
         avatar.appendChild(fallback);
     }
     return avatar;
+}
+
+function setButtonContent(button, iconName, label) {
+    if (!button) {
+        return;
+    }
+    button.innerHTML = window.UiIcons ? window.UiIcons.buttonContent(iconName, label) : label;
 }
 
 function resolvePhoto(photoPath) {
@@ -344,7 +351,7 @@ async function submitInlineReply(ticket, textarea, stateSelect, messageNode, rep
         setInlineMessage(messageNode, successMessage, 'success');
         textarea.value = '';
         replyBox.classList.remove('is-open');
-        toggleButton.textContent = 'Responder';
+        setButtonContent(toggleButton, 'reply', 'Responder');
         await refreshTicketsView();
     } finally {
         setButtonLoading(sendButton, false);
@@ -404,17 +411,17 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
     cancelButton.className = 'btn ghost';
-    cancelButton.textContent = 'Cancelar';
+    setButtonContent(cancelButton, 'close', 'Cancelar');
     cancelButton.addEventListener('click', function () {
         textarea.value = '';
         box.classList.remove('is-open');
-        toggleButton.textContent = 'Responder';
+        setButtonContent(toggleButton, 'reply', 'Responder');
         setInlineMessage(messageNode, '', '');
     });
     const sendButton = document.createElement('button');
     sendButton.type = 'button';
     sendButton.className = 'btn primary';
-    sendButton.textContent = 'Responder';
+    setButtonContent(sendButton, 'reply', 'Responder');
     sendButton.addEventListener('click', function () {
         submitInlineReply(ticket, textarea, stateSelect, messageNode, box, toggleButton, sendButton);
     });
@@ -436,11 +443,11 @@ function buildInlineActions(ticket) {
     const replyButton = document.createElement('button');
     replyButton.type = 'button';
     replyButton.className = 'btn ghost';
-    replyButton.textContent = 'Responder';
+    setButtonContent(replyButton, 'reply', 'Responder');
     const reply = buildInlineReply(ticket, messageNode, replyButton);
     replyButton.addEventListener('click', function () {
         const isOpen = reply.box.classList.toggle('is-open');
-        replyButton.textContent = isOpen ? 'Ocultar respuesta' : 'Responder';
+        setButtonContent(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
         if (isOpen) { reply.textarea.focus(); }
     });
     actions.appendChild(replyButton);
@@ -448,7 +455,7 @@ function buildInlineActions(ticket) {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'btn primary';
-        closeButton.textContent = 'Confirmar cierre';
+        setButtonContent(closeButton, 'close', 'Confirmar cierre');
         closeButton.addEventListener('click', function () {
             closeInlineTicket(ticket.id, messageNode, closeButton);
         });

@@ -7,6 +7,7 @@
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/categorias/categorias.css'> 
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+    <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/categorias/categorias.js?v=2' defer></script> 
 </head> 
 <body> 
@@ -18,7 +19,7 @@
                     <h1>Categorias</h1> 
                     <p>Gestiona categorias del sistema.</p> 
                 </div> 
-                <a class='btn' href='/NexoTI/index.php?r=home'>Volver al inicio</a> 
+                <a class='btn' href='/NexoTI/index.php?r=home'><span class='btn-label'>Volver al inicio</span></a> 
             </header> 
  
             <section class='card'> 
@@ -33,7 +34,7 @@
                         <textarea id='descripcion' name='descripcion' rows='3' placeholder='Describe la categoria'></textarea> 
                     </label> 
                     <div class='actions'> 
-                        <button type='submit' class='btn primary' id='submit-btn'>Guardar categoria</button> 
+                        <button type='submit' class='btn primary' id='submit-btn'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z' fill='currentColor'></path></svg></span><span class='btn-label'>Guardar categoria</span></button> 
                         <span id='form-message' class='message'></span> 
                     </div> 
                 </form> 
@@ -42,7 +43,7 @@
             <section class='card'> 
                 <div class='list-header'> 
                     <h2>Listado</h2> 
-                    <button class='btn ghost' id='refresh-btn' type='button'>Actualizar</button> 
+                    <button class='btn ghost' id='refresh-btn' type='button'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar</span></button> 
                 </div> 
                 <div id='categorias-list' class='list'></div> 
             </section> 

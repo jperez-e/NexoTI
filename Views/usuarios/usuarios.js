@@ -12,14 +12,14 @@ function setButtonLoading(button, loading, loadingText) {
     }
 
     if (loading) {
-        button.dataset.label = button.textContent;
+        button.dataset.labelHtml = button.innerHTML;
         button.textContent = loadingText;
         button.disabled = true;
         button.classList.add('is-loading');
         return;
     }
 
-    button.textContent = button.dataset.label ? button.dataset.label : button.textContent;
+    button.innerHTML = button.dataset.labelHtml ? button.dataset.labelHtml : button.innerHTML;
     button.disabled = false;
     button.classList.remove('is-loading');
 }
@@ -32,6 +32,13 @@ function getCsrfToken() {
 function getNode(id) {  
     return document.getElementById(id);  
 }  
+
+function setButtonContent(button, iconName, label) {
+    if (!button) {
+        return;
+    }
+    button.innerHTML = window.UiIcons ? window.UiIcons.buttonContent(iconName, label) : label;
+}
 
 function clearMessageLater(node, delay) {
     if (!node) {
@@ -71,7 +78,7 @@ function ensureFormTools() {
         cancel.type = 'button';  
         cancel.id = 'cancel-btn';  
         cancel.className = 'btn ghost hidden';  
-        cancel.textContent = 'Cancelar edicion';  
+        setButtonContent(cancel, 'close', 'Cancelar edicion');
         actions.insertBefore(cancel, getNode('form-message'));  
     }  
     if (!getNode('usuario-id')) {  
@@ -104,7 +111,7 @@ function resetForm() {
     const form = getNode('usuario-form');  
     form.reset();  
     getNode('usuario-id').value = '';  
-    getNode('submit-btn') ? getNode('submit-btn').textContent = 'Crear usuario' : null;  
+    getNode('submit-btn') ? setButtonContent(getNode('submit-btn'), 'save', 'Crear usuario') : null;  
     getNode('form-title') ? getNode('form-title').textContent = 'Registrar usuario' : null;  
     getNode('cancel-btn') ? getNode('cancel-btn').classList.add('hidden') : null;  
     showMessage('', '');  
@@ -117,7 +124,7 @@ function startEdit(user) {
     getNode('email') ? getNode('email').value = user.email : null;  
     getNode('password') ? getNode('password').value = '' : null;  
     getNode('rol-select') ? getNode('rol-select').value = user.rol_id : null;  
-    getNode('submit-btn') ? getNode('submit-btn').textContent = 'Actualizar usuario' : null;  
+    getNode('submit-btn') ? setButtonContent(getNode('submit-btn'), 'save', 'Actualizar usuario') : null;  
     getNode('form-title') ? getNode('form-title').textContent = 'Editar usuario' : null;  
     getNode('cancel-btn') ? getNode('cancel-btn').classList.remove('hidden') : null;  
     showMessage('', '');  
@@ -144,14 +151,14 @@ function renderUsuarios(list) {
         const editBtn = document.createElement('button');  
         editBtn.type = 'button';  
         editBtn.className = 'btn ghost';  
-        editBtn.textContent = 'Editar';  
+        setButtonContent(editBtn, 'edit', 'Editar');
         editBtn.addEventListener('click', function () {  
             startEdit(row);  
         });  
         const deleteBtn = document.createElement('button');  
         deleteBtn.type = 'button';  
         deleteBtn.className = 'btn danger';  
-        deleteBtn.textContent = 'Eliminar';  
+        setButtonContent(deleteBtn, 'delete', 'Eliminar');
         deleteBtn.addEventListener('click', async function () {  
             const ok = window.confirm('Se eliminara el usuario ' + row.nombre + '. Deseas continuar?');  
             if (!ok) { return; }  

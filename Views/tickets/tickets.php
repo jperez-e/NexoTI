@@ -28,6 +28,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+    <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/tickets/tickets.js?v=6' defer></script>
 </head>
 <body
@@ -51,7 +52,8 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                 </div>
                 <div class='user-area'>
                     <button class='btn ghost notice-btn' id='notice-btn' type='button'>
-                        Notificaciones
+                        <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2z' fill='currentColor'></path></svg></span>
+                        <span class='btn-label'>Notificaciones</span>
                         <span class='notice-count' id='notice-count'>0</span>
                     </button>
                     <span class='user-name'><?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?></span>
@@ -77,7 +79,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     <h1>Tickets de Soporte</h1>
                     <p>Registra, asigna y gestiona solicitudes.</p>
                 </div>
-                <a class='btn' href='/NexoTI/index.php?r=home'>Volver al inicio</a>
+                <a class='btn' href='/NexoTI/index.php?r=home'><span class='btn-label'>Volver al inicio</span></a>
             </header>
 
             <section class='card'>
@@ -117,7 +119,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                         <input type='file' name='adjunto' accept='image/*,.pdf,.doc,.docx'>
                     </label>
                     <div class='actions'>
-                        <button type='submit' class='btn primary'>Guardar ticket</button>
+                        <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z' fill='currentColor'></path></svg></span><span class='btn-label'>Guardar ticket</span></button>
                         <span id='form-message' class='message'></span>
                     </div>
                 </form>
@@ -144,7 +146,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                         <?php endif; ?>
                     </div>
                     <div class='actions'>
-                        <button type='submit' class='btn primary'>Actualizar ticket</button>
+                        <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar ticket</span></button>
                         <span id='assign-message' class='message'></span>
                     </div>
                 </form>
@@ -160,7 +162,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                         <select name='ticket_id' id='close_ticket_id' required></select>
                     </label>
                     <div class='actions'>
-                        <button type='submit' class='btn primary'>Cerrar ticket</button>
+                        <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z' fill='currentColor'></path></svg></span><span class='btn-label'>Cerrar ticket</span></button>
                         <span id='close-message' class='message'></span>
                     </div>
                 </form>
@@ -170,7 +172,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
             <section class='card'>
                 <div class='list-header'>
                     <h2>Listado</h2>
-                    <button class='btn ghost' id='refresh-btn' type='button'>Actualizar</button>
+                    <button class='btn ghost' id='refresh-btn' type='button'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar</span></button>
                 </div>
                 <div id='tickets-list' class='list'></div>
             </section>
