@@ -32,12 +32,30 @@ function getCsrfToken() {
 function getNode(id) {  
     return document.getElementById(id);  
 }  
+
+function clearMessageLater(node, delay) {
+    if (!node) {
+        return;
+    }
+
+    if (node._messageTimer) {
+        clearTimeout(node._messageTimer);
+    }
+
+    node._messageTimer = window.setTimeout(function () {
+        node.textContent = '';
+        node.className = 'message';
+    }, delay);
+}
   
 function showMessage(text, type) {  
     const node = getNode('form-message');  
     if (!node) { return; }  
     node.textContent = text;  
     node.className = type ? 'message ' + type : 'message';  
+    if (text !== '' && type) {
+        clearMessageLater(node, 4000);
+    }
 }  
   
 function ensureFormTools() {  

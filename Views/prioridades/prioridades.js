@@ -25,6 +25,27 @@ function setButtonLoading(button, loading, loadingText) {
     button.disabled = false;
     button.classList.remove('is-loading');
 }
+
+function showMessage(text, type) {
+    const node = document.getElementById('form-message');
+    if (!node) {
+        return;
+    }
+
+    if (node._messageTimer) {
+        clearTimeout(node._messageTimer);
+    }
+
+    node.textContent = text;
+    node.className = type ? 'message ' + type : 'message';
+
+    if (text !== '' && type) {
+        node._messageTimer = window.setTimeout(function () {
+            node.textContent = '';
+            node.className = 'message';
+        }, 4000);
+    }
+}
  
 function renderPrioridades(list) {  
     const container = document.getElementById('prioridades-list');  
@@ -70,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             });  
             const data = await res.json();  
             const message = data.message ? data.message : '';  
-            document.getElementById('form-message').textContent = message;  
+            showMessage(message, data.status ? 'success' : 'error');
             if (data.status) {  
                 form.reset();  
                 await loadPrioridades();  

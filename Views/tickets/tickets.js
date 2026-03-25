@@ -75,6 +75,21 @@ function fillSelect(select, rows, labelResolver, valueKey) {
     });
 }
 
+function clearMessageLater(node, baseClass, delay) {
+    if (!node) {
+        return;
+    }
+
+    if (node._messageTimer) {
+        clearTimeout(node._messageTimer);
+    }
+
+    node._messageTimer = window.setTimeout(function () {
+        node.textContent = '';
+        node.className = baseClass;
+    }, delay);
+}
+
 function setMessage(node, text, type) {
     if (!node) {
         return;
@@ -82,6 +97,9 @@ function setMessage(node, text, type) {
 
     node.textContent = text;
     node.className = type ? 'message ' + type : 'message';
+    if (text !== '' && type) {
+        clearMessageLater(node, 'message', 4000);
+    }
 }
 
 function buildMeta(text) {
@@ -167,6 +185,9 @@ function setInlineMessage(node, text, type) {
 
     node.textContent = text;
     node.className = type ? 'message inline-message ' + type : 'message inline-message';
+    if (text !== '' && type) {
+        clearMessageLater(node, 'message inline-message', 4000);
+    }
 }
 
 async function refreshTicketsView() {
