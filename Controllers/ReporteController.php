@@ -41,9 +41,9 @@ class ReporteController extends BaseController
         $out = fopen('php://output', 'w');
         fwrite($out, "\xEF\xBB\xBF");
         fwrite($out, "sep=,\n");
-        fputcsv($out, ['ID', 'Codigo', 'Titulo', 'Usuario', 'Tecnico', 'Categoria', 'Prioridad', 'Estado', 'Fecha Creacion', 'Fecha Cierre']);
+        fputcsv($out, ['Codigo', 'Titulo', 'Usuario', 'Tecnico', 'Categoria', 'Prioridad', 'Estado', 'Fecha Creacion', 'Fecha Cierre']);
         foreach ($rows as $row) {
-            fputcsv($out, [$row['id'], $row['codigo'], $row['titulo'], $row['usuario'], $row['tecnico'] ?? '', $row['categoria'], $row['prioridad'], $row['estado'], $row['fecha_creacion'], $row['fecha_cierre'] ?? '']);
+            fputcsv($out, [$row['codigo'], $row['titulo'], $row['usuario'], $row['tecnico'] ?? '', $row['categoria'], $row['prioridad'], $row['estado'], $row['fecha_creacion'], $row['fecha_cierre'] ?? '']);
         }
         fclose($out);
         exit;
@@ -59,10 +59,9 @@ class ReporteController extends BaseController
         header('Content-Disposition: attachment; filename=reporte_tickets.xls');
 
         echo '<table border="1">';
-        echo '<tr><th>ID</th><th>Codigo</th><th>Titulo</th><th>Usuario</th><th>Tecnico</th><th>Categoria</th><th>Prioridad</th><th>Estado</th><th>Fecha Creacion</th><th>Fecha Cierre</th></tr>';
+        echo '<tr><th>Codigo</th><th>Titulo</th><th>Usuario</th><th>Tecnico</th><th>Categoria</th><th>Prioridad</th><th>Estado</th><th>Fecha Creacion</th><th>Fecha Cierre</th></tr>';
         foreach ($rows as $row) {
             echo '<tr>';
-            echo '<td>' . htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8') . '</td>';
             echo '<td>' . htmlspecialchars((string) $row['codigo'], ENT_QUOTES, 'UTF-8') . '</td>';
             echo '<td>' . htmlspecialchars((string) $row['titulo'], ENT_QUOTES, 'UTF-8') . '</td>';
             echo '<td>' . htmlspecialchars((string) $row['usuario'], ENT_QUOTES, 'UTF-8') . '</td>';

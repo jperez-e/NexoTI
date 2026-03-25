@@ -1,5 +1,11 @@
 <?php
 declare(strict_types=1);
+
+$logoPath = dirname(__DIR__, 2) . '/favicon.svg';
+$logoData = '';
+if (is_file($logoPath)) {
+    $logoData = 'data:image/svg+xml;base64,' . base64_encode((string) file_get_contents($logoPath));
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -8,6 +14,10 @@ declare(strict_types=1);
     <title>Reporte de Tickets</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; color: #0f172a; font-size: 12px; }
+        .header { display: table; width: 100%; margin-bottom: 18px; }
+        .header-cell { display: table-cell; vertical-align: middle; }
+        .logo-wrap { width: 74px; }
+        .logo-wrap img { width: 58px; height: 58px; }
         h1 { margin: 0 0 6px; color: #1e3a8a; }
         p { margin: 0 0 16px; color: #475569; }
         table { width: 100%; border-collapse: collapse; }
@@ -17,12 +27,20 @@ declare(strict_types=1);
     </style>
 </head>
 <body>
-    <h1>Reporte de Tickets</h1>
-    <p>Generado: <?php echo htmlspecialchars(date('Y-m-d H:i'), ENT_QUOTES, 'UTF-8'); ?></p>
+    <div class="header">
+        <?php if ($logoData !== ''): ?>
+            <div class="header-cell logo-wrap">
+                <img src="<?php echo htmlspecialchars($logoData, ENT_QUOTES, 'UTF-8'); ?>" alt="Logo NexoTI">
+            </div>
+        <?php endif; ?>
+        <div class="header-cell">
+            <h1>Reporte de Tickets</h1>
+            <p>Generado: <?php echo htmlspecialchars(date('Y-m-d H:i'), ENT_QUOTES, 'UTF-8'); ?></p>
+        </div>
+    </div>
     <table>
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Codigo</th>
                 <th>Titulo</th>
                 <th>Usuario</th>
@@ -37,7 +55,6 @@ declare(strict_types=1);
         <tbody>
             <?php foreach ($rows as $row): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars((string) $row['codigo'], ENT_QUOTES, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars((string) $row['titulo'], ENT_QUOTES, 'UTF-8'); ?></td>
                     <td><?php echo htmlspecialchars((string) $row['usuario'], ENT_QUOTES, 'UTF-8'); ?></td>
