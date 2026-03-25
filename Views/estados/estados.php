@@ -7,7 +7,7 @@
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/estados/estados.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
-    <script src='/NexoTI/Views/estados/estados.js' defer></script>
+    <script src='/NexoTI/Views/estados/estados.js?v=2' defer></script>
 </head>
 <body> 
     <div class='layout'> 
@@ -26,10 +26,10 @@
                 <form id='estado-form'> 
                     <label> 
                         Nombre 
-                        <input name='nombre' type='text' placeholder='Ej: En progreso' required> 
+                        <input id='nombre' name='nombre' type='text' placeholder='Ej: En progreso' required> 
                     </label> 
                     <div class='actions'> 
-                        <button type='submit' class='btn primary'>Guardar estado</button> 
+                        <button type='submit' class='btn primary' id='submit-btn'>Guardar estado</button> 
                         <span id='form-message' class='message'></span> 
                     </div> 
                 </form> 

@@ -7,6 +7,7 @@ $isAdmin = $rolId === 1;
 $isTech = $rolId === 2;
 $isUser = $rolId === 3;
 $nombreUsuario = (string) ($_SESSION['nombre'] ?? 'Usuario');
+$rolNombre = (string) ($_SESSION['rol_nombre'] ?? ($isAdmin ? 'Admin' : ($isTech ? 'Tecnico' : 'Usuario')));
 $foto = (string) ($_SESSION['foto'] ?? '');
 $fotoUrl = $foto !== '' ? '/NexoTI/' . ltrim($foto, '/') : '';
 $parts = preg_split('/\s+/', trim($nombreUsuario));
@@ -27,9 +28,14 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
-    <script src='/NexoTI/Views/tickets/tickets.js?v=5' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.js?v=6' defer></script>
 </head>
-<body data-role-id='<?php echo (int) $rolId; ?>'>
+<body
+    data-role-id='<?php echo (int) $rolId; ?>'
+    data-role-name='<?php echo htmlspecialchars($rolNombre, ENT_QUOTES, 'UTF-8'); ?>'
+    data-user-name='<?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?>'
+    data-user-photo='<?php echo htmlspecialchars($fotoUrl, ENT_QUOTES, 'UTF-8'); ?>'
+>
     <div class='layout'>
         <?php require __DIR__ . '/../partials/sidebar.php'; ?>
         <main class='page'>
@@ -44,6 +50,10 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     <input id='ticket-search' type='search' placeholder='Buscar tickets, usuarios, estados...' autocomplete='off'>
                 </div>
                 <div class='user-area'>
+                    <button class='btn ghost notice-btn' id='notice-btn' type='button'>
+                        Notificaciones
+                        <span class='notice-count' id='notice-count'>0</span>
+                    </button>
                     <span class='user-name'><?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?></span>
                     <div class='avatar-wrapper'>
                         <button class='avatar-btn' id='avatar-btn' type='button' aria-haspopup='true' aria-expanded='false'>
@@ -60,6 +70,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     </div>
                 </div>
             </header>
+            <div class='notice-panel' id='notice-panel'></div>
 
             <header class='page-header'>
                 <div>
@@ -92,6 +103,10 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             <select name='estado_id' id='estado_id' required></select>
                         </label>
                         <?php endif; ?>
+                        <label>
+                            Fecha de ocurrencia
+                            <input name='fecha_ocurrencia' type='datetime-local'>
+                        </label>
                     </div>
                     <label>
                         Descripcion

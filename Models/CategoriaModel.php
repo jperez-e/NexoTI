@@ -27,4 +27,24 @@ class CategoriaModel
         $sql = "SELECT id, nombre, descripcion FROM categorias ORDER BY id DESC";
         return $this->db->query($sql)->fetchAll();
     }
+
+    public function update(int $id, string $nombre, ?string $descripcion = null): bool
+    {
+        $sql = "UPDATE categorias SET nombre = :nombre, descripcion = :descripcion WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ":id" => $id,
+            ":nombre" => $nombre,
+            ":descripcion" => $descripcion,
+        ]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $sql = "DELETE FROM categorias WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ":id" => $id,
+        ]);
+    }
 }

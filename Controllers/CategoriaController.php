@@ -32,8 +32,44 @@ class CategoriaController extends BaseController
         if ($nombre === '') { 
             $this->jsonError('Nombre requerido'); 
         } 
- 
+
         $ok = $this->model->insert($nombre, $descripcion); 
         $ok ? $this->jsonOk('Categoria creada') : $this->jsonError('No se pudo crear'); 
     } 
+
+    public function update(): void
+    {
+        $this->requireLogin();
+        $this->requireRole([1]);
+        $this->requirePost();
+
+        $payload = $this->requestData();
+        $id = (int) ($payload['id'] ?? 0);
+        $nombre = trim(strip_tags((string) ($payload['nombre'] ?? '')));
+        $descripcion = trim(strip_tags((string) ($payload['descripcion'] ?? '')));
+
+        if ($id <= 0 || $nombre === '') {
+            $this->jsonError('Datos invalidos');
+        }
+
+        $ok = $this->model->update($id, $nombre, $descripcion);
+        $ok ? $this->jsonOk('Categoria actualizada') : $this->jsonError('No se pudo actualizar');
+    }
+
+    public function delete(): void
+    {
+        $this->requireLogin();
+        $this->requireRole([1]);
+        $this->requirePost();
+
+        $payload = $this->requestData();
+        $id = (int) ($payload['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->jsonError('Categoria invalida');
+        }
+
+        $ok = $this->model->delete($id);
+        $ok ? $this->jsonOk('Categoria eliminada') : $this->jsonError('No se pudo eliminar');
+    }
 }

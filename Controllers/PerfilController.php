@@ -31,7 +31,7 @@ class PerfilController
             return;
         }
 
-        require __DIR__ . '/../Views/perfil/index.php';
+        require __DIR__ . '/../Views/perfil/perfil.php';
     }
 
     public function update(): void

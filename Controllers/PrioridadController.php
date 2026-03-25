@@ -32,8 +32,44 @@ class PrioridadController extends BaseController
         if ($nombre === '' || $nivel <= 0) { 
             $this->jsonError('Datos invalidos'); 
         } 
- 
+
         $ok = $this->model->insert($nombre, $nivel); 
         $ok ? $this->jsonOk('Prioridad creada') : $this->jsonError('No se pudo crear'); 
     } 
+
+    public function update(): void
+    {
+        $this->requireLogin();
+        $this->requireRole([1]);
+        $this->requirePost();
+
+        $payload = $this->requestData();
+        $id = (int) ($payload['id'] ?? 0);
+        $nombre = trim(strip_tags((string) ($payload['nombre'] ?? '')));
+        $nivel = (int) ($payload['nivel'] ?? 0);
+
+        if ($id <= 0 || $nombre === '' || $nivel <= 0) {
+            $this->jsonError('Datos invalidos');
+        }
+
+        $ok = $this->model->update($id, $nombre, $nivel);
+        $ok ? $this->jsonOk('Prioridad actualizada') : $this->jsonError('No se pudo actualizar');
+    }
+
+    public function delete(): void
+    {
+        $this->requireLogin();
+        $this->requireRole([1]);
+        $this->requirePost();
+
+        $payload = $this->requestData();
+        $id = (int) ($payload['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->jsonError('Prioridad invalida');
+        }
+
+        $ok = $this->model->delete($id);
+        $ok ? $this->jsonOk('Prioridad eliminada') : $this->jsonError('No se pudo eliminar');
+    }
 }

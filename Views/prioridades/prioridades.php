@@ -3,11 +3,11 @@
 <head> 
     <meta charset='UTF-8'> 
     <meta name='viewport' content='width=device-width,initial-scale=1.0'> 
-    <title>NexoTI - Roles</title>
+    <title>NexoTI - Prioridades</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/roles/roles.css'>
+    <link rel='stylesheet' href='/NexoTI/Views/prioridades/prioridades.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
-    <script src='/NexoTI/Views/roles/roles.js' defer></script>
+    <script src='/NexoTI/Views/prioridades/prioridades.js?v=2' defer></script>
 </head>
 <body> 
     <div class='layout'> 
@@ -15,21 +15,25 @@
         <main class='page'> 
             <header class='page-header'> 
                 <div> 
-                    <h1>Roles</h1> 
-                    <p>Gestiona roles del sistema.</p> 
+                    <h1>Prioridades</h1> 
+                    <p>Configura niveles de prioridad.</p> 
                 </div> 
                 <a class='btn' href='/NexoTI/index.php?r=home'>Volver al inicio</a> 
             </header> 
  
             <section class='card'> 
-                <h2>Nuevo rol</h2> 
-                <form id='rol-form'> 
+                <h2>Nueva prioridad</h2> 
+                <form id='prioridad-form'> 
                     <label> 
                         Nombre 
-                        <input name='nombre' type='text' placeholder='Ej: Supervisor' required> 
+                        <input id='nombre' name='nombre' type='text' placeholder='Ej: Alta' required> 
+                    </label> 
+                    <label> 
+                        Nivel 
+                        <input id='nivel' name='nivel' type='number' min='1' placeholder='1' required> 
                     </label> 
                     <div class='actions'> 
-                        <button type='submit' class='btn primary'>Guardar rol</button> 
+                        <button type='submit' class='btn primary' id='submit-btn'>Guardar prioridad</button> 
                         <span id='form-message' class='message'></span> 
                     </div> 
                 </form> 
@@ -40,7 +44,7 @@
                     <h2>Listado</h2> 
                     <button class='btn ghost' id='refresh-btn' type='button'>Actualizar</button> 
                 </div> 
-                <div id='roles-list' class='list'></div> 
+                <div id='prioridades-list' class='list'></div> 
             </section> 
         </main> 
     </div> 

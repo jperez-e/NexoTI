@@ -21,19 +21,19 @@ $method = trim((string) ($_GET['m'] ?? ''));
 $map = [
     'categoria' => [
         'class' => 'CategoriaController',
-        'methods' => ['list', 'create'],
+        'methods' => ['list', 'create', 'update', 'delete'],
     ],
     'prioridad' => [
         'class' => 'PrioridadController',
-        'methods' => ['list', 'create'],
+        'methods' => ['list', 'create', 'update', 'delete'],
     ],
     'estado' => [
         'class' => 'EstadoTicketController',
-        'methods' => ['list', 'create'],
+        'methods' => ['list', 'create', 'update', 'delete'],
     ],
     'rol' => [
         'class' => 'RolController',
-        'methods' => ['list', 'create'],
+        'methods' => ['list', 'create', 'update', 'delete'],
     ],
     'usuario' => [
         'class' => 'UsuarioController',

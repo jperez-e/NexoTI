@@ -43,10 +43,19 @@ class TicketController extends BaseController
         $categoriaId = (int) ($_POST['categoria_id'] ?? 0);
         $prioridadId = (int) ($_POST['prioridad_id'] ?? 0);
         $estadoId = (int) ($_POST['estado_id'] ?? 0);
+        $fechaOcurrenciaRaw = trim((string) ($_POST['fecha_ocurrencia'] ?? ''));
 
         $sessionUserId = $this->currentUserId();
         $rolId = $this->currentRoleId();
         $usuarioId = (int) ($_POST['usuario_id'] ?? $sessionUserId);
+        $fechaCreacion = null;
+        if ($fechaOcurrenciaRaw !== '') {
+            $date = \DateTime::createFromFormat('Y-m-d\TH:i', $fechaOcurrenciaRaw);
+            if ($date === false) {
+                $this->jsonError('Fecha de ocurrencia invalida.');
+            }
+            $fechaCreacion = $date->format('Y-m-d H:i:s');
+        }
         if ($rolId === 3) {
             // Regla de negocio: los tickets creados por el usuario final siempre nacen abiertos.
             $usuarioId = $sessionUserId;
@@ -68,6 +77,7 @@ class TicketController extends BaseController
             $categoriaId,
             $prioridadId,
             $estadoId,
+            $fechaCreacion,
             null,
             null
         );

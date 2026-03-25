@@ -27,4 +27,24 @@ class PrioridadModel
         $sql = "SELECT id, nombre, nivel FROM prioridades ORDER BY id DESC";
         return $this->db->query($sql)->fetchAll();
     }
+
+    public function update(int $id, string $nombre, int $nivel): bool
+    {
+        $sql = "UPDATE prioridades SET nombre = :nombre, nivel = :nivel WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ":id" => $id,
+            ":nombre" => $nombre,
+            ":nivel" => $nivel,
+        ]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $sql = "DELETE FROM prioridades WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ":id" => $id,
+        ]);
+    }
 }

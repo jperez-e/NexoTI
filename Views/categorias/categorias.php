@@ -7,7 +7,7 @@
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/categorias/categorias.css'> 
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
-    <script src='/NexoTI/Views/categorias/categorias.js' defer></script> 
+    <script src='/NexoTI/Views/categorias/categorias.js?v=2' defer></script> 
 </head> 
 <body> 
     <div class='layout'> 
@@ -26,14 +26,14 @@
                 <form id='categoria-form'> 
                     <label> 
                         Nombre 
-                        <input name='nombre' type='text' placeholder='Ej: Hardware' required> 
+                        <input id='nombre' name='nombre' type='text' placeholder='Ej: Hardware' required> 
                     </label> 
                     <label> 
                         Descripcion 
-                        <textarea name='descripcion' rows='3' placeholder='Describe la categoria'></textarea> 
+                        <textarea id='descripcion' name='descripcion' rows='3' placeholder='Describe la categoria'></textarea> 
                     </label> 
                     <div class='actions'> 
-                        <button type='submit' class='btn primary'>Guardar categoria</button> 
+                        <button type='submit' class='btn primary' id='submit-btn'>Guardar categoria</button> 
                         <span id='form-message' class='message'></span> 
                     </div> 
                 </form> 

@@ -20,9 +20,28 @@ class TicketModel
         int $categoriaId,  
         int $prioridadId,  
         int $estadoId,  
+        ?string $fechaCreacion = null,
         ?int $tecnicoId = null,  
         ?string $fechaCierre = null  
     ): bool {  
+        if ($fechaCreacion !== null) {
+            $sql = 'INSERT INTO tickets (codigo, titulo, descripcion, usuario_id, tecnico_id, categoria_id, prioridad_id, estado_id, fecha_creacion, fecha_cierre) '
+                . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                $codigo,
+                $titulo,
+                $descripcion,
+                $usuarioId,
+                $tecnicoId,
+                $categoriaId,
+                $prioridadId,
+                $estadoId,
+                $fechaCreacion,
+                $fechaCierre,
+            ]);
+        }
+
         $sql = 'INSERT INTO tickets (codigo, titulo, descripcion, usuario_id, tecnico_id, categoria_id, prioridad_id, estado_id, fecha_cierre) ' .  
             'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';  
         $stmt = $this->db->prepare($sql);  
@@ -47,15 +66,17 @@ class TicketModel
     private function baseSelect(): string  
     {  
         return 'SELECT t.id, t.codigo, t.titulo, t.descripcion, ' .  
-            't.usuario_id, u.nombre AS usuario_nombre, ' .  
-            't.tecnico_id, ut.nombre AS tecnico_nombre, ' .  
+            't.usuario_id, u.nombre AS usuario_nombre, u.foto AS usuario_foto, ru.nombre AS usuario_rol_nombre, ' .  
+            't.tecnico_id, ut.nombre AS tecnico_nombre, ut.foto AS tecnico_foto, rt.nombre AS tecnico_rol_nombre, ' .  
             't.categoria_id, c.nombre AS categoria_nombre, ' .  
             't.prioridad_id, p.nombre AS prioridad_nombre, ' .  
             't.estado_id, e.nombre AS estado_nombre, ' .  
             't.fecha_creacion, t.fecha_cierre ' .  
             'FROM tickets t ' .  
             'JOIN usuarios u ON t.usuario_id = u.id ' .  
+            'JOIN roles ru ON u.rol_id = ru.id ' .  
             'LEFT JOIN usuarios ut ON t.tecnico_id = ut.id ' .  
+            'LEFT JOIN roles rt ON ut.rol_id = rt.id ' .  
             'JOIN categorias c ON t.categoria_id = c.id ' .  
             'JOIN prioridades p ON t.prioridad_id = p.id ' .  
             'JOIN estados_ticket e ON t.estado_id = e.id';  

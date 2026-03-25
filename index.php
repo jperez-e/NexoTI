@@ -15,13 +15,14 @@ $perfil = new PerfilController();
 
 $adminRoutes = ['categorias', 'prioridades', 'estados', 'roles', 'usuarios', 'show-register', 'register', 'reportes'];
 $protectedViewRoutes = [
-    'tickets' => __DIR__ . '/Views/tickets/index.php',
-    'categorias' => __DIR__ . '/Views/categorias/index.php',
-    'prioridades' => __DIR__ . '/Views/prioridades/index.php',
-    'estados' => __DIR__ . '/Views/estados/index.php',
-    'roles' => __DIR__ . '/Views/roles/index.php',
-    'usuarios' => __DIR__ . '/Views/usuarios/index.php',
-    'reportes' => __DIR__ . '/Views/reportes/index.php',
+    'tickets' => __DIR__ . '/Views/tickets/tickets.php',
+    'perfil' => __DIR__ . '/Views/perfil/perfil.php',
+    'categorias' => __DIR__ . '/Views/categorias/categorias.php',
+    'prioridades' => __DIR__ . '/Views/prioridades/prioridades.php',
+    'estados' => __DIR__ . '/Views/estados/estados.php',
+    'roles' => __DIR__ . '/Views/roles/roles.php',
+    'usuarios' => __DIR__ . '/Views/usuarios/usuarios.php',
+    'reportes' => __DIR__ . '/Views/reportes/reportes.php',
 ];
 
 if ($route === 'logout') {

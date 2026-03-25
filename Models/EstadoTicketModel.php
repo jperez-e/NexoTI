@@ -26,4 +26,23 @@ class EstadoTicketModel
         $sql = "SELECT id, nombre FROM estados_ticket ORDER BY id DESC";
         return $this->db->query($sql)->fetchAll();
     }
+
+    public function update(int $id, string $nombre): bool
+    {
+        $sql = "UPDATE estados_ticket SET nombre = :nombre WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ":id" => $id,
+            ":nombre" => $nombre,
+        ]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $sql = "DELETE FROM estados_ticket WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ":id" => $id,
+        ]);
+    }
 }

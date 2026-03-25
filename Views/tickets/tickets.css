@@ -429,3 +429,267 @@ textarea {
     flex-wrap: wrap;
     gap: 10px;
 }
+
+.notice-btn {
+    position: relative;
+}
+
+.notice-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.notice-panel {
+    display: none;
+    margin-top: -8px;
+    margin-bottom: 6px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 18px 30px rgba(15, 23, 42, 0.14);
+    gap: 10px;
+}
+
+.notice-panel.is-open {
+    display: grid;
+}
+
+.notice-item {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.notice-item strong {
+    font-size: 0.95rem;
+}
+
+.notice-item span,
+.notice-empty {
+    color: #64748b;
+    font-size: 0.92rem;
+}
+
+.ticket-head-main {
+    display: grid;
+    gap: 4px;
+}
+
+.participants-panel {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid #dbe4f0;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.participants-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.participants-head span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 800;
+}
+
+.participants-list {
+    display: grid;
+    gap: 12px;
+}
+
+.participant-card {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    align-items: center;
+    gap: 14px;
+}
+
+.participant-avatar,
+.thread-avatar,
+.reply-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1d4ed8, #60a5fa);
+    color: #ffffff;
+    font-weight: 800;
+    box-shadow: 0 10px 18px rgba(29, 78, 216, 0.18);
+}
+
+.participant-avatar {
+    width: 58px;
+    height: 58px;
+}
+
+.thread-avatar {
+    width: 50px;
+    height: 50px;
+}
+
+.reply-avatar {
+    width: 52px;
+    height: 52px;
+}
+
+.participant-avatar img,
+.thread-avatar img,
+.reply-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.participant-content {
+    display: grid;
+    gap: 4px;
+}
+
+.participant-role {
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+.participant-content small {
+    color: #64748b;
+}
+
+.thread-entry {
+    display: grid;
+    grid-template-columns: 50px 1fr;
+    gap: 14px;
+    align-items: start;
+}
+
+.thread-body {
+    display: grid;
+    gap: 10px;
+}
+
+.thread-author {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.thread-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.thread-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 0.74rem;
+    font-weight: 800;
+}
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+}
+
+.role-admin {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.role-tecnico {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.role-usuario {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.thread-entry.role-tecnico {
+    background: #eef6ff;
+    border-color: #bfdbfe;
+}
+
+.thread-entry.role-admin {
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.reply-composer {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 14px;
+    align-items: start;
+}
+
+.reply-body {
+    display: grid;
+    gap: 12px;
+}
+
+.reply-identity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.reply-state {
+    display: grid;
+    gap: 8px;
+}
+
+@media (max-width: 720px) {
+    .participant-card,
+    .thread-entry,
+    .reply-composer {
+        grid-template-columns: 1fr;
+    }
+
+    .participant-avatar,
+    .thread-avatar,
+    .reply-avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .participants-head,
+    .thread-head {
+        align-items: start;
+        flex-direction: column;
+    }
+}
