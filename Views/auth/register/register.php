@@ -4,8 +4,9 @@
     <meta charset=UTF-8> 
     <meta name=viewport content=width=device-width,initial-scale=1.0> 
     <title>NexoTI | Registro</title>
-    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'> 
-    <link rel=stylesheet href=/NexoTI/Views/auth/register/register.css> 
+    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
+    <link rel=stylesheet href=/NexoTI/Views/auth/register/register.css>
+    <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
 </head> 
 <body> 
     <div class=card> 
@@ -25,7 +26,7 @@
                 <input id=email name=email type=email required> 
                 <label for=password>Contraseña</label> 
                 <input id=password name=password type=password required> 
-                <button type=submit>Crear cuenta</button> 
+                <button type=submit class='btn primary'>Crear cuenta</button> 
             </form> 
             <div class=register><a href=/NexoTI/index.php?r=home>Volver al panel</a></div> 
         </section> 

@@ -6,6 +6,7 @@
     <title>NexoTI - Inicio</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>  
     <link rel='stylesheet' href='/NexoTI/Views/home/home.css'>  
+    <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
 </head>  
 <body>  
     <div class='layout'>  

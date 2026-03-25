@@ -6,6 +6,24 @@ async function fetchJSON(url, options = {}) {
     return response.json();  
 }  
 
+function setButtonLoading(button, loading, loadingText) {
+    if (!button) {
+        return;
+    }
+
+    if (loading) {
+        button.dataset.label = button.textContent;
+        button.textContent = loadingText;
+        button.disabled = true;
+        button.classList.add('is-loading');
+        return;
+    }
+
+    button.textContent = button.dataset.label ? button.dataset.label : button.textContent;
+    button.disabled = false;
+    button.classList.remove('is-loading');
+}
+
 function getCsrfToken() {
     const node = getNode('csrf-token');
     return node ? node.value : '';
@@ -119,12 +137,17 @@ function renderUsuarios(list) {
         deleteBtn.addEventListener('click', async function () {  
             const ok = window.confirm('Se eliminara el usuario ' + row.nombre + '. Deseas continuar?');  
             if (!ok) { return; }  
-            const data = await fetchJSON('api.php?c=usuario&m=delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() }, body: JSON.stringify({ id: row.id }) });  
-            showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
-            if (data.status) {  
-                if (editingId === Number(row.id)) { resetForm(); }  
-                await loadUsuarios();  
-            }  
+            setButtonLoading(deleteBtn, true, 'Eliminando...');
+            try {
+                const data = await fetchJSON('api.php?c=usuario&m=delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() }, body: JSON.stringify({ id: row.id }) });  
+                showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
+                if (data.status) {  
+                    if (editingId === Number(row.id)) { resetForm(); }  
+                    await loadUsuarios();  
+                }
+            } finally {
+                setButtonLoading(deleteBtn, false);
+            }
         }); 
         actions.appendChild(editBtn);  
         actions.appendChild(deleteBtn);  
@@ -151,19 +174,33 @@ document.addEventListener('DOMContentLoaded', async function () {
     resetForm();  
     await loadRoles();  
     await loadUsuarios();  
-    getNode('refresh-btn').addEventListener('click', loadUsuarios);  
+    getNode('refresh-btn').addEventListener('click', async function () {
+        const button = this;
+        setButtonLoading(button, true, 'Actualizando...');
+        try {
+            await loadUsuarios();
+        } finally {
+            setButtonLoading(button, false);
+        }
+    });  
     getNode('cancel-btn').addEventListener('click', resetForm);  
     getNode('usuario-form').addEventListener('submit', async function (event) {  
         event.preventDefault();  
         const formData = new FormData(getNode('usuario-form'));  
+        const submitButton = getNode('submit-btn');
         formData.set('_token', getCsrfToken());
         const url = editingId > 0 ? 'api.php?c=usuario&m=update' : 'api.php?c=usuario&m=create';  
         if (editingId > 0) { formData.set('id', String(editingId)); } 
-        const data = await fetchJSON(url, { method: 'POST', body: formData });  
-        showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
-        if (data.status) {  
-            resetForm();  
-            await loadUsuarios();  
-        }  
+        setButtonLoading(submitButton, true, editingId > 0 ? 'Actualizando...' : 'Guardando...');
+        try {
+            const data = await fetchJSON(url, { method: 'POST', body: formData });  
+            showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
+            if (data.status) {  
+                resetForm();  
+                await loadUsuarios();  
+            }
+        } finally {
+            setButtonLoading(submitButton, false);
+        }
     });  
 }); 

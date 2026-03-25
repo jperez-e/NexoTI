@@ -3,9 +3,10 @@
 <head>  
     <meta charset='UTF-8'>  
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>  
-    <title>NexoTI - Usuarios</title>
-    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>  
+    <title>NexoTI - Usuarios</title>  
+    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/usuarios/usuarios.css'>  
+    <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/usuarios/usuarios.js?v=2' defer></script>  
 </head>  
 <body>  

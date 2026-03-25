@@ -43,6 +43,24 @@ async function postJSON(url, payload) {
     return response.json();
 }
 
+function setButtonLoading(button, loading, loadingText) {
+    if (!button) {
+        return;
+    }
+
+    if (loading) {
+        button.dataset.label = button.textContent;
+        button.textContent = loadingText;
+        button.disabled = true;
+        button.classList.add('is-loading');
+        return;
+    }
+
+    button.textContent = button.dataset.label ? button.dataset.label : button.textContent;
+    button.disabled = false;
+    button.classList.remove('is-loading');
+}
+
 function fillSelect(select, rows, labelResolver, valueKey) {
     if (!select) {
         return;
@@ -155,7 +173,7 @@ async function refreshTicketsView() {
     await Promise.all([loadComments(), loadTickets()]);
 }
 
-async function submitInlineReply(ticket, textarea, stateSelect, messageNode, replyBox, toggleButton) {
+async function submitInlineReply(ticket, textarea, stateSelect, messageNode, replyBox, toggleButton, sendButton) {
     const comentario = textarea.value.trim();
     const selectedStateId = stateSelect ? String(stateSelect.value) : '';
     const currentStateId = ticket.estado_id ? String(ticket.estado_id) : '';
@@ -166,68 +184,78 @@ async function submitInlineReply(ticket, textarea, stateSelect, messageNode, rep
         return;
     }
 
-    let statusResponse = { status: true };
-    if (mustUpdateState) {
-        statusResponse = await postJSON('api.php?c=ticket&m=updateStatus', {
-            ticket_id: ticket.id,
-            estado_id: selectedStateId,
-        });
+    setButtonLoading(sendButton, true, 'Enviando...');
+    try {
+        let statusResponse = { status: true };
+        if (mustUpdateState) {
+            statusResponse = await postJSON('api.php?c=ticket&m=updateStatus', {
+                ticket_id: ticket.id,
+                estado_id: selectedStateId,
+            });
 
-        if (!statusResponse.status) {
-            setInlineMessage(
-                messageNode,
-                statusResponse.message ? statusResponse.message : 'No se pudo actualizar el estado.',
-                'error'
-            );
-            return;
+            if (!statusResponse.status) {
+                setInlineMessage(
+                    messageNode,
+                    statusResponse.message ? statusResponse.message : 'No se pudo actualizar el estado.',
+                    'error'
+                );
+                return;
+            }
         }
-    }
 
-    let commentResponse = { status: true };
-    if (comentario !== '') {
-        commentResponse = await postJSON('api.php?c=comentario&m=create', {
-            ticket_id: ticket.id,
-            comentario: comentario,
-        });
+        let commentResponse = { status: true };
+        if (comentario !== '') {
+            commentResponse = await postJSON('api.php?c=comentario&m=create', {
+                ticket_id: ticket.id,
+                comentario: comentario,
+            });
 
-        if (!commentResponse.status) {
-            setInlineMessage(
-                messageNode,
-                commentResponse.message ? commentResponse.message : 'No se pudo enviar la respuesta.',
-                'error'
-            );
-            return;
+            if (!commentResponse.status) {
+                setInlineMessage(
+                    messageNode,
+                    commentResponse.message ? commentResponse.message : 'No se pudo enviar la respuesta.',
+                    'error'
+                );
+                return;
+            }
         }
+
+        let successMessage = 'Proceso completado.';
+        if (mustUpdateState && comentario !== '') {
+            successMessage = 'Respuesta enviada y estado actualizado.';
+        } else if (mustUpdateState) {
+            successMessage = statusResponse.message ? statusResponse.message : 'Estado actualizado.';
+        } else if (comentario !== '') {
+            successMessage = commentResponse.message ? commentResponse.message : 'Respuesta enviada.';
+        }
+
+        setInlineMessage(messageNode, successMessage, 'success');
+
+        textarea.value = '';
+        replyBox.classList.remove('is-open');
+        toggleButton.textContent = 'Responder';
+        await refreshTicketsView();
+    } finally {
+        setButtonLoading(sendButton, false);
     }
-
-    let successMessage = 'Proceso completado.';
-    if (mustUpdateState && comentario !== '') {
-        successMessage = 'Respuesta enviada y estado actualizado.';
-    } else if (mustUpdateState) {
-        successMessage = statusResponse.message ? statusResponse.message : 'Estado actualizado.';
-    } else if (comentario !== '') {
-        successMessage = commentResponse.message ? commentResponse.message : 'Respuesta enviada.';
-    }
-
-    setInlineMessage(messageNode, successMessage, 'success');
-
-    textarea.value = '';
-    replyBox.classList.remove('is-open');
-    toggleButton.textContent = 'Responder';
-    await refreshTicketsView();
 }
 
-async function closeInlineTicket(ticketId, messageNode) {
-    const data = await postJSON('api.php?c=ticket&m=closeTicket', { ticket_id: ticketId });
+async function closeInlineTicket(ticketId, messageNode, closeButton) {
+    setButtonLoading(closeButton, true, 'Cerrando...');
+    try {
+        const data = await postJSON('api.php?c=ticket&m=closeTicket', { ticket_id: ticketId });
 
-    setInlineMessage(
-        messageNode,
-        data.message ? data.message : 'Proceso completado.',
-        data.status ? 'success' : 'error'
-    );
+        setInlineMessage(
+            messageNode,
+            data.message ? data.message : 'Proceso completado.',
+            data.status ? 'success' : 'error'
+        );
 
-    if (data.status) {
-        await refreshTicketsView();
+        if (data.status) {
+            await refreshTicketsView();
+        }
+    } finally {
+        setButtonLoading(closeButton, false);
     }
 }
 
@@ -271,7 +299,7 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     sendButton.className = 'btn primary';
     sendButton.textContent = 'Enviar respuesta';
     sendButton.addEventListener('click', function () {
-        submitInlineReply(ticket, textarea, stateSelect, messageNode, box, toggleButton);
+        submitInlineReply(ticket, textarea, stateSelect, messageNode, box, toggleButton, sendButton);
     });
 
     const cancelButton = document.createElement('button');
@@ -325,7 +353,7 @@ function buildInlineActions(ticket) {
         closeButton.className = 'btn primary';
         closeButton.textContent = 'Cerrar ticket';
         closeButton.addEventListener('click', function () {
-            closeInlineTicket(ticket.id, messageNode);
+            closeInlineTicket(ticket.id, messageNode, closeButton);
         });
         actions.appendChild(closeButton);
     }
@@ -554,21 +582,27 @@ function setupCreateForm() {
         event.preventDefault();
 
         const formData = new FormData(dom.ticketForm);
+        const submitButton = dom.ticketForm.querySelector('button[type="submit"]');
         formData.set('_token', getCsrfToken());
         if (!formData.get('codigo')) {
             formData.set('codigo', 'TCK-' + Date.now());
         }
 
-        const response = await fetch('api.php?c=ticket&m=create', {
-            method: 'POST',
-            body: formData,
-        });
-        const data = await response.json();
+        setButtonLoading(submitButton, true, 'Creando...');
+        try {
+            const response = await fetch('api.php?c=ticket&m=create', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
 
-        setMessage(dom.formMessage, data.message ? data.message : 'Proceso completado.', data.status ? 'success' : 'error');
-        if (data.status) {
-            dom.ticketForm.reset();
-            await refreshTicketsView();
+            setMessage(dom.formMessage, data.message ? data.message : 'Proceso completado.', data.status ? 'success' : 'error');
+            if (data.status) {
+                dom.ticketForm.reset();
+                await refreshTicketsView();
+            }
+        } finally {
+            setButtonLoading(submitButton, false);
         }
     });
 }
@@ -592,16 +626,22 @@ function setupAssignForm() {
 
     dom.assignForm.addEventListener('submit', async function (event) {
         event.preventDefault();
+        const submitButton = dom.assignForm.querySelector('button[type="submit"]');
 
-        const data = await postJSON('api.php?c=ticket&m=assign', {
-            ticket_id: dom.assignTicket.value,
-            tecnico_id: dom.assignTech.value,
-            estado_id: dom.assignState.value,
-        });
+        setButtonLoading(submitButton, true, 'Asignando...');
+        try {
+            const data = await postJSON('api.php?c=ticket&m=assign', {
+                ticket_id: dom.assignTicket.value,
+                tecnico_id: dom.assignTech.value,
+                estado_id: dom.assignState.value,
+            });
 
-        setMessage(dom.assignMessage, data.message ? data.message : 'Proceso completado.', data.status ? 'success' : 'error');
-        if (data.status) {
-            await refreshTicketsView();
+            setMessage(dom.assignMessage, data.message ? data.message : 'Proceso completado.', data.status ? 'success' : 'error');
+            if (data.status) {
+                await refreshTicketsView();
+            }
+        } finally {
+            setButtonLoading(submitButton, false);
         }
     });
 }
@@ -692,8 +732,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     if (dom.refreshButton) {
-        dom.refreshButton.addEventListener('click', function () {
-            refreshTicketsView();
+        dom.refreshButton.addEventListener('click', async function () {
+            const button = this;
+            setButtonLoading(button, true, 'Actualizando...');
+            try {
+                await refreshTicketsView();
+            } finally {
+                setButtonLoading(button, false);
+            }
         });
     }
 

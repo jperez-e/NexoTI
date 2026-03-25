@@ -26,6 +26,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css'>
+    <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/tickets/tickets.js?v=5' defer></script>
 </head>
 <body data-role-id='<?php echo (int) $rolId; ?>'>

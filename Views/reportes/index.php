@@ -6,6 +6,7 @@
     <title>NexoTI - Reportes</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css'>
+    <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/reportes/reportes.js' defer></script>
 </head>
 <body>

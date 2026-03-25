@@ -4,10 +4,11 @@
     <meta charset='UTF-8'> 
     <meta name='viewport' content='width=device-width,initial-scale=1.0'> 
     <title>NexoTI - Roles</title>
-    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'> 
-    <link rel='stylesheet' href='/NexoTI/Views/roles/roles.css'> 
-    <script src='/NexoTI/Views/roles/roles.js' defer></script> 
-</head> 
+    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
+    <link rel='stylesheet' href='/NexoTI/Views/roles/roles.css'>
+    <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+    <script src='/NexoTI/Views/roles/roles.js' defer></script>
+</head>
 <body> 
     <div class='layout'> 
         <?php require __DIR__ . '/../partials/sidebar.php'; ?> 

@@ -3,9 +3,10 @@
 <head> 
     <meta charset='UTF-8'> 
     <meta name='viewport' content='width=device-width,initial-scale=1.0'> 
-    <title>NexoTI - Categorias</title>
-    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'> 
+    <title>NexoTI - Categorias</title> 
+    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/categorias/categorias.css'> 
+    <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/categorias/categorias.js' defer></script> 
 </head> 
 <body> 

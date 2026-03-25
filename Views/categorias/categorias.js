@@ -7,6 +7,24 @@ function getCsrfToken() {
     const node = document.getElementById('csrf-token');
     return node ? node.value : '';
 }
+
+function setButtonLoading(button, loading, loadingText) {
+    if (!button) {
+        return;
+    }
+
+    if (loading) {
+        button.dataset.label = button.textContent;
+        button.textContent = loadingText;
+        button.disabled = true;
+        button.classList.add('is-loading');
+        return;
+    }
+
+    button.textContent = button.dataset.label ? button.dataset.label : button.textContent;
+    button.disabled = false;
+    button.classList.remove('is-loading');
+}
  
 function renderCategorias(list) {  
     const container = document.getElementById('categorias-list');  
@@ -33,22 +51,36 @@ async function loadCategorias() {
  
 document.addEventListener('DOMContentLoaded', async function () {  
     await loadCategorias();  
-    document.getElementById('refresh-btn').addEventListener('click', loadCategorias);  
+    document.getElementById('refresh-btn').addEventListener('click', async function () {
+        const button = this;
+        setButtonLoading(button, true, 'Actualizando');
+        try {
+            await loadCategorias();
+        } finally {
+            setButtonLoading(button, false);
+        }
+    });
     document.getElementById('categoria-form').addEventListener('submit', async function (e) {  
         e.preventDefault();  
         const form = e.target;  
+        const submitButton = form.querySelector('button[type="submit"]');
         const formData = new FormData(form);  
         formData.set('_token', getCsrfToken());
-        const res = await fetch('api.php?c=categoria&m=create', {  
-            method: 'POST',  
-            body: formData  
-        });  
-        const data = await res.json();  
-        const message = data.message ? data.message : '';  
-        document.getElementById('form-message').textContent = message;  
-        if (data.status) {  
-            form.reset();  
-            await loadCategorias();  
+        setButtonLoading(submitButton, true, 'Guardando');
+        try {
+            const res = await fetch('api.php?c=categoria&m=create', {  
+                method: 'POST',  
+                body: formData  
+            });  
+            const data = await res.json();  
+            const message = data.message ? data.message : '';  
+            document.getElementById('form-message').textContent = message;  
+            if (data.status) {  
+                form.reset();  
+                await loadCategorias();  
+            }  
+        } finally {
+            setButtonLoading(submitButton, false);
         }  
     });  
 }); 

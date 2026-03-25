@@ -5,8 +5,8 @@
     <meta name=viewport content=width=device-width,initial-scale=1.0>  
     <title>NexoTI | Iniciar sesión</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>  
-    <link rel=stylesheet href=/NexoTI/Views/auth/login/login.css> 
+    <link rel=stylesheet href=/NexoTI/Views/auth/login/login.css>
+    <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src=/NexoTI/Views/auth/login/login.js defer></script> 
 </head>  
 <body>  
@@ -43,7 +43,7 @@
                         </span>  
                     </button>  
                 </div>  
-                <button type=submit>Ingresar</button>  
+                <button type=submit class='btn primary'>Ingresar</button>  
             </form> 
             <button type=button class=m365-btn aria-disabled=true>
                <span class=m365-icon aria-hidden=true></span>

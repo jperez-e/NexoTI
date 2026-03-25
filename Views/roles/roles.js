@@ -7,6 +7,24 @@ function getCsrfToken() {
     const node = document.getElementById('csrf-token');
     return node ? node.value : '';
 }
+
+function setButtonLoading(button, loading, loadingText) {
+    if (!button) {
+        return;
+    }
+
+    if (loading) {
+        button.dataset.label = button.textContent;
+        button.textContent = loadingText;
+        button.disabled = true;
+        button.classList.add('is-loading');
+        return;
+    }
+
+    button.textContent = button.dataset.label ? button.dataset.label : button.textContent;
+    button.disabled = false;
+    button.classList.remove('is-loading');
+}
  
 function renderRoles(list) { 
     const container = document.getElementById('roles-list'); 
@@ -29,22 +47,36 @@ async function loadRoles() {
  
 document.addEventListener('DOMContentLoaded', async function () { 
     await loadRoles(); 
-    document.getElementById('refresh-btn').addEventListener('click', loadRoles); 
+    document.getElementById('refresh-btn').addEventListener('click', async function () {
+        const button = this;
+        setButtonLoading(button, true, 'Actualizando');
+        try {
+            await loadRoles();
+        } finally {
+            setButtonLoading(button, false);
+        }
+    }); 
     document.getElementById('rol-form').addEventListener('submit', async function (e) { 
         e.preventDefault(); 
         const form = e.target; 
+        const submitButton = form.querySelector('button[type="submit"]');
         const formData = new FormData(form); 
         formData.set('_token', getCsrfToken());
-        const res = await fetch('api.php?c=rol&m=create', { 
-            method: 'POST', 
-            body: formData 
-        }); 
-        const data = await res.json(); 
-        const message = data.message ? data.message : ''; 
-        document.getElementById('form-message').textContent = message; 
-        if (data.status) { 
-            form.reset(); 
-            await loadRoles(); 
+        setButtonLoading(submitButton, true, 'Guardando');
+        try {
+            const res = await fetch('api.php?c=rol&m=create', { 
+                method: 'POST', 
+                body: formData 
+            }); 
+            const data = await res.json(); 
+            const message = data.message ? data.message : ''; 
+            document.getElementById('form-message').textContent = message; 
+            if (data.status) { 
+                form.reset(); 
+                await loadRoles(); 
+            } 
+        } finally {
+            setButtonLoading(submitButton, false);
         } 
     }); 
 });
