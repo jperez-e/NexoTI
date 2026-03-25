@@ -12,7 +12,7 @@
 <body>  
     <div class='layout'>  
         <?php require __DIR__ . '/../partials/sidebar.php'; ?>  
-        <div>  
+        <div class='content'>  
             <header class='topbar'>  
                 <div class='logo'>NexoTI</div>  
                 <div class='topbar-text'>  
