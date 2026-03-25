@@ -4,6 +4,7 @@
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Reportes</title>
+    <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css'>
     <script src='/NexoTI/Views/reportes/reportes.js' defer></script>
 </head>
