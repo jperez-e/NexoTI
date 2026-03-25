@@ -20,7 +20,11 @@ class ReporteModel
 
     public function getResumen(): array
     {
-        $sql = "SELECT COUNT(*) AS total, SUM(CASE WHEN e.nombre = 'Abierto' THEN 1 ELSE 0 END) AS abiertos, SUM(CASE WHEN e.nombre = 'En progreso' THEN 1 ELSE 0 END) AS en_progreso, SUM(CASE WHEN e.nombre = 'Cerrado' THEN 1 ELSE 0 END) AS cerrados FROM tickets t INNER JOIN estados_ticket e ON e.id = t.estado_id";
+        $sql = "SELECT COUNT(*) AS total, "
+            . "SUM(CASE WHEN e.nombre = 'Abierto' THEN 1 ELSE 0 END) AS abiertos, "
+            . "SUM(CASE WHEN e.nombre IN ('En progreso', 'En Proceso') THEN 1 ELSE 0 END) AS en_progreso, "
+            . "SUM(CASE WHEN e.nombre = 'Cerrado' THEN 1 ELSE 0 END) AS cerrados "
+            . "FROM tickets t INNER JOIN estados_ticket e ON e.id = t.estado_id";
         $stmt = $this->db->query($sql);
         $row = $stmt->fetch();
         return $row ?: ["total" => 0, "abiertos" => 0, "en_progreso" => 0, "cerrados" => 0];

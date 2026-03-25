@@ -6,6 +6,7 @@
     <title>NexoTI - Categorias</title> 
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/categorias/categorias.css'> 
+    <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/categorias/categorias.js?v=2' defer></script> 

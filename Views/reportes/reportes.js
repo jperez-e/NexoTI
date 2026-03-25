@@ -19,6 +19,15 @@ function appendCell(row, text) {
     row.appendChild(td);
 }
 
+function formatDate(value) {
+    if (!value) {
+        return 'Sin fecha';
+    }
+
+    const date = new Date(String(value).replace(' ', 'T'));
+    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('es-DO');
+}
+
 async function loadPreview() {
     const rows = await fetchJSON('/NexoTI/api.php?c=reporte&m=preview');
     const tbody = document.getElementById('report-preview');
@@ -41,6 +50,7 @@ async function loadPreview() {
         appendCell(tr, item.usuario);
         appendCell(tr, item.tecnico || 'Sin asignar');
         appendCell(tr, item.estado);
+        appendCell(tr, formatDate(item.fecha_creacion));
         tbody.appendChild(tr);
     });
 }

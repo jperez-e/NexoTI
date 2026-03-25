@@ -23,6 +23,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <title>NexoTI - Perfil</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/perfil/perfil.css'>
+    <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
 </head>
 <body>

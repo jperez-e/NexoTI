@@ -27,6 +27,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css'>
+    <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/tickets/tickets.js?v=6' defer></script>

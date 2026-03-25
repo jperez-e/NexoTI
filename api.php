@@ -49,7 +49,7 @@ $map = [
     ],
     'reporte' => [
         'class' => 'ReporteController',
-        'methods' => ['index', 'ticketsCsv', 'ticketsPdf', 'resumen', 'preview'],
+        'methods' => ['index', 'ticketsCsv', 'ticketsExcel', 'ticketsPdf', 'resumen', 'preview'],
     ],
 ];
 

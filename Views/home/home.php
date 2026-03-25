@@ -6,6 +6,7 @@
     <title>NexoTI - Inicio</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>  
     <link rel='stylesheet' href='/NexoTI/Views/home/home.css'>  
+    <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
 </head>  
 <body>  
@@ -21,25 +22,57 @@
             </header>  
             <main class='home'>  
                 <section class='hero'>  
-                    <h2>Bienvenido</h2>  
-                    <p>Gestiona tickets, prioridades y estados desde un solo lugar.</p>  
+                    <div class='hero-copy'>
+                        <span class='hero-kicker'>Centro de operaciones</span>
+                        <h2>Panel de control de soporte TI</h2>  
+                        <p>Consulta el estado del servicio, revisa actividad reciente y accede rapido a los modulos principales.</p>
+                    </div>
+                    <div class='hero-actions'>
+                        <a class='btn primary' href='/NexoTI/index.php?r=tickets'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M4 6h16v5a2 2 0 0 0 0 4v5H4v-5a2 2 0 0 0 0-4V6zm4 4v4h8v-4H8z' fill='currentColor'></path></svg></span><span class='btn-label'>Ir a tickets</span></a>
+                        <?php if (((int) ($_SESSION['rol_id'] ?? 0)) === 1): ?>
+                            <a class='btn ghost' href='/NexoTI/index.php?r=reportes'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 3h10l4 4v14H5V3zm9 1.5V8h3.5L14 4.5zM8 12h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V8z' fill='currentColor'></path></svg></span><span class='btn-label'>Ver reportes</span></a>
+                        <?php endif; ?>
+                    </div>
                 </section>  
-                <section class='summary'>  
-                    <div class='card'>  
-                        <h3>Dashboard</h3>  
+                <section class='dashboard-section'>
+                    <div class='section-head'>
+                        <div>
+                            <span class='section-kicker'>Dashboard</span>
+                            <h3>Resumen operativo</h3>
+                        </div>
+                    </div>
+                    <div class='summary summary-dashboard'>  
+                        <article class='metric-card'>  
+                            <span>Tickets abiertos</span>
+                            <strong><?php echo (int) ($dashboard['abiertos'] ?? 0); ?></strong>
+                        </article>
+                        <article class='metric-card'>  
+                            <span>En progreso</span>
+                            <strong><?php echo (int) ($dashboard['en_progreso'] ?? 0); ?></strong>
+                        </article>
+                        <article class='metric-card'>  
+                            <span>Cerrados hoy</span>
+                            <strong><?php echo (int) ($dashboard['cerrados_hoy'] ?? 0); ?></strong>
+                        </article>
+                    </div>
+                </section>
+                <section class='summary summary-panels'>  
+                    <div class='card action-card'>  
+                        <h3>Flujo principal</h3>  
                         <ul>  
-                            <li>Tickets abiertos: <?php echo (int) ($dashboard['abiertos'] ?? 0); ?></li>  
-                            <li>En progreso: <?php echo (int) ($dashboard['en_progreso'] ?? 0); ?></li>  
-                            <li>Cerrados hoy: <?php echo (int) ($dashboard['cerrados_hoy'] ?? 0); ?></li>  
+                            <li>Registrar incidencia y dar seguimiento al ticket</li>  
+                            <li>Asignar y responder segun el rol del usuario</li>  
+                            <li>Confirmar solucion y cerrar el caso</li>  
                         </ul>  
                     </div>  
-                    <div class='card'>  
-                        <h3>Atajos</h3>  
-                        <ul>  
-                            <li>Registrar incidencia</li>  
-                            <li>Actualizar estado</li>  
-                            <li>Revisar asignaciones</li>  
-                        </ul>  
+                    <div class='card report-card'>  
+                        <h3>Area de reportes</h3>  
+                        <p>Consulta resumenes, historial y exportaciones sin mezclarlo con el dashboard principal.</p>
+                        <?php if (((int) ($_SESSION['rol_id'] ?? 0)) === 1): ?>
+                            <a class='btn ghost' href='/NexoTI/index.php?r=reportes'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 3h10l4 4v14H5V3zm9 1.5V8h3.5L14 4.5zM8 12h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V8z' fill='currentColor'></path></svg></span><span class='btn-label'>Abrir reportes</span></a>
+                        <?php else: ?>
+                            <p class='report-note'>Los reportes completos estan disponibles para el administrador.</p>
+                        <?php endif; ?>
                     </div>  
                 </section>  
             </main>  

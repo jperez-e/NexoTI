@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../Models/ReporteModel.php';
 require_once __DIR__ . '/BaseController.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class ReporteController extends BaseController
 {
@@ -24,7 +28,7 @@ class ReporteController extends BaseController
     {
         $this->requireLogin();
         $this->requireRole([1]);
-        $this->jsonOk('Vista previa cargada', array_slice($this->model->getTicketsReporte(), 0, 8));
+        $this->jsonOk('Vista previa cargada', array_slice($this->model->getTicketsReporte(), 0, 12));
     }
 
     public function ticketsCsv(): void
@@ -35,6 +39,8 @@ class ReporteController extends BaseController
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=reporte_tickets.csv');
         $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        fwrite($out, "sep=,\n");
         fputcsv($out, ['ID', 'Codigo', 'Titulo', 'Usuario', 'Tecnico', 'Categoria', 'Prioridad', 'Estado', 'Fecha Creacion', 'Fecha Cierre']);
         foreach ($rows as $row) {
             fputcsv($out, [$row['id'], $row['codigo'], $row['titulo'], $row['usuario'], $row['tecnico'] ?? '', $row['categoria'], $row['prioridad'], $row['estado'], $row['fecha_creacion'], $row['fecha_cierre'] ?? '']);
@@ -43,53 +49,59 @@ class ReporteController extends BaseController
         exit;
     }
 
+    public function ticketsExcel(): void
+    {
+        $this->requireLogin();
+        $this->requireRole([1]);
+        $rows = $this->model->getTicketsReporte();
+
+        header('Content-Type: application/vnd.ms-excel; charset=utf-8');
+        header('Content-Disposition: attachment; filename=reporte_tickets.xls');
+
+        echo '<table border="1">';
+        echo '<tr><th>ID</th><th>Codigo</th><th>Titulo</th><th>Usuario</th><th>Tecnico</th><th>Categoria</th><th>Prioridad</th><th>Estado</th><th>Fecha Creacion</th><th>Fecha Cierre</th></tr>';
+        foreach ($rows as $row) {
+            echo '<tr>';
+            echo '<td>' . htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) $row['codigo'], ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) $row['titulo'], ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) $row['usuario'], ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) ($row['tecnico'] ?? ''), ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) $row['categoria'], ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) $row['prioridad'], ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) $row['estado'], ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) $row['fecha_creacion'], ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '<td>' . htmlspecialchars((string) ($row['fecha_cierre'] ?? ''), ENT_QUOTES, 'UTF-8') . '</td>';
+            echo '</tr>';
+        }
+        echo '</table>';
+        exit;
+    }
+
     public function ticketsPdf(): void
     {
         $this->requireLogin();
         $this->requireRole([1]);
         $rows = $this->model->getTicketsReporte();
-        $lines = ['Reporte de Tickets', 'Generado: ' . date('Y-m-d H:i'), ''];
-        foreach ($rows as $row) {
-            $lines[] = sprintf('#%s %s | %s | %s | %s', $row['id'], $row['codigo'], $row['titulo'], $row['estado'], $row['usuario']);
-        }
-        $pdf = $this->buildSimplePdf($lines);
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $dompdf = new Dompdf($options);
+
+        $html = $this->renderPdfHtml($rows);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+
         header('Content-Type: application/pdf');
         header('Content-Disposition: attachment; filename=reporte_tickets.pdf');
-        header('Content-Length: ' . strlen($pdf));
-        echo $pdf;
+        echo $dompdf->output();
         exit;
     }
 
-    private function buildSimplePdf(array $lines): string
+    private function renderPdfHtml(array $rows): string
     {
-        $content = 'BT' . "\n" . '/F1 12 Tf' . "\n" . '50 760 Td' . "\n";
-        foreach ($lines as $line) {
-            $safe = str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $line);
-            $content .= '(' . $safe . ') Tj' . "\n" . '0 -16 Td' . "\n";
-        }
-        $content .= 'ET';
-        $open = chr(60) . chr(60);
-        $close = chr(62) . chr(62);
-        $objects = [];
-        $objects[] = '1 0 obj' . "\n" . $open . ' /Type /Catalog /Pages 2 0 R ' . $close . "\nendobj\n";
-        $objects[] = '2 0 obj' . "\n" . $open . ' /Type /Pages /Kids [3 0 R] /Count 1 ' . $close . "\nendobj\n";
-        $objects[] = '3 0 obj' . "\n" . $open . ' /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources ' . $open . ' /Font ' . $open . ' /F1 5 0 R ' . $close . ' ' . $close . ' ' . $close . "\nendobj\n";
-        $objects[] = '4 0 obj' . "\n" . $open . ' /Length ' . strlen($content) . ' ' . $close . "\nstream\n" . $content . "\nendstream\nendobj\n";
-        $objects[] = '5 0 obj' . "\n" . $open . ' /Type /Font /Subtype /Type1 /BaseFont /Helvetica ' . $close . "\nendobj\n";
-        $pdf = '%PDF-1.4' . "\n";
-        $offsets = [0];
-        foreach ($objects as $obj) {
-            $offsets[] = strlen($pdf);
-            $pdf .= $obj;
-        }
-        $xrefPos = strlen($pdf);
-        $pdf .= 'xref' . "\n" . '0 ' . count($offsets) . "\n";
-        $pdf .= '0000000000 65535 f ' . "\n";
-        for ($i = 1; $i < count($offsets); $i++) {
-            $pdf .= sprintf('%010d 00000 n ' . "\n", $offsets[$i]);
-        }
-        $pdf .= 'trailer' . "\n" . $open . ' /Size ' . count($offsets) . ' /Root 1 0 R ' . $close . "\n";
-        $pdf .= 'startxref' . "\n" . $xrefPos . "\n%EOF";
-        return $pdf;
+        ob_start();
+        require __DIR__ . '/../Views/reportes/pdf.php';
+        return (string) ob_get_clean();
     }
 }
