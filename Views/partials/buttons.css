@@ -12,6 +12,15 @@
     --btn-danger-bg-hover: #fecaca;
     --btn-danger-bg-active: #fca5a5;
     --btn-danger-text: #b91c1c;
+    --msg-text: #475569;
+    --msg-bg: rgba(241, 245, 249, 0.92);
+    --msg-border: #d8e2ee;
+    --msg-success-text: #166534;
+    --msg-success-bg: #ecfdf3;
+    --msg-success-border: #bbf7d0;
+    --msg-error-text: #b42318;
+    --msg-error-bg: #fef2f2;
+    --msg-error-border: #fecaca;
 }
 
 .btn {
@@ -121,4 +130,47 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+.message,
+.error {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.message:empty,
+.error:empty {
+    display: none;
+}
+
+.message:not(:empty),
+.error:not(:empty) {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 10px 14px;
+    border: 1px solid var(--msg-border);
+    border-radius: 12px;
+    background: var(--msg-bg);
+    color: var(--msg-text);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+}
+
+.message.success:not(:empty) {
+    border-color: var(--msg-success-border);
+    background: var(--msg-success-bg);
+    color: var(--msg-success-text);
+}
+
+.message.error:not(:empty),
+.error:not(:empty) {
+    border-color: var(--msg-error-border);
+    background: var(--msg-error-bg);
+    color: var(--msg-error-text);
+}
+
+.inline-message:not(:empty) {
+    display: inline-flex;
 }
