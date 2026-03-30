@@ -346,6 +346,8 @@ function renderNotificationsPanel() {
     if (!dom.noticePanel || !dom.noticeCount) { return; }
     const rows = buildNotificationItems();
     dom.noticeCount.textContent = String(rows.length);
+    dom.noticeCount.classList.toggle('hidden', rows.length === 0);
+    dom.noticeCount.setAttribute('aria-hidden', rows.length === 0 ? 'true' : 'false');
     dom.noticePanel.innerHTML = '';
     if (rows.length === 0) {
         dom.noticePanel.innerHTML = '<p class="notice-empty">No hay notificaciones pendientes.</p>';
