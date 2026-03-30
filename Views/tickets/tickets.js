@@ -360,8 +360,11 @@ async function submitInlineReply(ticket, textarea, stateSelect, messageNode, rep
         setInlineMessage(messageNode, successMessage, 'success');
         textarea.value = '';
         replyBox.classList.remove('is-open');
+        toggleButton.setAttribute('aria-expanded', 'false');
         setButtonContent(toggleButton, 'reply', 'Responder');
-        await refreshTicketsView();
+        await preserveTicketPosition(ticket.id, async function () {
+            await refreshTicketsView();
+        });
     } finally {
         setButtonLoading(sendButton, false);
     }
@@ -372,7 +375,11 @@ async function closeInlineTicket(ticketId, messageNode, closeButton) {
     try {
         const data = await postJSON('api.php?c=ticket&m=closeTicket', { ticket_id: ticketId });
         setInlineMessage(messageNode, data.message ? data.message : 'Proceso completado.', data.status ? 'success' : 'error');
-        if (data.status) { await refreshTicketsView(); }
+        if (data.status) {
+            await preserveTicketPosition(ticketId, async function () {
+                await refreshTicketsView();
+            });
+        }
     } finally {
         setButtonLoading(closeButton, false);
     }
@@ -423,10 +430,13 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     cancelButton.className = 'btn ghost';
     setButtonContent(cancelButton, 'close', 'Cancelar');
     cancelButton.addEventListener('click', function () {
-        textarea.value = '';
-        box.classList.remove('is-open');
-        setButtonContent(toggleButton, 'reply', 'Responder');
-        setInlineMessage(messageNode, '', '');
+        preserveTicketPosition(ticket.id, function () {
+            textarea.value = '';
+            box.classList.remove('is-open');
+            toggleButton.setAttribute('aria-expanded', 'false');
+            setButtonContent(toggleButton, 'reply', 'Responder');
+            setInlineMessage(messageNode, '', '');
+        });
     });
     const sendButton = document.createElement('button');
     sendButton.type = 'button';
@@ -461,10 +471,12 @@ function buildInlineActions(ticket) {
     const reply = buildInlineReply(ticket, messageNode, replyButton);
     replyButton.setAttribute('aria-controls', reply.box.id);
     replyButton.addEventListener('click', function () {
-        const isOpen = reply.box.classList.toggle('is-open');
-        setButtonContent(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
-        replyButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        if (isOpen) { reply.textarea.focus(); }
+        preserveTicketPosition(ticket.id, function () {
+            const isOpen = reply.box.classList.toggle('is-open');
+            setButtonContent(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
+            replyButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            if (isOpen) { reply.textarea.focus(); }
+        });
     });
     actions.appendChild(replyButton);
     if (isEndUser() && String(ticket.estado_nombre).toLowerCase() === 'resuelto') {
@@ -550,13 +562,33 @@ function buildTicketDetails(ticket) {
     return details;
 }
 
-function keepTicketPosition(ticketId, previousTop) {
+function getTicketNode(ticketId) {
+    return document.querySelector('[data-ticket-id="' + ticketId + '"]');
+}
+
+function restoreTicketPosition(ticketId, previousTop) {
+    if (previousTop === null) { return; }
     window.requestAnimationFrame(function () {
-        const nextNode = document.querySelector('[data-ticket-id="' + ticketId + '"]');
+        const nextNode = getTicketNode(ticketId);
         if (!nextNode) { return; }
         const nextTop = nextNode.getBoundingClientRect().top;
         window.scrollBy(0, nextTop - previousTop);
     });
+}
+
+function preserveTicketPosition(ticketId, work) {
+    const currentNode = getTicketNode(ticketId);
+    const previousTop = currentNode ? currentNode.getBoundingClientRect().top : null;
+    const result = typeof work === 'function' ? work() : null;
+
+    if (result && typeof result.then === 'function') {
+        return result.finally(function () {
+            restoreTicketPosition(ticketId, previousTop);
+        });
+    }
+
+    restoreTicketPosition(ticketId, previousTop);
+    return Promise.resolve();
 }
 
 function renderTickets(tickets) {
@@ -582,10 +614,10 @@ function renderTickets(tickets) {
         item.classList.toggle('is-open', isExpanded);
         const summary = buildTicketSummary(ticket, isExpanded);
         summary.addEventListener('click', function () {
-            const previousTop = item.getBoundingClientRect().top;
-            expandedTicketId = isExpanded ? null : ticket.id;
-            renderTickets(filterTicketsBySearch());
-            keepTicketPosition(ticket.id, previousTop);
+            preserveTicketPosition(ticket.id, function () {
+                expandedTicketId = isExpanded ? null : ticket.id;
+                renderTickets(filterTicketsBySearch());
+            });
         });
         item.appendChild(summary);
         if (isExpanded) {
@@ -792,7 +824,13 @@ function setupCreateForm() {
             if (data.status) {
                 dom.ticketForm.reset();
                 setDefaultOccurrence();
-                await refreshTicketsView();
+                if (expandedTicketId !== null) {
+                    await preserveTicketPosition(expandedTicketId, async function () {
+                        await refreshTicketsView();
+                    });
+                } else {
+                    await refreshTicketsView();
+                }
             }
         } finally {
             setButtonLoading(submitButton, false);
@@ -819,7 +857,12 @@ function setupAssignForm() {
                 estado_id: dom.assignState.value,
             });
             setMessage(dom.assignMessage, data.message ? data.message : 'Proceso completado.', data.status ? 'success' : 'error', 'Asignacion');
-            if (data.status) { await refreshTicketsView(); }
+            if (data.status) {
+                const anchorId = expandedTicketId !== null ? expandedTicketId : dom.assignTicket.value;
+                await preserveTicketPosition(anchorId, async function () {
+                    await refreshTicketsView();
+                });
+            }
         } finally {
             setButtonLoading(submitButton, false);
         }
@@ -868,7 +911,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         dom.refreshButton.addEventListener('click', async function () {
             const button = this;
             setButtonLoading(button, true, 'Actualizando...');
-            try { await refreshTicketsView(); } finally { setButtonLoading(button, false); }
+            try {
+                if (expandedTicketId !== null) {
+                    await preserveTicketPosition(expandedTicketId, async function () {
+                        await refreshTicketsView();
+                    });
+                } else {
+                    await refreshTicketsView();
+                }
+            } finally { setButtonLoading(button, false); }
         });
     }
     await loadCombos();
