@@ -130,6 +130,20 @@ textarea {
     gap: 10px;
 }
 
+.pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pager-info {
+    color: #64748b;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
 .status-filter {
     display: inline-flex;
     align-items: center;
@@ -293,6 +307,15 @@ textarea {
     .status-filter {
         width: 100%;
         justify-content: center;
+    }
+
+    .pager {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pager-info {
+        text-align: center;
     }
 } 
 .layout { 

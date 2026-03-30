@@ -26,11 +26,11 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=4'>
+    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=5'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.js?v=13' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.js?v=14' defer></script>
 </head>
 <body
     data-role-id='<?php echo (int) $rolId; ?>'
@@ -188,6 +188,17 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     <button class='status-filter' type='button' data-status-filter='cerrado' aria-pressed='false'>Cerrados</button>
                 </div>
                 <div id='tickets-list' class='list'></div>
+                <div class='pager' id='tickets-pager'>
+                    <button class='btn ghost' id='tickets-prev' type='button'>
+                        <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z' fill='currentColor'></path></svg></span>
+                        <span class='btn-label'>Anterior</span>
+                    </button>
+                    <span id='tickets-page-info' class='pager-info' aria-live='polite'></span>
+                    <button class='btn ghost' id='tickets-next' type='button'>
+                        <span class='btn-label'>Siguiente</span>
+                        <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='m8.6 16.6 1.4 1.4 6-6-6-6-1.4 1.4 4.6 4.6z' fill='currentColor'></path></svg></span>
+                    </button>
+                </div>
             </section>
         </main>
     </div>

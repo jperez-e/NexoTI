@@ -28,8 +28,8 @@ class ReporteController extends BaseController
     {
         $this->requireLogin();
         $this->requireRole([1]);
-        // La vista web no necesita todo el historial; se muestra solo una muestra reciente para mantenerla liviana.
-        $this->jsonOk('Vista previa cargada', array_slice($this->model->getTicketsReporte(), 0, 12));
+        // El historial se pagina en el navegador para que el admin avance por bloques sin perder contexto.
+        $this->jsonOk('Vista previa cargada', $this->model->getTicketsReporte());
     }
 
     public function ticketsCsv(): void

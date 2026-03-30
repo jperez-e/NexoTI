@@ -1,3 +1,7 @@
+let allReportRows = [];
+let currentReportPage = 1;
+const reportRowsPerPage = 5;
+
 async function fetchJSON(url) {
     const res = await fetch(url);
     const payload = await res.json();
@@ -5,12 +9,8 @@ async function fetchJSON(url) {
     return payload.data || [];
 }
 
-async function loadResumen() {
-    const data = await fetchJSON('/NexoTI/api.php?c=reporte&m=resumen');
-    document.getElementById('stat-total').textContent = data.total || 0;
-    document.getElementById('stat-abiertos').textContent = data.abiertos || 0;
-    document.getElementById('stat-progreso').textContent = data.en_progreso || 0;
-    document.getElementById('stat-cerrados').textContent = data.cerrados || 0;
+function byId(id) {
+    return document.getElementById(id);
 }
 
 function appendCell(row, text) {
@@ -28,22 +28,56 @@ function formatDate(value) {
     return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('es-DO');
 }
 
-async function loadPreview() {
-    const rows = await fetchJSON('/NexoTI/api.php?c=reporte&m=preview');
-    const tbody = document.getElementById('report-preview');
+function updateReportPager(totalItems, totalPages) {
+    const pager = byId('reportes-pager');
+    const prev = byId('reportes-prev');
+    const next = byId('reportes-next');
+    const info = byId('reportes-page-info');
+
+    if (!pager || !prev || !next || !info) {
+        return;
+    }
+
+    const hasItems = totalItems > 0;
+    pager.classList.toggle('hidden', !hasItems);
+
+    if (!hasItems) {
+        info.textContent = '';
+        return;
+    }
+
+    info.textContent = 'Pagina ' + currentReportPage + ' de ' + totalPages + ' - ' + totalItems + ' ticket(s)';
+    prev.disabled = currentReportPage <= 1;
+    next.disabled = currentReportPage >= totalPages;
+}
+
+function renderPreviewPage() {
+    const tbody = byId('report-preview');
     if (!tbody) { return; }
+
     tbody.innerHTML = '';
-    if (!rows.length) {
+
+    if (!allReportRows.length) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
-        td.colSpan = 5;
+        td.colSpan = 6;
         td.className = 'empty';
         td.textContent = 'No hay tickets para mostrar.';
         tr.appendChild(td);
         tbody.appendChild(tr);
+        updateReportPager(0, 1);
         return;
     }
-    rows.forEach(function (item) {
+
+    const totalPages = Math.max(1, Math.ceil(allReportRows.length / reportRowsPerPage));
+    if (currentReportPage > totalPages) {
+        currentReportPage = totalPages;
+    }
+
+    const start = (currentReportPage - 1) * reportRowsPerPage;
+    const pageRows = allReportRows.slice(start, start + reportRowsPerPage);
+
+    pageRows.forEach(function (item) {
         const tr = document.createElement('tr');
         appendCell(tr, item.codigo);
         appendCell(tr, item.titulo);
@@ -53,16 +87,52 @@ async function loadPreview() {
         appendCell(tr, formatDate(item.fecha_creacion));
         tbody.appendChild(tr);
     });
+
+    updateReportPager(allReportRows.length, totalPages);
+}
+
+async function loadResumen() {
+    const data = await fetchJSON('/NexoTI/api.php?c=reporte&m=resumen');
+    byId('stat-total').textContent = data.total || 0;
+    byId('stat-abiertos').textContent = data.abiertos || 0;
+    byId('stat-progreso').textContent = data.en_progreso || 0;
+    byId('stat-cerrados').textContent = data.cerrados || 0;
+}
+
+async function loadPreview() {
+    allReportRows = await fetchJSON('/NexoTI/api.php?c=reporte&m=preview');
+    currentReportPage = 1;
+    renderPreviewPage();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     loadResumen();
     loadPreview();
-    const btn = document.getElementById('reload-reportes');
+
+    const btn = byId('reload-reportes');
     if (btn) {
         btn.addEventListener('click', function () {
             loadResumen();
             loadPreview();
+        });
+    }
+
+    const prev = byId('reportes-prev');
+    if (prev) {
+        prev.addEventListener('click', function () {
+            if (currentReportPage <= 1) { return; }
+            currentReportPage -= 1;
+            renderPreviewPage();
+        });
+    }
+
+    const next = byId('reportes-next');
+    if (next) {
+        next.addEventListener('click', function () {
+            const totalPages = Math.max(1, Math.ceil(allReportRows.length / reportRowsPerPage));
+            if (currentReportPage >= totalPages) { return; }
+            currentReportPage += 1;
+            renderPreviewPage();
         });
     }
 });

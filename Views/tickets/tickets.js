@@ -3,6 +3,8 @@ let allComments = [];
 let availableStatuses = [];
 let expandedTicketId = null;
 let activeStatusFilter = 'todos';
+let currentTicketPage = 1;
+const ticketsPerPage = 5;
 const dom = {};
 
 function byId(id) { return document.getElementById(id); }
@@ -656,6 +658,13 @@ function renderTickets(tickets) {
     if (!dom.ticketsList) { return; }
     dom.ticketsList.innerHTML = '';
     updateResultsInfo(tickets.length);
+    const totalPages = Math.max(1, Math.ceil(tickets.length / ticketsPerPage));
+    if (currentTicketPage > totalPages) {
+        currentTicketPage = totalPages;
+    }
+    const pageStart = (currentTicketPage - 1) * ticketsPerPage;
+    const pageTickets = tickets.slice(pageStart, pageStart + ticketsPerPage);
+    updateTicketsPager(tickets.length, totalPages);
     if (tickets.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'empty';
@@ -663,13 +672,13 @@ function renderTickets(tickets) {
         dom.ticketsList.appendChild(empty);
         return;
     }
-    if (expandedTicketId !== null && !tickets.some(function (ticket) { return String(ticket.id) === String(expandedTicketId); })) {
+    if (expandedTicketId !== null && !pageTickets.some(function (ticket) { return String(ticket.id) === String(expandedTicketId); })) {
         expandedTicketId = null;
     }
     const list = document.createElement('div');
     list.className = 'ticket-list';
     // El listado se dibuja de nuevo en cada filtro o actualizacion para mantener resumen y detalle sincronizados.
-    tickets.forEach(function (ticket) {
+    pageTickets.forEach(function (ticket) {
         const item = document.createElement('article');
         item.className = 'ticket-item';
         item.dataset.ticketId = String(ticket.id);
@@ -739,6 +748,7 @@ function refreshTicketSelects(tickets) {
 }
 
 function applySearch() {
+    currentTicketPage = 1;
     const filteredTickets = filterTicketsBySearch();
     renderTickets(filteredTickets);
     refreshTicketSelects(allTickets);
@@ -757,6 +767,7 @@ function updateResultsInfo(totalVisible) {
 
 function applyStatusFilter(filterValue) {
     activeStatusFilter = filterValue;
+    currentTicketPage = 1;
     if (dom.statusFilters) {
         dom.statusFilters.forEach(function (button) {
             const isActive = button.dataset.statusFilter === filterValue;
@@ -765,6 +776,19 @@ function applyStatusFilter(filterValue) {
         });
     }
     applySearch();
+}
+
+function updateTicketsPager(totalItems, totalPages) {
+    if (!dom.ticketsPager || !dom.ticketsPrev || !dom.ticketsNext || !dom.ticketsPageInfo) { return; }
+    const hasItems = totalItems > 0;
+    dom.ticketsPager.classList.toggle('hidden', !hasItems);
+    if (!hasItems) {
+        dom.ticketsPageInfo.textContent = '';
+        return;
+    }
+    dom.ticketsPageInfo.textContent = 'Pagina ' + currentTicketPage + ' de ' + totalPages + ' - ' + totalItems + ' ticket(s)';
+    dom.ticketsPrev.disabled = currentTicketPage <= 1;
+    dom.ticketsNext.disabled = currentTicketPage >= totalPages;
 }
 
 async function loadTickets() {
@@ -995,6 +1019,10 @@ function cacheDom() {
     dom.ticketsList = byId('tickets-list');
     dom.resultsInfo = byId('results-info');
     dom.statusFilters = Array.from(document.querySelectorAll('[data-status-filter]'));
+    dom.ticketsPager = byId('tickets-pager');
+    dom.ticketsPrev = byId('tickets-prev');
+    dom.ticketsNext = byId('tickets-next');
+    dom.ticketsPageInfo = byId('tickets-page-info');
     dom.ticketForm = byId('ticket-form');
     dom.formMessage = byId('form-message');
     dom.categoria = byId('categoria_id');
@@ -1023,6 +1051,22 @@ document.addEventListener('DOMContentLoaded', async function () {
             button.addEventListener('click', function () {
                 applyStatusFilter(button.dataset.statusFilter || 'todos');
             });
+        });
+    }
+    if (dom.ticketsPrev) {
+        dom.ticketsPrev.addEventListener('click', function () {
+            if (currentTicketPage <= 1) { return; }
+            currentTicketPage -= 1;
+            renderTickets(filterTicketsBySearch());
+        });
+    }
+    if (dom.ticketsNext) {
+        dom.ticketsNext.addEventListener('click', function () {
+            const totalItems = filterTicketsBySearch().length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / ticketsPerPage));
+            if (currentTicketPage >= totalPages) { return; }
+            currentTicketPage += 1;
+            renderTickets(filterTicketsBySearch());
         });
     }
     if (dom.refreshButton) {

@@ -132,6 +132,21 @@ body {
     overflow-x: auto;
 }
 
+.pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.pager-info {
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
 .report-table {
     width: 100%;
     border-collapse: collapse;
@@ -171,5 +186,14 @@ body {
     .content {
         padding-left: 16px;
         padding-right: 16px;
+    }
+
+    .pager {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pager-info {
+        text-align: center;
     }
 }

@@ -5,10 +5,10 @@
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Reportes</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css'>
+    <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css?v=3'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
-    <script src='/NexoTI/Views/reportes/reportes.js?v=2' defer></script>
+    <script src='/NexoTI/Views/reportes/reportes.js?v=3' defer></script>
 </head>
 <body>
     <div class='layout'>
@@ -60,6 +60,17 @@
                             <thead><tr><th>Codigo</th><th>Titulo</th><th>Usuario</th><th>Tecnico</th><th>Estado</th><th>Fecha</th></tr></thead>
                             <tbody id='report-preview'><tr><td colspan='6'>Cargando datos...</td></tr></tbody>
                         </table>
+                    </div>
+                    <div class='pager' id='reportes-pager'>
+                        <button class='btn ghost' id='reportes-prev' type='button'>
+                            <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z' fill='currentColor'></path></svg></span>
+                            <span class='btn-label'>Anterior</span>
+                        </button>
+                        <span id='reportes-page-info' class='pager-info' aria-live='polite'></span>
+                        <button class='btn ghost' id='reportes-next' type='button'>
+                            <span class='btn-label'>Siguiente</span>
+                            <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='m8.6 16.6 1.4 1.4 6-6-6-6-1.4 1.4 4.6 4.6z' fill='currentColor'></path></svg></span>
+                        </button>
                     </div>
                 </section>
             </main>
