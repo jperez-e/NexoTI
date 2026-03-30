@@ -26,7 +26,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=5'>
+    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=6'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
@@ -76,130 +76,131 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                 </header>
                 <div class='notice-panel' id='notice-panel' role='dialog' aria-live='polite' aria-hidden='true' tabindex='-1'></div>
             </div>
-
-            <header class='page-header'>
-                <div>
-                    <h1>Tickets de Soporte</h1>
-                    <p>Registra, asigna y gestiona solicitudes.</p>
-                </div>
-                <a class='btn' href='/NexoTI/index.php?r=home'><span class='btn-label'>Volver al inicio</span></a>
-            </header>
-
-            <section class='card'>
-                <h2>Crear ticket</h2>
-                <form id='ticket-form' enctype='multipart/form-data'>
-                    <input type='hidden' name='usuario_id' value='<?php echo $userId; ?>'>
-                    <div class='grid'>
-                        <label>
-                            Titulo
-                            <input name='titulo' type='text' placeholder='Ej: Impresora sin conexion' required>
-                        </label>
-                        <label>
-                            Categoria
-                            <select name='categoria_id' id='categoria_id' required></select>
-                        </label>
-                        <label>
-                            Prioridad
-                            <select name='prioridad_id' id='prioridad_id' required></select>
-                        </label>
-                        <?php if (!$isUser): ?>
-                        <label>
-                            Estado
-                            <select name='estado_id' id='estado_id' required></select>
-                        </label>
-                        <?php endif; ?>
-                        <label>
-                            Fecha de ocurrencia
-                            <input name='fecha_ocurrencia' type='datetime-local'>
-                        </label>
+            <div class='page-body'>
+                <header class='page-header'>
+                    <div>
+                        <h1>Tickets de Soporte</h1>
+                        <p>Registra, asigna y gestiona solicitudes.</p>
                     </div>
-                    <label>
-                        Descripcion
-                        <textarea name='descripcion' rows='4' placeholder='Describe el problema' required></textarea>
-                    </label>
-                    <label>
-                        Adjuntar archivo
-                        <input type='file' name='adjunto' accept='image/*,.pdf,.doc,.docx'>
-                    </label>
-                    <div class='actions'>
-                        <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z' fill='currentColor'></path></svg></span><span class='btn-label'>Guardar ticket</span></button>
-                        <span id='form-message' class='message' role='status' aria-live='polite'></span>
-                    </div>
-                </form>
-            </section>
+                    <a class='btn' href='/NexoTI/index.php?r=home'><span class='btn-label'>Volver al inicio</span></a>
+                </header>
 
-            <?php if ($isAdmin): ?>
-            <section class='card'>
-                <h2>Asignar ticket</h2>
-                <form id='assign-form'>
-                    <div class='grid'>
+                <section class='card'>
+                    <h2>Crear ticket</h2>
+                    <form id='ticket-form' enctype='multipart/form-data'>
+                        <input type='hidden' name='usuario_id' value='<?php echo $userId; ?>'>
+                        <div class='grid'>
+                            <label>
+                                Titulo
+                                <input name='titulo' type='text' placeholder='Ej: Impresora sin conexion' required>
+                            </label>
+                            <label>
+                                Categoria
+                                <select name='categoria_id' id='categoria_id' required></select>
+                            </label>
+                            <label>
+                                Prioridad
+                                <select name='prioridad_id' id='prioridad_id' required></select>
+                            </label>
+                            <?php if (!$isUser): ?>
+                            <label>
+                                Estado
+                                <select name='estado_id' id='estado_id' required></select>
+                            </label>
+                            <?php endif; ?>
+                            <label>
+                                Fecha de ocurrencia
+                                <input name='fecha_ocurrencia' type='datetime-local'>
+                            </label>
+                        </div>
+                        <label>
+                            Descripcion
+                            <textarea name='descripcion' rows='4' placeholder='Describe el problema' required></textarea>
+                        </label>
+                        <label>
+                            Adjuntar archivo
+                            <input type='file' name='adjunto' accept='image/*,.pdf,.doc,.docx'>
+                        </label>
+                        <div class='actions'>
+                            <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z' fill='currentColor'></path></svg></span><span class='btn-label'>Guardar ticket</span></button>
+                            <span id='form-message' class='message' role='status' aria-live='polite'></span>
+                        </div>
+                    </form>
+                </section>
+
+                <?php if ($isAdmin): ?>
+                <section class='card'>
+                    <h2>Asignar ticket</h2>
+                    <form id='assign-form'>
+                        <div class='grid'>
+                            <label>
+                                Ticket
+                                <select name='ticket_id' id='assign_ticket_id' required></select>
+                            </label>
+                            <label>
+                                Tecnico
+                                <select name='tecnico_id' id='assign_tecnico_id'></select>
+                            </label>
+                            <?php if (!$isUser): ?>
+                            <label>
+                                Estado
+                                <select name='estado_id' id='assign_estado_id' required></select>
+                            </label>
+                            <?php endif; ?>
+                        </div>
+                        <div class='actions'>
+                            <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar ticket</span></button>
+                            <span id='assign-message' class='message' role='status' aria-live='polite'></span>
+                        </div>
+                    </form>
+                </section>
+                <?php endif; ?>
+
+                <?php if ($isUser): ?>
+                <section class='card'>
+                    <h2>Confirmar cierre</h2>
+                    <form id='close-form'>
                         <label>
                             Ticket
-                            <select name='ticket_id' id='assign_ticket_id' required></select>
+                            <select name='ticket_id' id='close_ticket_id' required></select>
                         </label>
-                        <label>
-                            Tecnico
-                            <select name='tecnico_id' id='assign_tecnico_id'></select>
-                        </label>
-                        <?php if (!$isUser): ?>
-                        <label>
-                            Estado
-                            <select name='estado_id' id='assign_estado_id' required></select>
-                        </label>
-                        <?php endif; ?>
-                    </div>
-                    <div class='actions'>
-                        <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar ticket</span></button>
-                        <span id='assign-message' class='message' role='status' aria-live='polite'></span>
-                    </div>
-                </form>
-            </section>
-            <?php endif; ?>
+                        <div class='actions'>
+                            <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z' fill='currentColor'></path></svg></span><span class='btn-label'>Cerrar ticket</span></button>
+                            <span id='close-message' class='message' role='status' aria-live='polite'></span>
+                        </div>
+                    </form>
+                </section>
+                <?php endif; ?>
 
-            <?php if ($isUser): ?>
-            <section class='card'>
-                <h2>Confirmar cierre</h2>
-                <form id='close-form'>
-                    <label>
-                        Ticket
-                        <select name='ticket_id' id='close_ticket_id' required></select>
-                    </label>
-                    <div class='actions'>
-                        <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z' fill='currentColor'></path></svg></span><span class='btn-label'>Cerrar ticket</span></button>
-                        <span id='close-message' class='message' role='status' aria-live='polite'></span>
+                <section class='card'>
+                    <div class='list-header'>
+                        <div class='list-header-copy'>
+                            <h2>Listado</h2>
+                            <p id='results-info' class='results-info' aria-live='polite'></p>
+                        </div>
+                        <button class='btn ghost' id='refresh-btn' type='button'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar</span></button>
                     </div>
-                </form>
-            </section>
-            <?php endif; ?>
-
-            <section class='card'>
-                <div class='list-header'>
-                    <div class='list-header-copy'>
-                        <h2>Listado</h2>
-                        <p id='results-info' class='results-info' aria-live='polite'></p>
+                    <div class='status-filters' id='status-filters' role='tablist' aria-label='Filtrar tickets por estado'>
+                        <button class='status-filter is-active' type='button' data-status-filter='todos' aria-pressed='true'>Todos</button>
+                        <button class='status-filter' type='button' data-status-filter='abierto' aria-pressed='false'>Abiertos</button>
+                        <button class='status-filter' type='button' data-status-filter='en proceso' aria-pressed='false'>En progreso</button>
+                        <button class='status-filter' type='button' data-status-filter='resuelto' aria-pressed='false'>Resueltos</button>
+                        <button class='status-filter' type='button' data-status-filter='cerrado' aria-pressed='false'>Cerrados</button>
                     </div>
-                    <button class='btn ghost' id='refresh-btn' type='button'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar</span></button>
-                </div>
-                <div class='status-filters' id='status-filters' role='tablist' aria-label='Filtrar tickets por estado'>
-                    <button class='status-filter is-active' type='button' data-status-filter='todos' aria-pressed='true'>Todos</button>
-                    <button class='status-filter' type='button' data-status-filter='abierto' aria-pressed='false'>Abiertos</button>
-                    <button class='status-filter' type='button' data-status-filter='en proceso' aria-pressed='false'>En progreso</button>
-                    <button class='status-filter' type='button' data-status-filter='resuelto' aria-pressed='false'>Resueltos</button>
-                    <button class='status-filter' type='button' data-status-filter='cerrado' aria-pressed='false'>Cerrados</button>
-                </div>
-                <div id='tickets-list' class='list'></div>
-                <div class='pager' id='tickets-pager'>
-                    <button class='btn ghost' id='tickets-prev' type='button'>
-                        <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z' fill='currentColor'></path></svg></span>
-                        <span class='btn-label'>Anterior</span>
-                    </button>
-                    <span id='tickets-page-info' class='pager-info' aria-live='polite'></span>
-                    <button class='btn ghost' id='tickets-next' type='button'>
-                        <span class='btn-label'>Siguiente</span>
-                        <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='m8.6 16.6 1.4 1.4 6-6-6-6-1.4 1.4 4.6 4.6z' fill='currentColor'></path></svg></span>
-                    </button>
-                </div>
-            </section>
+                    <div id='tickets-list' class='list'></div>
+                    <div class='pager' id='tickets-pager'>
+                        <button class='btn ghost' id='tickets-prev' type='button'>
+                            <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z' fill='currentColor'></path></svg></span>
+                            <span class='btn-label'>Anterior</span>
+                        </button>
+                        <span id='tickets-page-info' class='pager-info' aria-live='polite'></span>
+                        <button class='btn ghost' id='tickets-next' type='button'>
+                            <span class='btn-label'>Siguiente</span>
+                            <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='m8.6 16.6 1.4 1.4 6-6-6-6-1.4 1.4 4.6 4.6z' fill='currentColor'></path></svg></span>
+                        </button>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 </body>
