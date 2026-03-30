@@ -30,7 +30,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.js?v=6' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.js?v=7' defer></script>
 </head>
 <body
     data-role-id='<?php echo (int) $rolId; ?>'

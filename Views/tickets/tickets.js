@@ -1,6 +1,7 @@
 let allTickets = [];
 let allComments = [];
 let availableStatuses = [];
+let expandedTicketId = null;
 const dom = {};
 
 function byId(id) { return document.getElementById(id); }
@@ -129,6 +130,12 @@ function buildMeta(text) {
     meta.className = 'ticket-meta';
     meta.textContent = text;
     return meta;
+}
+
+function countCommentsForTicket(ticketId) {
+    return allComments.filter(function (comment) {
+        return String(comment.ticket_id) === String(ticketId);
+    }).length;
 }
 
 function buildRoleBadge(roleName) {
@@ -467,6 +474,70 @@ function buildInlineActions(ticket) {
     return wrapper;
 }
 
+function buildTicketSummary(ticket, isExpanded) {
+    const summary = document.createElement('button');
+    summary.type = 'button';
+    summary.className = 'ticket-summary';
+    summary.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+
+    const main = document.createElement('div');
+    main.className = 'ticket-summary-main';
+
+    const head = document.createElement('div');
+    head.className = 'ticket-head';
+    const info = document.createElement('div');
+    info.className = 'ticket-head-main';
+    const code = document.createElement('strong');
+    code.textContent = ticket.codigo;
+    const title = document.createElement('h3');
+    title.textContent = ticket.titulo;
+    info.appendChild(code);
+    info.appendChild(title);
+    const status = document.createElement('span');
+    status.className = 'status';
+    status.textContent = ticket.estado_nombre ? ticket.estado_nombre : 'Sin estado';
+    head.appendChild(info);
+    head.appendChild(status);
+
+    const excerpt = document.createElement('p');
+    excerpt.className = 'ticket-excerpt';
+    excerpt.textContent = String(ticket.descripcion || '').trim() || 'Sin descripcion';
+
+    const metaGrid = document.createElement('div');
+    metaGrid.className = 'meta-grid';
+    metaGrid.appendChild(buildMeta('Usuario: ' + (ticket.usuario_nombre || 'N/A')));
+    metaGrid.appendChild(buildMeta('Tecnico: ' + (ticket.tecnico_nombre || 'Sin asignar')));
+    metaGrid.appendChild(buildMeta('Categoria: ' + (ticket.categoria_nombre || 'N/A')));
+    metaGrid.appendChild(buildMeta('Prioridad: ' + (ticket.prioridad_nombre || 'N/A')));
+
+    const footer = document.createElement('div');
+    footer.className = 'ticket-summary-footer';
+    footer.appendChild(buildMeta('Fecha: ' + formatTicketDate(ticket.fecha_creacion)));
+    footer.appendChild(buildMeta('Mensajes: ' + countCommentsForTicket(ticket.id)));
+
+    const toggle = document.createElement('span');
+    toggle.className = 'ticket-toggle';
+    toggle.textContent = isExpanded ? 'Ocultar detalle' : 'Ver detalle';
+    footer.appendChild(toggle);
+
+    main.appendChild(head);
+    main.appendChild(excerpt);
+    main.appendChild(metaGrid);
+    main.appendChild(footer);
+    summary.appendChild(main);
+
+    return summary;
+}
+
+function buildTicketDetails(ticket) {
+    const details = document.createElement('div');
+    details.className = 'ticket-details';
+    details.appendChild(buildParticipantsPanel(ticket));
+    details.appendChild(buildTicketThread(ticket));
+    details.appendChild(buildInlineActions(ticket));
+    return details;
+}
+
 function renderTickets(tickets) {
     if (!dom.ticketsList) { return; }
     dom.ticketsList.innerHTML = '';
@@ -477,37 +548,25 @@ function renderTickets(tickets) {
         dom.ticketsList.appendChild(empty);
         return;
     }
+    if (expandedTicketId !== null && !tickets.some(function (ticket) { return String(ticket.id) === String(expandedTicketId); })) {
+        expandedTicketId = null;
+    }
     const list = document.createElement('div');
     list.className = 'ticket-list';
     tickets.forEach(function (ticket) {
         const item = document.createElement('article');
         item.className = 'ticket-item';
-        const head = document.createElement('div');
-        head.className = 'ticket-head';
-        const info = document.createElement('div');
-        info.className = 'ticket-head-main';
-        const code = document.createElement('strong');
-        code.textContent = ticket.codigo;
-        const title = document.createElement('h3');
-        title.textContent = ticket.titulo;
-        info.appendChild(code);
-        info.appendChild(title);
-        const status = document.createElement('span');
-        status.className = 'status';
-        status.textContent = ticket.estado_nombre ? ticket.estado_nombre : 'Sin estado';
-        head.appendChild(info);
-        head.appendChild(status);
-        const metaGrid = document.createElement('div');
-        metaGrid.className = 'meta-grid';
-        metaGrid.appendChild(buildMeta('Categoria: ' + (ticket.categoria_nombre || 'N/A')));
-        metaGrid.appendChild(buildMeta('Prioridad: ' + (ticket.prioridad_nombre || 'N/A')));
-        metaGrid.appendChild(buildMeta('Fecha de ocurrencia: ' + formatTicketDate(ticket.fecha_creacion)));
-        metaGrid.appendChild(buildMeta('Ultimo cierre: ' + (ticket.fecha_cierre ? formatTicketDate(ticket.fecha_cierre) : 'Pendiente')));
-        item.appendChild(head);
-        item.appendChild(metaGrid);
-        item.appendChild(buildParticipantsPanel(ticket));
-        item.appendChild(buildTicketThread(ticket));
-        item.appendChild(buildInlineActions(ticket));
+        const isExpanded = String(ticket.id) === String(expandedTicketId);
+        item.classList.toggle('is-open', isExpanded);
+        const summary = buildTicketSummary(ticket, isExpanded);
+        summary.addEventListener('click', function () {
+            expandedTicketId = isExpanded ? null : ticket.id;
+            renderTickets(filterTicketsBySearch());
+        });
+        item.appendChild(summary);
+        if (isExpanded) {
+            item.appendChild(buildTicketDetails(ticket));
+        }
         list.appendChild(item);
     });
     dom.ticketsList.appendChild(list);
