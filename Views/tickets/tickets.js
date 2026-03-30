@@ -89,7 +89,6 @@ function setInlineMessage(node, text, type) {
     node.setAttribute('aria-hidden', text === '' ? 'true' : 'false');
     if (text !== '' && type) {
         clearMessageLater(node, 'message inline-message', 4000);
-        showToast(type === 'success' ? 'Actualizacion del ticket' : 'Atencion', text, type);
     }
 }
 
@@ -448,6 +447,7 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     actions.appendChild(cancelButton);
     actions.appendChild(sendButton);
     body.appendChild(actions);
+    body.appendChild(messageNode);
     composer.appendChild(body);
     box.appendChild(composer);
     return { box: box, textarea: textarea };
@@ -471,11 +471,21 @@ function buildInlineActions(ticket) {
     const reply = buildInlineReply(ticket, messageNode, replyButton);
     replyButton.setAttribute('aria-controls', reply.box.id);
     replyButton.addEventListener('click', function () {
-        preserveTicketPosition(ticket.id, function () {
-            const isOpen = reply.box.classList.toggle('is-open');
-            setButtonContent(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
-            replyButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            if (isOpen) { reply.textarea.focus(); }
+        const scrollTop = window.scrollY;
+        const isOpen = reply.box.classList.toggle('is-open');
+        setButtonContent(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
+        replyButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        window.requestAnimationFrame(function () {
+            window.scrollTo(0, scrollTop);
+            window.requestAnimationFrame(function () {
+                try {
+                    replyButton.focus({ preventScroll: true });
+                } catch (error) {
+                    replyButton.focus();
+                    window.scrollTo(0, scrollTop);
+                }
+                window.scrollTo(0, scrollTop);
+            });
         });
     });
     actions.appendChild(replyButton);
@@ -491,7 +501,6 @@ function buildInlineActions(ticket) {
     }
     wrapper.appendChild(actions);
     wrapper.appendChild(reply.box);
-    wrapper.appendChild(messageNode);
     return wrapper;
 }
 
@@ -715,12 +724,20 @@ async function loadTecnicos() {
 
 function toggleNoticePanel(forceState) {
     if (!dom.noticePanel) { return; }
+    const wasOpen = dom.noticePanel.classList.contains('is-open');
     const nextState = typeof forceState === 'boolean' ? forceState : !dom.noticePanel.classList.contains('is-open');
+    if (nextState === wasOpen) {
+        dom.noticePanel.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+        if (dom.noticeButton) {
+            dom.noticeButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+        }
+        return;
+    }
     dom.noticePanel.classList.toggle('is-open', nextState);
     dom.noticePanel.setAttribute('aria-hidden', nextState ? 'false' : 'true');
     if (dom.noticeButton) {
         dom.noticeButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
-        if (!nextState) {
+        if (!nextState && wasOpen) {
             dom.noticeButton.focus();
         }
     }
@@ -731,12 +748,20 @@ function toggleNoticePanel(forceState) {
 
 function toggleAvatarMenu(forceState) {
     if (!dom.avatarMenu) { return; }
+    const wasOpen = dom.avatarMenu.classList.contains('is-open');
     const nextState = typeof forceState === 'boolean' ? forceState : !dom.avatarMenu.classList.contains('is-open');
+    if (nextState === wasOpen) {
+        dom.avatarMenu.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+        if (dom.avatarButton) {
+            dom.avatarButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+        }
+        return;
+    }
     dom.avatarMenu.classList.toggle('is-open', nextState);
     dom.avatarMenu.setAttribute('aria-hidden', nextState ? 'false' : 'true');
     if (dom.avatarButton) {
         dom.avatarButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
-        if (!nextState) {
+        if (!nextState && wasOpen) {
             dom.avatarButton.focus();
         }
     }
