@@ -8,7 +8,7 @@
     <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css?v=3'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
-    <script src='/NexoTI/Views/reportes/reportes.js?v=3' defer></script>
+    <script src='/NexoTI/Views/reportes/reportes.js?v=4' defer></script>
 </head>
 <body>
     <div class='layout'>

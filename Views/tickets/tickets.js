@@ -638,6 +638,28 @@ function restoreTicketPosition(ticketId, previousTop) {
     });
 }
 
+function restoreElementPosition(element, previousTop) {
+    if (!element || previousTop === null) { return; }
+    window.requestAnimationFrame(function () {
+        const nextTop = element.getBoundingClientRect().top;
+        window.scrollBy(0, nextTop - previousTop);
+    });
+}
+
+function preserveElementPosition(element, work) {
+    const previousTop = element ? element.getBoundingClientRect().top : null;
+    const result = typeof work === 'function' ? work() : null;
+
+    if (result && typeof result.then === 'function') {
+        return result.finally(function () {
+            restoreElementPosition(element, previousTop);
+        });
+    }
+
+    restoreElementPosition(element, previousTop);
+    return Promise.resolve();
+}
+
 function preserveTicketPosition(ticketId, work) {
     const currentNode = getTicketNode(ticketId);
     const previousTop = currentNode ? currentNode.getBoundingClientRect().top : null;
@@ -1056,8 +1078,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (dom.ticketsPrev) {
         dom.ticketsPrev.addEventListener('click', function () {
             if (currentTicketPage <= 1) { return; }
-            currentTicketPage -= 1;
-            renderTickets(filterTicketsBySearch());
+            preserveElementPosition(dom.ticketsPager, function () {
+                currentTicketPage -= 1;
+                renderTickets(filterTicketsBySearch());
+            });
         });
     }
     if (dom.ticketsNext) {
@@ -1065,8 +1089,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             const totalItems = filterTicketsBySearch().length;
             const totalPages = Math.max(1, Math.ceil(totalItems / ticketsPerPage));
             if (currentTicketPage >= totalPages) { return; }
-            currentTicketPage += 1;
-            renderTickets(filterTicketsBySearch());
+            preserveElementPosition(dom.ticketsPager, function () {
+                currentTicketPage += 1;
+                renderTickets(filterTicketsBySearch());
+            });
         });
     }
     if (dom.refreshButton) {

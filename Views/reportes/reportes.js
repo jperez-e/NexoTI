@@ -51,6 +51,31 @@ function updateReportPager(totalItems, totalPages) {
     next.disabled = currentReportPage >= totalPages;
 }
 
+function restoreElementPosition(element, previousTop) {
+    if (!element || previousTop === null) {
+        return;
+    }
+
+    window.requestAnimationFrame(function () {
+        const nextTop = element.getBoundingClientRect().top;
+        window.scrollBy(0, nextTop - previousTop);
+    });
+}
+
+function preserveElementPosition(element, work) {
+    const previousTop = element ? element.getBoundingClientRect().top : null;
+    const result = typeof work === 'function' ? work() : null;
+
+    if (result && typeof result.then === 'function') {
+        return result.finally(function () {
+            restoreElementPosition(element, previousTop);
+        });
+    }
+
+    restoreElementPosition(element, previousTop);
+    return Promise.resolve();
+}
+
 function renderPreviewPage() {
     const tbody = byId('report-preview');
     if (!tbody) { return; }
@@ -121,8 +146,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (prev) {
         prev.addEventListener('click', function () {
             if (currentReportPage <= 1) { return; }
-            currentReportPage -= 1;
-            renderPreviewPage();
+            preserveElementPosition(byId('reportes-pager'), function () {
+                currentReportPage -= 1;
+                renderPreviewPage();
+            });
         });
     }
 
@@ -131,8 +158,10 @@ document.addEventListener('DOMContentLoaded', function () {
         next.addEventListener('click', function () {
             const totalPages = Math.max(1, Math.ceil(allReportRows.length / reportRowsPerPage));
             if (currentReportPage >= totalPages) { return; }
-            currentReportPage += 1;
-            renderPreviewPage();
+            preserveElementPosition(byId('reportes-pager'), function () {
+                currentReportPage += 1;
+                renderPreviewPage();
+            });
         });
     }
 });
