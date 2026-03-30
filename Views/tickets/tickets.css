@@ -852,6 +852,56 @@ textarea {
     border-color: #fed7aa;
 }
 
+.thread-entry.is-attachment {
+    background: #f8fafc;
+    border-style: dashed;
+    border-color: #cbd5e1;
+}
+
+.attachment-avatar {
+    background: linear-gradient(135deg, #475569, #94a3b8);
+}
+
+.attachment-wrap {
+    display: grid;
+    gap: 10px;
+}
+
+.attachment-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
+    text-decoration: none;
+}
+
+.attachment-image {
+    display: block;
+    max-width: min(100%, 320px);
+    max-height: 240px;
+    border-radius: 14px;
+    border: 1px solid #dbe4f0;
+    box-shadow: 0 12px 22px rgba(15, 23, 42, 0.12);
+    object-fit: cover;
+}
+
+.attachment-file {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #1e3a8a;
+    font-weight: 700;
+}
+
+.attachment-caption {
+    color: #64748b;
+    font-size: 0.84rem;
+}
+
 .reply-composer {
     display: grid;
     grid-template-columns: 52px 1fr;
@@ -874,6 +924,17 @@ textarea {
 .reply-state {
     display: grid;
     gap: 8px;
+}
+
+.reply-attachments {
+    display: grid;
+    gap: 8px;
+}
+
+.reply-attachments input[type='file'] {
+    padding: 12px;
+    border: 1px dashed #94a3b8;
+    background: #ffffff;
 }
 
 @media (max-width: 720px) {

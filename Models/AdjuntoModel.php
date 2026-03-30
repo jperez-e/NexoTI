@@ -24,6 +24,39 @@ class AdjuntoModel
         ]);
     }
 
+    public function getAll(): array
+    {
+        $sql = "SELECT a.id, a.ticket_id, a.archivo, a.nombre_original, a.creado_en
+                FROM ticket_adjuntos a
+                INNER JOIN tickets t ON t.id = a.ticket_id
+                ORDER BY a.creado_en ASC, a.id ASC";
+        return $this->db->query($sql)->fetchAll();
+    }
+
+    public function getByUsuario(int $usuarioId): array
+    {
+        $sql = "SELECT a.id, a.ticket_id, a.archivo, a.nombre_original, a.creado_en
+                FROM ticket_adjuntos a
+                INNER JOIN tickets t ON t.id = a.ticket_id
+                WHERE t.usuario_id = :usuario_id
+                ORDER BY a.creado_en ASC, a.id ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([":usuario_id" => $usuarioId]);
+        return $stmt->fetchAll();
+    }
+
+    public function getByTecnico(int $tecnicoId): array
+    {
+        $sql = "SELECT a.id, a.ticket_id, a.archivo, a.nombre_original, a.creado_en
+                FROM ticket_adjuntos a
+                INNER JOIN tickets t ON t.id = a.ticket_id
+                WHERE t.tecnico_id = :tecnico_id
+                ORDER BY a.creado_en ASC, a.id ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([":tecnico_id" => $tecnicoId]);
+        return $stmt->fetchAll();
+    }
+
     public function getByTicket(int $ticketId): array
     {
         $sql = "SELECT id, ticket_id, archivo, nombre_original, creado_en

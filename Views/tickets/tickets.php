@@ -26,11 +26,11 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=6'>
+    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=7'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.js?v=15' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.js?v=16' defer></script>
 </head>
 <body
     data-role-id='<?php echo (int) $rolId; ?>'
@@ -118,9 +118,9 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             <textarea name='descripcion' rows='4' placeholder='Describe el problema' required></textarea>
                         </label>
                         <label>
-                            Adjuntar archivo
-                            <input type='file' name='adjunto' accept='image/*,.pdf,.doc,.docx'>
-                        </label>
+                        Adjuntar archivo
+                        <input type='file' name='adjuntos[]' accept='image/*,.pdf,.doc,.docx' multiple>
+                    </label>
                         <div class='actions'>
                             <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z' fill='currentColor'></path></svg></span><span class='btn-label'>Guardar ticket</span></button>
                             <span id='form-message' class='message' role='status' aria-live='polite'></span>

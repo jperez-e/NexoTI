@@ -86,36 +86,137 @@ class TicketController extends BaseController
         }
 
         $ticketId = $this->model->getLastInsertId();
-        $this->handleAdjunto($ticketId);
+        $this->handleAdjuntos($ticketId);
 
         $this->jsonOk('Ticket creado', ['id' => $ticketId]);
     }
 
-    private function handleAdjunto(int $ticketId): void
+    public function listAdjuntos(): void
     {
-        if (!isset($_FILES['adjunto']) || $_FILES['adjunto']['error'] !== UPLOAD_ERR_OK) {
-            return;
+        $this->requireLogin();
+
+        $rolId = $this->currentRoleId();
+        $userId = $this->currentUserId();
+
+        if ($rolId === 3) {
+            $rows = $this->adjuntos->getByUsuario($userId);
+        } elseif ($rolId === 2) {
+            $rows = $this->adjuntos->getByTecnico($userId);
+        } else {
+            $rows = $this->adjuntos->getAll();
         }
 
+        $this->jsonOk('Adjuntos cargados', $rows);
+    }
+
+    public function uploadAdjuntos(): void
+    {
+        $this->requireLogin();
+        $this->requirePost();
+
+        $ticketId = (int) ($_POST['ticket_id'] ?? 0);
+        if ($ticketId <= 0) {
+            $this->jsonError('Selecciona un ticket.');
+        }
+
+        $ticket = $this->model->getById($ticketId);
+        if (!$ticket) {
+            $this->jsonError('Ticket no encontrado.', 404);
+        }
+
+        if (!$this->canAccessTicket($ticket)) {
+            $this->jsonError('No puedes adjuntar archivos en este ticket.', 403);
+        }
+
+        $uploadedCount = $this->handleAdjuntos($ticketId);
+        if ($uploadedCount <= 0) {
+            $this->jsonError('No se pudo cargar ningun archivo.');
+        }
+
+        $this->jsonOk('Evidencia cargada', ['count' => $uploadedCount]);
+    }
+
+    private function canAccessTicket(array $ticket): bool
+    {
+        $rolId = $this->currentRoleId();
+        $userId = $this->currentUserId();
+
+        if ($rolId === 1) {
+            return true;
+        }
+        if ($rolId === 2) {
+            return (int) ($ticket['tecnico_id'] ?? 0) === $userId;
+        }
+
+        return (int) ($ticket['usuario_id'] ?? 0) === $userId;
+    }
+
+    private function normalizeAdjuntos(): array
+    {
+        if (isset($_FILES['adjuntos'])) {
+            $files = $_FILES['adjuntos'];
+            $normalized = [];
+            $total = is_array($files['name'] ?? null) ? count($files['name']) : 0;
+            for ($i = 0; $i < $total; $i++) {
+                $normalized[] = [
+                    'name' => (string) ($files['name'][$i] ?? ''),
+                    'tmp_name' => (string) ($files['tmp_name'][$i] ?? ''),
+                    'error' => (int) ($files['error'][$i] ?? UPLOAD_ERR_NO_FILE),
+                ];
+            }
+            return $normalized;
+        }
+
+        if (isset($_FILES['adjunto'])) {
+            return [[
+                'name' => (string) ($_FILES['adjunto']['name'] ?? ''),
+                'tmp_name' => (string) ($_FILES['adjunto']['tmp_name'] ?? ''),
+                'error' => (int) ($_FILES['adjunto']['error'] ?? UPLOAD_ERR_NO_FILE),
+            ]];
+        }
+
+        return [];
+    }
+
+    private function handleAdjuntos(int $ticketId): int
+    {
         $baseDir = dirname(__DIR__);
         $dir = $baseDir . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'tickets';
         if (!is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
 
-        $tmp = $_FILES['adjunto']['tmp_name'];
-        $name = basename((string) $_FILES['adjunto']['name']);
-        $ext = pathinfo($name, PATHINFO_EXTENSION);
-        $filename = 'ticket_' . $ticketId . '_' . time();
-        if ($ext !== '') {
-            $filename .= '.' . $ext;
-        }
-        $dest = $dir . DIRECTORY_SEPARATOR . $filename;
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'];
+        $uploaded = 0;
 
-        if (move_uploaded_file($tmp, $dest)) {
-            $relative = 'uploads/tickets/' . $filename;
-            $this->adjuntos->insert($ticketId, $relative, $name);
+        foreach ($this->normalizeAdjuntos() as $index => $file) {
+            if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            $tmp = (string) ($file['tmp_name'] ?? '');
+            $name = basename((string) ($file['name'] ?? ''));
+            if ($tmp === '' || $name === '') {
+                continue;
+            }
+
+            $ext = strtolower((string) pathinfo($name, PATHINFO_EXTENSION));
+            if ($ext === '' || !in_array($ext, $allowedExtensions, true)) {
+                continue;
+            }
+
+            $filename = 'ticket_' . $ticketId . '_' . time() . '_' . $index . '.' . $ext;
+            $dest = $dir . DIRECTORY_SEPARATOR . $filename;
+
+            if (move_uploaded_file($tmp, $dest)) {
+                $relative = 'uploads/tickets/' . $filename;
+                if ($this->adjuntos->insert($ticketId, $relative, $name)) {
+                    $uploaded++;
+                }
+            }
         }
+
+        return $uploaded;
     }
 
     public function assign(): void

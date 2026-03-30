@@ -1,5 +1,6 @@
 let allTickets = [];
 let allComments = [];
+let allAttachments = [];
 let availableStatuses = [];
 let expandedTicketId = null;
 let activeStatusFilter = 'todos';
@@ -227,6 +228,20 @@ function resolvePhoto(photoPath) {
     return photoPath ? '/NexoTI/' + String(photoPath).replace(/^\/+/, '') : '';
 }
 
+function resolveAttachment(path) {
+    return path ? '/NexoTI/' + String(path).replace(/^\/+/, '') : '';
+}
+
+function attachmentsForTicket(ticketId) {
+    return allAttachments.filter(function (attachment) {
+        return String(attachment.ticket_id) === String(ticketId);
+    });
+}
+
+function isImageAttachment(name) {
+    return /\.(png|jpe?g|gif|webp)$/i.test(String(name || ''));
+}
+
 function buildParticipant(name, roleName, photoUrl, helperText) {
     const item = document.createElement('div');
     item.className = 'participant-card';
@@ -301,6 +316,66 @@ function buildThreadEntry(entry) {
     return item;
 }
 
+function buildAttachmentEntry(attachment) {
+    const item = document.createElement('div');
+    item.className = 'thread-entry is-attachment';
+    const body = document.createElement('div');
+    body.className = 'thread-body';
+    const head = document.createElement('div');
+    head.className = 'thread-head';
+    const author = document.createElement('div');
+    author.className = 'thread-author';
+    const strong = document.createElement('strong');
+    strong.textContent = 'Evidencia adjunta';
+    author.appendChild(strong);
+
+    const meta = document.createElement('div');
+    meta.className = 'thread-meta';
+    const date = document.createElement('span');
+    date.className = 'thread-date';
+    date.textContent = formatTicketDate(attachment.creado_en);
+    const tag = document.createElement('span');
+    tag.className = 'thread-tag';
+    tag.textContent = 'Evidencia';
+    meta.appendChild(date);
+    meta.appendChild(tag);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'attachment-wrap';
+    const link = document.createElement('a');
+    link.className = 'attachment-link';
+    link.href = resolveAttachment(attachment.archivo);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+
+    if (isImageAttachment(attachment.nombre_original)) {
+        const image = document.createElement('img');
+        image.className = 'attachment-image';
+        image.src = resolveAttachment(attachment.archivo);
+        image.alt = attachment.nombre_original || 'Adjunto del ticket';
+        link.appendChild(image);
+    } else {
+        const fileName = document.createElement('span');
+        fileName.className = 'attachment-file';
+        fileName.textContent = attachment.nombre_original || 'Archivo adjunto';
+        link.appendChild(fileName);
+    }
+
+    const caption = document.createElement('small');
+    caption.className = 'attachment-caption';
+    caption.textContent = attachment.nombre_original || 'Archivo adjunto';
+
+    wrap.appendChild(link);
+    wrap.appendChild(caption);
+    head.appendChild(author);
+    head.appendChild(meta);
+    body.appendChild(head);
+    body.appendChild(wrap);
+    item.appendChild(createAvatar('Evidencia', '', 'thread-avatar attachment-avatar'));
+    item.appendChild(body);
+    return item;
+}
+
 function buildTicketThread(ticket) {
     const wrapper = document.createElement('div');
     wrapper.className = 'ticket-thread';
@@ -313,6 +388,9 @@ function buildTicketThread(ticket) {
         tag: 'Descripcion',
         variant: 'is-initial',
     }));
+    attachmentsForTicket(ticket.id).forEach(function (attachment) {
+        wrapper.appendChild(buildAttachmentEntry(attachment));
+    });
     allComments
         .filter(function (comment) { return String(comment.ticket_id) === String(ticket.id); })
         .slice()
@@ -379,16 +457,37 @@ function renderNotificationsPanel() {
 }
 
 async function refreshTicketsView() {
-    await Promise.all([loadComments(), loadTickets()]);
+    await Promise.all([loadComments(), loadAttachments(), loadTickets()]);
 }
 
-async function submitInlineReply(ticket, textarea, stateSelect, messageNode, replyBox, toggleButton, sendButton) {
+async function uploadTicketAttachments(ticketId, files) {
+    if (!files || files.length === 0) {
+        return { status: true, data: { count: 0 } };
+    }
+
+    const formData = new FormData();
+    formData.set('ticket_id', String(ticketId));
+    formData.set('_token', getCsrfToken());
+    Array.from(files).forEach(function (file) {
+        formData.append('adjuntos[]', file);
+    });
+
+    const response = await fetch('api.php?c=ticket&m=uploadAdjuntos', {
+        method: 'POST',
+        body: formData,
+    });
+    return response.json();
+}
+
+async function submitInlineReply(ticket, textarea, stateSelect, attachmentInput, messageNode, replyBox, toggleButton, sendButton) {
     const comentario = textarea.value.trim();
     const selectedStateId = stateSelect ? String(stateSelect.value) : '';
     const currentStateId = ticket.estado_id ? String(ticket.estado_id) : '';
     const mustUpdateState = isTechUser() && selectedStateId !== '' && selectedStateId !== currentStateId;
-    if (comentario === '' && !mustUpdateState) {
-        setInlineMessage(messageNode, 'Escribe una respuesta o selecciona un nuevo estado.', 'error');
+    const files = attachmentInput ? Array.from(attachmentInput.files || []) : [];
+
+    if (comentario === '' && !mustUpdateState && files.length === 0) {
+        setInlineMessage(messageNode, 'Escribe una respuesta, selecciona un nuevo estado o agrega evidencia.', 'error');
         return;
     }
     setButtonLoading(sendButton, true, 'Enviando...');
@@ -409,11 +508,39 @@ async function submitInlineReply(ticket, textarea, stateSelect, messageNode, rep
                 return;
             }
         }
-        const successMessage = mustUpdateState && comentario !== '' ? 'Respuesta enviada y estado actualizado.' :
-            mustUpdateState ? (statusResponse.message ? statusResponse.message : 'Estado actualizado.') :
-            (commentResponse.message ? commentResponse.message : 'Respuesta enviada.');
+        let attachmentResponse = { status: true, data: { count: 0 } };
+        if (files.length > 0) {
+            attachmentResponse = await uploadTicketAttachments(ticket.id, files);
+            if (!attachmentResponse.status) {
+                setInlineMessage(messageNode, attachmentResponse.message ? attachmentResponse.message : 'No se pudieron cargar los adjuntos.', 'error');
+                return;
+            }
+        }
+
+        const uploadedCount = Number((attachmentResponse.data && attachmentResponse.data.count) || 0);
+        const successParts = [];
+        if (comentario !== '') {
+            successParts.push('respuesta enviada');
+        }
+        if (mustUpdateState) {
+            successParts.push('estado actualizado');
+        }
+        if (uploadedCount > 0) {
+            successParts.push(uploadedCount === 1 ? '1 evidencia cargada' : uploadedCount + ' evidencias cargadas');
+        }
+        let successMessage = 'Proceso completado.';
+        if (successParts.length === 1) {
+            successMessage = successParts[0].charAt(0).toUpperCase() + successParts[0].slice(1) + '.';
+        } else if (successParts.length === 2) {
+            successMessage = successParts[0].charAt(0).toUpperCase() + successParts[0].slice(1) + ' y ' + successParts[1] + '.';
+        } else if (successParts.length >= 3) {
+            successMessage = successParts[0].charAt(0).toUpperCase() + successParts[0].slice(1) + ', ' + successParts[1] + ' y ' + successParts[2] + '.';
+        }
         setInlineMessage(messageNode, successMessage, 'success');
         textarea.value = '';
+        if (attachmentInput) {
+            attachmentInput.value = '';
+        }
         replyBox.classList.remove('is-open');
         toggleButton.setAttribute('aria-expanded', 'false');
         setButtonContent(toggleButton, 'reply', 'Responder');
@@ -478,6 +605,15 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     textarea.rows = 4;
     textarea.placeholder = 'Escribe una respuesta aqui...';
     body.appendChild(textarea);
+    const attachmentLabel = document.createElement('label');
+    attachmentLabel.className = 'reply-attachments';
+    attachmentLabel.textContent = 'Agregar evidencias';
+    const attachmentInput = document.createElement('input');
+    attachmentInput.type = 'file';
+    attachmentInput.accept = 'image/*,.pdf,.doc,.docx';
+    attachmentInput.multiple = true;
+    attachmentLabel.appendChild(attachmentInput);
+    body.appendChild(attachmentLabel);
     const actions = document.createElement('div');
     actions.className = 'inline-reply-actions';
     const cancelButton = document.createElement('button');
@@ -487,6 +623,7 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     cancelButton.addEventListener('click', function () {
         preserveTicketPosition(ticket.id, function () {
             textarea.value = '';
+            attachmentInput.value = '';
             box.classList.remove('is-open');
             toggleButton.setAttribute('aria-expanded', 'false');
             setButtonContent(toggleButton, 'reply', 'Responder');
@@ -498,7 +635,7 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     sendButton.className = 'btn primary';
     setButtonContent(sendButton, 'reply', 'Responder');
     sendButton.addEventListener('click', function () {
-        submitInlineReply(ticket, textarea, stateSelect, messageNode, box, toggleButton, sendButton);
+        submitInlineReply(ticket, textarea, stateSelect, attachmentInput, messageNode, box, toggleButton, sendButton);
     });
     actions.appendChild(cancelButton);
     actions.appendChild(sendButton);
@@ -823,6 +960,10 @@ async function loadComments() {
     allComments = await fetchJSON('api.php?c=comentario&m=list');
 }
 
+async function loadAttachments() {
+    allAttachments = await fetchJSON('api.php?c=ticket&m=listAdjuntos');
+}
+
 async function loadCombos() {
     const [categorias, prioridades, estados] = await Promise.all([
         fetchJSON('api.php?c=categoria&m=list'),
@@ -1113,5 +1254,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     await loadCombos();
     await loadTecnicos();
     await loadComments();
+    await loadAttachments();
     await loadTickets();
 });
