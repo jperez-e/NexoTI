@@ -30,7 +30,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.js?v=11' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.js?v=12' defer></script>
 </head>
 <body
     data-role-id='<?php echo (int) $rolId; ?>'
@@ -172,7 +172,10 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
 
             <section class='card'>
                 <div class='list-header'>
-                    <h2>Listado</h2>
+                    <div class='list-header-copy'>
+                        <h2>Listado</h2>
+                        <p id='results-info' class='results-info' aria-live='polite'></p>
+                    </div>
                     <button class='btn ghost' id='refresh-btn' type='button'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar</span></button>
                 </div>
                 <div id='tickets-list' class='list'></div>

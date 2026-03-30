@@ -126,6 +126,48 @@ function formatTicketDate(value) {
     return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('es-DO');
 }
 
+function normalizedSearchQuery() {
+    return dom.search ? dom.search.value.trim() : '';
+}
+
+function appendHighlightedText(node, text, query) {
+    const source = String(text || '');
+    const term = String(query || '').trim();
+    if (term === '') {
+        node.textContent = source;
+        return;
+    }
+
+    const sourceLower = source.toLowerCase();
+    const termLower = term.toLowerCase();
+    let startIndex = 0;
+
+    while (startIndex < source.length) {
+        const matchIndex = sourceLower.indexOf(termLower, startIndex);
+        if (matchIndex === -1) {
+            node.appendChild(document.createTextNode(source.slice(startIndex)));
+            break;
+        }
+        if (matchIndex > startIndex) {
+            node.appendChild(document.createTextNode(source.slice(startIndex, matchIndex)));
+        }
+        const mark = document.createElement('mark');
+        mark.className = 'search-hit';
+        mark.textContent = source.slice(matchIndex, matchIndex + term.length);
+        node.appendChild(mark);
+        startIndex = matchIndex + term.length;
+    }
+}
+
+function buildHighlightedTextElement(tagName, className, text, query) {
+    const element = document.createElement(tagName);
+    if (className) {
+        element.className = className;
+    }
+    appendHighlightedText(element, text, query);
+    return element;
+}
+
 function buildMeta(text) {
     const meta = document.createElement('p');
     meta.className = 'ticket-meta';
@@ -505,6 +547,7 @@ function buildInlineActions(ticket) {
 }
 
 function buildTicketSummary(ticket, isExpanded) {
+    const query = normalizedSearchQuery();
     const summary = document.createElement('button');
     summary.type = 'button';
     summary.className = 'ticket-summary';
@@ -519,28 +562,24 @@ function buildTicketSummary(ticket, isExpanded) {
     head.className = 'ticket-head';
     const info = document.createElement('div');
     info.className = 'ticket-head-main';
-    const code = document.createElement('strong');
-    code.textContent = ticket.codigo;
-    const title = document.createElement('h3');
-    title.textContent = ticket.titulo;
+    const code = buildHighlightedTextElement('strong', '', ticket.codigo, query);
+    const title = buildHighlightedTextElement('h3', '', ticket.titulo, query);
     info.appendChild(code);
     info.appendChild(title);
     const status = document.createElement('span');
     status.className = 'status';
-    status.textContent = ticket.estado_nombre ? ticket.estado_nombre : 'Sin estado';
+    appendHighlightedText(status, ticket.estado_nombre ? ticket.estado_nombre : 'Sin estado', query);
     head.appendChild(info);
     head.appendChild(status);
 
-    const excerpt = document.createElement('p');
-    excerpt.className = 'ticket-excerpt';
-    excerpt.textContent = String(ticket.descripcion || '').trim() || 'Sin descripcion';
+    const excerpt = buildHighlightedTextElement('p', 'ticket-excerpt', String(ticket.descripcion || '').trim() || 'Sin descripcion', query);
 
     const metaGrid = document.createElement('div');
     metaGrid.className = 'meta-grid';
-    metaGrid.appendChild(buildMeta('Usuario: ' + (ticket.usuario_nombre || 'N/A')));
-    metaGrid.appendChild(buildMeta('Tecnico: ' + (ticket.tecnico_nombre || 'Sin asignar')));
-    metaGrid.appendChild(buildMeta('Categoria: ' + (ticket.categoria_nombre || 'N/A')));
-    metaGrid.appendChild(buildMeta('Prioridad: ' + (ticket.prioridad_nombre || 'N/A')));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Usuario: ' + (ticket.usuario_nombre || 'N/A'), query));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Tecnico: ' + (ticket.tecnico_nombre || 'Sin asignar'), query));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Categoria: ' + (ticket.categoria_nombre || 'N/A'), query));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Prioridad: ' + (ticket.prioridad_nombre || 'N/A'), query));
 
     const footer = document.createElement('div');
     footer.className = 'ticket-summary-footer';
@@ -603,10 +642,11 @@ function preserveTicketPosition(ticketId, work) {
 function renderTickets(tickets) {
     if (!dom.ticketsList) { return; }
     dom.ticketsList.innerHTML = '';
+    updateResultsInfo(tickets.length);
     if (tickets.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'empty';
-        empty.textContent = 'No hay tickets registrados.';
+        empty.textContent = normalizedSearchQuery() === '' ? 'No hay tickets registrados.' : 'No se encontraron tickets con ese criterio de busqueda.';
         dom.ticketsList.appendChild(empty);
         return;
     }
@@ -681,6 +721,16 @@ function applySearch() {
     const filteredTickets = filterTicketsBySearch();
     renderTickets(filteredTickets);
     refreshTicketSelects(filteredTickets);
+}
+
+function updateResultsInfo(totalVisible) {
+    if (!dom.resultsInfo) { return; }
+    const query = normalizedSearchQuery();
+    if (query === '') {
+        dom.resultsInfo.textContent = 'Mostrando ' + totalVisible + ' ticket(s).';
+        return;
+    }
+    dom.resultsInfo.textContent = 'Resultados para "' + query + '": ' + totalVisible + ' ticket(s).';
 }
 
 async function loadTickets() {
@@ -909,6 +959,7 @@ function cacheDom() {
     dom.avatarButton = byId('avatar-btn');
     dom.avatarMenu = byId('avatar-menu');
     dom.ticketsList = byId('tickets-list');
+    dom.resultsInfo = byId('results-info');
     dom.ticketForm = byId('ticket-form');
     dom.formMessage = byId('form-message');
     dom.categoria = byId('categoria_id');
