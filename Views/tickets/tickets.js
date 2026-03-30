@@ -2,6 +2,7 @@ let allTickets = [];
 let allComments = [];
 let availableStatuses = [];
 let expandedTicketId = null;
+let activeStatusFilter = 'todos';
 const dom = {};
 
 function byId(id) { return document.getElementById(id); }
@@ -124,6 +125,15 @@ function formatTicketDate(value) {
     if (!value) { return 'Sin fecha'; }
     const date = new Date(String(value).replace(' ', 'T'));
     return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('es-DO');
+}
+
+function normalizeStatusName(value) {
+    return String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
 function normalizedSearchQuery() {
@@ -683,8 +693,15 @@ function renderTickets(tickets) {
 
 function filterTicketsBySearch() {
     const query = dom.search ? dom.search.value.trim().toLowerCase() : '';
-    if (query === '') { return allTickets.slice(); }
     return allTickets.filter(function (ticket) {
+        const statusName = normalizeStatusName(ticket.estado_nombre);
+        const passesStatus = activeStatusFilter === 'todos' || statusName === normalizeStatusName(activeStatusFilter);
+        if (!passesStatus) {
+            return false;
+        }
+        if (query === '') {
+            return true;
+        }
         const source = [
             ticket.codigo, ticket.titulo, ticket.descripcion, ticket.usuario_nombre, ticket.tecnico_nombre,
             ticket.estado_nombre, ticket.categoria_nombre, ticket.prioridad_nombre, ticket.usuario_rol_nombre, ticket.tecnico_rol_nombre,
@@ -724,17 +741,30 @@ function refreshTicketSelects(tickets) {
 function applySearch() {
     const filteredTickets = filterTicketsBySearch();
     renderTickets(filteredTickets);
-    refreshTicketSelects(filteredTickets);
+    refreshTicketSelects(allTickets);
 }
 
 function updateResultsInfo(totalVisible) {
     if (!dom.resultsInfo) { return; }
     const query = normalizedSearchQuery();
+    const filterLabel = activeStatusFilter === 'todos' ? 'todos los estados' : activeStatusFilter;
     if (query === '') {
-        dom.resultsInfo.textContent = 'Mostrando ' + totalVisible + ' ticket(s).';
+        dom.resultsInfo.textContent = 'Mostrando ' + totalVisible + ' ticket(s) en ' + filterLabel + '.';
         return;
     }
-    dom.resultsInfo.textContent = 'Resultados para "' + query + '": ' + totalVisible + ' ticket(s).';
+    dom.resultsInfo.textContent = 'Resultados para "' + query + '" en ' + filterLabel + ': ' + totalVisible + ' ticket(s).';
+}
+
+function applyStatusFilter(filterValue) {
+    activeStatusFilter = filterValue;
+    if (dom.statusFilters) {
+        dom.statusFilters.forEach(function (button) {
+            const isActive = button.dataset.statusFilter === filterValue;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    }
+    applySearch();
 }
 
 async function loadTickets() {
@@ -964,6 +994,7 @@ function cacheDom() {
     dom.avatarMenu = byId('avatar-menu');
     dom.ticketsList = byId('tickets-list');
     dom.resultsInfo = byId('results-info');
+    dom.statusFilters = Array.from(document.querySelectorAll('[data-status-filter]'));
     dom.ticketForm = byId('ticket-form');
     dom.formMessage = byId('form-message');
     dom.categoria = byId('categoria_id');
@@ -987,6 +1018,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     setupAssignForm();
     setupCloseForm();
     if (dom.search) { dom.search.addEventListener('input', applySearch); }
+    if (dom.statusFilters) {
+        dom.statusFilters.forEach(function (button) {
+            button.addEventListener('click', function () {
+                applyStatusFilter(button.dataset.statusFilter || 'todos');
+            });
+        });
+    }
     if (dom.refreshButton) {
         dom.refreshButton.addEventListener('click', async function () {
             const button = this;
