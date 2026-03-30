@@ -16,6 +16,7 @@ class AuthController
   
     private function requireAdmin(): bool  
     {  
+        // El registro abierto se cerro: solo el administrador puede crear nuevos usuarios desde la interfaz.
         return isset($_SESSION['rol_id']) && (int) $_SESSION['rol_id'] === 1;  
     }  
   
@@ -32,6 +33,7 @@ class AuthController
             return;  
         }  
 
+        // Si el token falla, se redirige al login para regenerar el formulario y evitar un POST invalido.
         if (!Csrf::isValidRequest()) {
             $_SESSION['flash_error'] = 'La sesion del formulario expiro. Intenta de nuevo.';
             header('Location: index.php?r=login');
@@ -60,6 +62,7 @@ class AuthController
             exit;  
         }  
 
+        // Se regenera la sesion al iniciar para reducir riesgo de session fixation.
         session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];  
         $_SESSION['nombre'] = $user['nombre'];  
@@ -112,6 +115,7 @@ class AuthController
         }  
   
         $hash = password_hash($password, PASSWORD_BCRYPT);  
+        // El rol 3 corresponde al usuario final, que es el rol base para nuevos registros creados por el admin.
         $ok = $this->usuarios->insert($nombre, $email, $hash, 3, 1);  
         if (!$ok) {  
             $this->showRegister('No se pudo registrar el usuario.');  
@@ -139,6 +143,7 @@ class AuthController
             exit;  
         }  
   
+        // El dashboard se calcula segun el rol para que cada usuario vea solo lo que le corresponde.
         $ticketModel = new TicketModel();  
         $dashboard = $ticketModel->getDashboardCounts(  
             (int) $_SESSION['rol_id'],  

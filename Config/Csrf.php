@@ -14,6 +14,7 @@ final class Csrf
 
     public static function requestToken(): string
     {
+        // Fetch API envia el token por header; los formularios tradicionales lo mandan por POST.
         $headerToken = (string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
         if ($headerToken !== '') {
             return $headerToken;

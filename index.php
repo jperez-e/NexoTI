@@ -7,13 +7,16 @@ require_once __DIR__ . '/Config/Csrf.php';
 require_once __DIR__ . '/Controllers/AuthController.php';
 require_once __DIR__ . '/Controllers/PerfilController.php';
 
+// Se genera el token al entrar al sistema para que los formularios protegidos puedan reutilizarlo.
 Csrf::token();
 
 $route = trim((string) ($_GET['r'] ?? ''));
 $auth = new AuthController();
 $perfil = new PerfilController();
 
+// Estas rutas solo deben estar disponibles para el administrador.
 $adminRoutes = ['categorias', 'prioridades', 'estados', 'roles', 'usuarios', 'show-register', 'register', 'reportes'];
+// Este mapa asocia cada ruta protegida con la vista que debe cargarse.
 $protectedViewRoutes = [
     'tickets' => __DIR__ . '/Views/tickets/tickets.php',
     'perfil' => __DIR__ . '/Views/perfil/perfil.php',
@@ -29,6 +32,7 @@ if ($route === 'logout') {
     $auth->logout();
 }
 
+// Si no hay sesion iniciada, el usuario solo puede ver o procesar el login.
 if (!isset($_SESSION['user_id'])) {
     if ($route === 'login') {
         $auth->login();
@@ -51,6 +55,7 @@ if ($route === '' || $route === 'home') {
     exit;
 }
 
+// Estas rutas ejecutan logica del controlador antes de decidir una vista final.
 $controllerRoutes = [
     'perfil' => [$perfil, 'index'],
     'perfil-update' => [$perfil, 'update'],

@@ -633,6 +633,7 @@ function preserveTicketPosition(ticketId, work) {
 
     if (result && typeof result.then === 'function') {
         return result.finally(function () {
+            // Al re-renderizar el listado, restauramos la posicion del ticket activo para evitar saltos molestos.
             restoreTicketPosition(ticketId, previousTop);
         });
     }
@@ -657,6 +658,7 @@ function renderTickets(tickets) {
     }
     const list = document.createElement('div');
     list.className = 'ticket-list';
+    // El listado se dibuja de nuevo en cada filtro o actualizacion para mantener resumen y detalle sincronizados.
     tickets.forEach(function (ticket) {
         const item = document.createElement('article');
         item.className = 'ticket-item';

@@ -17,6 +17,7 @@ class Conexion
             throw new RuntimeException('No se encontro el archivo .env en la raiz del proyecto.');
         }
 
+        // El proyecto carga .env manualmente para no depender de una libreria externa en el entorno academico.
         $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if ($lines === false) {
             throw new RuntimeException('No se pudo leer el archivo .env.');

@@ -5,6 +5,7 @@ require_once __DIR__ . '/../Config/Csrf.php';
 
 class BaseController
 {
+    // Estos helpers evitan repetir acceso directo a $_SESSION en cada controlador.
     protected function currentUserId(): int
     {
         return (int) ($_SESSION['user_id'] ?? 0);
@@ -42,6 +43,7 @@ class BaseController
             exit;
         }
 
+        // Toda operacion POST queda protegida contra CSRF antes de procesar datos.
         if (!Csrf::isValidRequest()) {
             $this->jsonError('Token CSRF invalido.', 403);
         }
@@ -49,6 +51,7 @@ class BaseController
 
     protected function requestData(): array
     {
+        // La API acepta tanto formularios clasicos como JSON enviado desde fetch().
         $raw = file_get_contents('php://input');
         if ($raw === false || trim($raw) === '') {
             return $_POST;

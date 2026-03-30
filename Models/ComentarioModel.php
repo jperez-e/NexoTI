@@ -38,6 +38,7 @@ class ComentarioModel
 
     public function getByUsuario(int $usuarioId): array
     {
+        // El usuario final solo debe ver comentarios de tickets que le pertenecen.
         $sql = 'SELECT c.id, c.ticket_id, c.usuario_id, c.comentario, c.fecha, '
             . 'u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre, t.codigo AS ticket_codigo, t.titulo AS ticket_titulo, '
             . 't.usuario_id AS ticket_usuario_id, t.tecnico_id AS ticket_tecnico_id '
@@ -54,6 +55,7 @@ class ComentarioModel
 
     public function getByTecnico(int $tecnicoId): array
     {
+        // El tecnico solo consulta comentarios de tickets asignados a el.
         $sql = 'SELECT c.id, c.ticket_id, c.usuario_id, c.comentario, c.fecha, '
             . 'u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre, t.codigo AS ticket_codigo, t.titulo AS ticket_titulo, '
             . 't.usuario_id AS ticket_usuario_id, t.tecnico_id AS ticket_tecnico_id '

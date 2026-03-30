@@ -204,6 +204,7 @@ class TicketController extends BaseController
             $this->jsonError('No puedes cerrar este ticket.', 403);
         }
 
+        // El cierre definitivo lo confirma quien reporto el incidente, no el tecnico que lo resolvio.
         $cerradoId = $this->model->getEstadoIdByNombre('Cerrado');
         if ($cerradoId === null) {
             $this->jsonError('No existe el estado Cerrado.');

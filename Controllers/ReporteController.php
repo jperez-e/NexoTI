@@ -28,6 +28,7 @@ class ReporteController extends BaseController
     {
         $this->requireLogin();
         $this->requireRole([1]);
+        // La vista web no necesita todo el historial; se muestra solo una muestra reciente para mantenerla liviana.
         $this->jsonOk('Vista previa cargada', array_slice($this->model->getTicketsReporte(), 0, 12));
     }
 
@@ -36,6 +37,7 @@ class ReporteController extends BaseController
         $this->requireLogin();
         $this->requireRole([1]);
         $rows = $this->model->getTicketsReporte();
+        // El BOM y la linea sep=, ayudan a que Excel abra el archivo con acentos y columnas correctas.
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=reporte_tickets.csv');
         $out = fopen('php://output', 'w');
@@ -82,6 +84,7 @@ class ReporteController extends BaseController
         $this->requireLogin();
         $this->requireRole([1]);
         $rows = $this->model->getTicketsReporte();
+        // DOMPDF permite reutilizar una plantilla HTML parecida a la vista web en lugar de construir el PDF manualmente.
         $options = new Options();
         $options->set('isRemoteEnabled', true);
         $dompdf = new Dompdf($options);

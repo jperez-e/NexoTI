@@ -21,6 +21,7 @@ class UsuarioModel
 
     public function update(int $id, string $nombre, string $email, int $rolId, ?string $claveHash = null, int $activo = 1): bool
     {
+        // La clave solo se actualiza si el administrador escribe una nueva; si queda vacia, se conserva la actual.
         if ($claveHash !== null) {
             $sql = 'UPDATE usuarios SET nombre = ?, email = ?, clave_hash = ?, rol_id = ?, activo = ? WHERE id = ?';
             $stmt = $this->db->prepare($sql);
@@ -48,6 +49,7 @@ class UsuarioModel
 
     public function getAll(): array
     {
+        // Se hace JOIN con roles para que la interfaz muestre el nombre del rol y no solo el id numerico.
         $sql = 'SELECT u.id, u.nombre, u.email, u.rol_id, r.nombre AS rol_nombre, u.activo, u.foto, u.creado_en '
             . 'FROM usuarios u '
             . 'INNER JOIN roles r ON r.id = u.rol_id '

@@ -27,6 +27,7 @@ class UsuarioController extends BaseController
         $this->requireRole([1]);
         $this->requirePost();
 
+        // Este controlador recibe formularios del admin y delega la persistencia al modelo de usuarios.
         $nombre = trim(strip_tags((string) ($_POST['nombre'] ?? '')));
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
@@ -116,6 +117,7 @@ class UsuarioController extends BaseController
     public function tecnicos(): void
     {
         $this->requireLogin();
+        // Se usa para llenar el combo de asignacion de tickets con usuarios que tienen rol tecnico.
         $rows = $this->model->getByRol(2);
         $this->jsonOk('Tecnicos cargados', $rows);
     }

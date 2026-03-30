@@ -24,6 +24,7 @@ class TicketModel
         ?int $tecnicoId = null,  
         ?string $fechaCierre = null  
     ): bool {  
+        // Si viene fecha de ocurrencia desde la vista, se guarda como fecha de creacion personalizada.
         if ($fechaCreacion !== null) {
             $sql = 'INSERT INTO tickets (codigo, titulo, descripcion, usuario_id, tecnico_id, categoria_id, prioridad_id, estado_id, fecha_creacion, fecha_cierre) '
                 . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
@@ -65,6 +66,7 @@ class TicketModel
  
     private function baseSelect(): string  
     {  
+        // Esta consulta base centraliza todos los JOIN necesarios para mostrar el ticket completo en la interfaz.
         return 'SELECT t.id, t.codigo, t.titulo, t.descripcion, ' .  
             't.usuario_id, u.nombre AS usuario_nombre, u.foto AS usuario_foto, ru.nombre AS usuario_rol_nombre, ' .  
             't.tecnico_id, ut.nombre AS tecnico_nombre, ut.foto AS tecnico_foto, rt.nombre AS tecnico_rol_nombre, ' .  
@@ -138,6 +140,7 @@ class TicketModel
  
     public function getDashboardCounts(int $rolId, int $userId): array  
     {  
+        // El dashboard cambia segun el rol: usuario ve sus tickets, tecnico sus asignaciones y admin todo el sistema.
         $joinExtra = '';  
         $params = [];  
         if ($rolId === 3) {  

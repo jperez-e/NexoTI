@@ -59,6 +59,7 @@ class PerfilController
             'image/webp' => 'webp',
         ];
 
+        // Se valida el tipo real del archivo para evitar que una extension falsa pase como imagen valida.
         $mime = mime_content_type($_FILES['foto']['tmp_name']) ?: '';
         if (!isset($allowed[$mime])) {
             $this->index(null, 'Solo se permiten imagenes JPG, PNG o WEBP.');

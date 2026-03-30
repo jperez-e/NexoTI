@@ -5,6 +5,7 @@ session_start();
 
 require_once __DIR__ . '/Config/Csrf.php';
 
+// La API comparte el mismo token CSRF del sistema web para proteger peticiones fetch().
 Csrf::token();
 
 function respondJsonError(string $message, int $statusCode): void
@@ -18,6 +19,7 @@ function respondJsonError(string $message, int $statusCode): void
 $controller = strtolower(trim((string) ($_GET['c'] ?? '')));
 $method = trim((string) ($_GET['m'] ?? ''));
 
+// Este mapa define que controladores y metodos pueden exponerse publicamente por la API.
 $map = [
     'categoria' => [
         'class' => 'CategoriaController',
@@ -72,6 +74,7 @@ if (!class_exists($class)) {
 
 $instance = new $class();
 
+// Aunque el metodo exista en la clase, solo se permite si tambien esta en la lista blanca del mapa.
 if (!in_array($method, $allowedMethods, true) || !method_exists($instance, $method)) {
     respondJsonError('Metodo no encontrado', 404);
 }
