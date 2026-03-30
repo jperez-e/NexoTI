@@ -49,31 +49,31 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             <line x1='16.65' y1='16.65' x2='21' y2='21' stroke='currentColor' stroke-width='2'></line>
                         </svg>
                     </span>
-                    <input id='ticket-search' type='search' placeholder='Buscar tickets, usuarios, estados...' autocomplete='off'>
+                    <input id='ticket-search' type='search' placeholder='Buscar tickets, usuarios, estados...' autocomplete='off' aria-label='Buscar tickets'>
                 </div>
                 <div class='user-area'>
-                    <button class='btn ghost notice-btn' id='notice-btn' type='button'>
+                    <button class='btn ghost notice-btn' id='notice-btn' type='button' aria-haspopup='dialog' aria-expanded='false' aria-controls='notice-panel'>
                         <span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2z' fill='currentColor'></path></svg></span>
                         <span class='btn-label'>Notificaciones</span>
                         <span class='notice-count' id='notice-count'>0</span>
                     </button>
                     <span class='user-name'><?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?></span>
                     <div class='avatar-wrapper'>
-                        <button class='avatar-btn' id='avatar-btn' type='button' aria-haspopup='true' aria-expanded='false'>
+                        <button class='avatar-btn' id='avatar-btn' type='button' aria-haspopup='menu' aria-expanded='false' aria-controls='avatar-menu' aria-label='Abrir menu de perfil'>
                             <?php if ($fotoUrl !== ''): ?>
                                 <img src='<?php echo htmlspecialchars($fotoUrl, ENT_QUOTES, 'UTF-8'); ?>' alt='Avatar'>
                             <?php else: ?>
                                 <span class='avatar-initials'><?php echo htmlspecialchars($initials, ENT_QUOTES, 'UTF-8'); ?></span>
                             <?php endif; ?>
                         </button>
-                        <div class='avatar-menu' id='avatar-menu'>
-                            <a href='/NexoTI/index.php?r=perfil'>Ajustes de perfil</a>
-                            <a href='/NexoTI/index.php?r=logout'>Cerrar sesion</a>
+                        <div class='avatar-menu' id='avatar-menu' role='menu' aria-hidden='true'>
+                            <a href='/NexoTI/index.php?r=perfil' role='menuitem'>Ajustes de perfil</a>
+                            <a href='/NexoTI/index.php?r=logout' role='menuitem'>Cerrar sesion</a>
                         </div>
                     </div>
                 </div>
             </header>
-            <div class='notice-panel' id='notice-panel'></div>
+            <div class='notice-panel' id='notice-panel' role='dialog' aria-live='polite' aria-hidden='true' tabindex='-1'></div>
 
             <header class='page-header'>
                 <div>
@@ -121,7 +121,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     </label>
                     <div class='actions'>
                         <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z' fill='currentColor'></path></svg></span><span class='btn-label'>Guardar ticket</span></button>
-                        <span id='form-message' class='message'></span>
+                        <span id='form-message' class='message' role='status' aria-live='polite'></span>
                     </div>
                 </form>
             </section>
@@ -148,7 +148,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     </div>
                     <div class='actions'>
                         <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar ticket</span></button>
-                        <span id='assign-message' class='message'></span>
+                        <span id='assign-message' class='message' role='status' aria-live='polite'></span>
                     </div>
                 </form>
             </section>
@@ -164,7 +164,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     </label>
                     <div class='actions'>
                         <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z' fill='currentColor'></path></svg></span><span class='btn-label'>Cerrar ticket</span></button>
-                        <span id='close-message' class='message'></span>
+                        <span id='close-message' class='message' role='status' aria-live='polite'></span>
                     </div>
                 </form>
             </section>

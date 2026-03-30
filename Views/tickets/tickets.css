@@ -137,6 +137,13 @@ textarea {
     background: #f8fafc;
 }
 
+.ticket-summary:focus-visible {
+    outline: none;
+    box-shadow:
+        inset 0 0 0 2px #ffffff,
+        inset 0 0 0 5px rgba(37, 99, 235, 0.28);
+}
+
 .ticket-summary-main {
     display: grid;
     gap: 12px;
@@ -332,6 +339,13 @@ textarea {
     height: 100%;
     object-fit: cover;
 }
+
+.avatar-btn:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.95),
+        0 0 0 6px rgba(37, 99, 235, 0.34);
+}
 .avatar-initials {
     font-weight: 700;
     letter-spacing: 1px;
@@ -362,6 +376,12 @@ textarea {
 .avatar-menu a:hover {
     background: #eff6ff;
 }
+
+.avatar-menu a:focus-visible {
+    outline: none;
+    background: #dbeafe;
+    color: #1e3a8a;
+}
 .ticket-head {
     display: flex;
     align-items: center;
@@ -371,8 +391,9 @@ textarea {
 .status {
     padding: 6px 12px;
     border-radius: 999px;
+    border: 1px solid #93c5fd;
     background: #dbeafe;
-    color: #1d4ed8;
+    color: #1e3a8a;
     font-size: 0.86rem;
     font-weight: 700;
 }
@@ -668,8 +689,9 @@ textarea {
     align-items: center;
     padding: 5px 10px;
     border-radius: 999px;
+    border: 1px solid #cbd5e1;
     background: #e2e8f0;
-    color: #334155;
+    color: #1e293b;
     font-size: 0.74rem;
     font-weight: 800;
 }
@@ -684,18 +706,21 @@ textarea {
 }
 
 .role-admin {
+    border: 1px solid #f59e0b;
     background: #fef3c7;
-    color: #92400e;
+    color: #78350f;
 }
 
 .role-tecnico {
+    border: 1px solid #60a5fa;
     background: #dbeafe;
-    color: #1d4ed8;
+    color: #1e3a8a;
 }
 
 .role-usuario {
+    border: 1px solid #4ade80;
     background: #dcfce7;
-    color: #166534;
+    color: #14532d;
 }
 
 .thread-entry.role-tecnico {

@@ -75,6 +75,7 @@ function setMessage(node, text, type, title) {
     if (!node) { return; }
     node.textContent = text;
     node.className = type ? 'message ' + type : 'message';
+    node.setAttribute('aria-hidden', text === '' ? 'true' : 'false');
     if (text !== '' && type) {
         clearMessageLater(node, 'message', 4000);
         showToast(title || (type === 'success' ? 'Operacion completada' : 'Atencion'), text, type);
@@ -85,6 +86,7 @@ function setInlineMessage(node, text, type) {
     if (!node) { return; }
     node.textContent = text;
     node.className = type ? 'message inline-message ' + type : 'message inline-message';
+    node.setAttribute('aria-hidden', text === '' ? 'true' : 'false');
     if (text !== '' && type) {
         clearMessageLater(node, 'message inline-message', 4000);
         showToast(type === 'success' ? 'Actualizacion del ticket' : 'Atencion', text, type);
@@ -379,6 +381,7 @@ async function closeInlineTicket(ticketId, messageNode, closeButton) {
 function buildInlineReply(ticket, messageNode, toggleButton) {
     const box = document.createElement('div');
     box.className = 'inline-reply';
+    box.id = 'ticket-reply-' + ticket.id;
     const composer = document.createElement('div');
     composer.className = 'reply-composer';
     composer.appendChild(createAvatar(bodyData('userName'), bodyData('userPhoto'), 'reply-avatar'));
@@ -447,14 +450,20 @@ function buildInlineActions(ticket) {
     actions.className = 'inline-actions';
     const messageNode = document.createElement('span');
     messageNode.className = 'message inline-message';
+    messageNode.setAttribute('role', 'status');
+    messageNode.setAttribute('aria-live', 'polite');
+    messageNode.setAttribute('aria-hidden', 'true');
     const replyButton = document.createElement('button');
     replyButton.type = 'button';
     replyButton.className = 'btn ghost';
+    replyButton.setAttribute('aria-expanded', 'false');
     setButtonContent(replyButton, 'reply', 'Responder');
     const reply = buildInlineReply(ticket, messageNode, replyButton);
+    replyButton.setAttribute('aria-controls', reply.box.id);
     replyButton.addEventListener('click', function () {
         const isOpen = reply.box.classList.toggle('is-open');
         setButtonContent(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
+        replyButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         if (isOpen) { reply.textarea.focus(); }
     });
     actions.appendChild(replyButton);
@@ -479,6 +488,8 @@ function buildTicketSummary(ticket, isExpanded) {
     summary.type = 'button';
     summary.className = 'ticket-summary';
     summary.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    summary.setAttribute('aria-controls', 'ticket-details-' + ticket.id);
+    summary.setAttribute('aria-label', (isExpanded ? 'Ocultar detalle del ticket ' : 'Ver detalle del ticket ') + ticket.codigo + ' ' + ticket.titulo);
 
     const main = document.createElement('div');
     main.className = 'ticket-summary-main';
@@ -532,10 +543,20 @@ function buildTicketSummary(ticket, isExpanded) {
 function buildTicketDetails(ticket) {
     const details = document.createElement('div');
     details.className = 'ticket-details';
+    details.id = 'ticket-details-' + ticket.id;
     details.appendChild(buildParticipantsPanel(ticket));
     details.appendChild(buildTicketThread(ticket));
     details.appendChild(buildInlineActions(ticket));
     return details;
+}
+
+function keepTicketPosition(ticketId, previousTop) {
+    window.requestAnimationFrame(function () {
+        const nextNode = document.querySelector('[data-ticket-id="' + ticketId + '"]');
+        if (!nextNode) { return; }
+        const nextTop = nextNode.getBoundingClientRect().top;
+        window.scrollBy(0, nextTop - previousTop);
+    });
 }
 
 function renderTickets(tickets) {
@@ -556,12 +577,15 @@ function renderTickets(tickets) {
     tickets.forEach(function (ticket) {
         const item = document.createElement('article');
         item.className = 'ticket-item';
+        item.dataset.ticketId = String(ticket.id);
         const isExpanded = String(ticket.id) === String(expandedTicketId);
         item.classList.toggle('is-open', isExpanded);
         const summary = buildTicketSummary(ticket, isExpanded);
         summary.addEventListener('click', function () {
+            const previousTop = item.getBoundingClientRect().top;
             expandedTicketId = isExpanded ? null : ticket.id;
             renderTickets(filterTicketsBySearch());
+            keepTicketPosition(ticket.id, previousTop);
         });
         item.appendChild(summary);
         if (isExpanded) {
@@ -661,14 +685,46 @@ function toggleNoticePanel(forceState) {
     if (!dom.noticePanel) { return; }
     const nextState = typeof forceState === 'boolean' ? forceState : !dom.noticePanel.classList.contains('is-open');
     dom.noticePanel.classList.toggle('is-open', nextState);
-    if (dom.noticeButton) { dom.noticeButton.setAttribute('aria-expanded', nextState ? 'true' : 'false'); }
+    dom.noticePanel.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+    if (dom.noticeButton) {
+        dom.noticeButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+        if (!nextState) {
+            dom.noticeButton.focus();
+        }
+    }
+    if (nextState) {
+        dom.noticePanel.focus();
+    }
+}
+
+function toggleAvatarMenu(forceState) {
+    if (!dom.avatarMenu) { return; }
+    const nextState = typeof forceState === 'boolean' ? forceState : !dom.avatarMenu.classList.contains('is-open');
+    dom.avatarMenu.classList.toggle('is-open', nextState);
+    dom.avatarMenu.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+    if (dom.avatarButton) {
+        dom.avatarButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+        if (!nextState) {
+            dom.avatarButton.focus();
+        }
+    }
+    if (nextState) {
+        const firstItem = dom.avatarMenu.querySelector('a');
+        if (firstItem) { firstItem.focus(); }
+    }
 }
 
 function setupAvatarMenu() {
     if (dom.avatarButton && dom.avatarMenu) {
         dom.avatarButton.addEventListener('click', function (event) {
             event.stopPropagation();
-            dom.avatarMenu.classList.toggle('is-open');
+            toggleAvatarMenu();
+        });
+        dom.avatarButton.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                toggleAvatarMenu(true);
+            }
         });
     }
     if (dom.noticeButton) {
@@ -677,11 +733,36 @@ function setupAvatarMenu() {
             toggleNoticePanel();
         });
     }
+    if (dom.avatarMenu) {
+        dom.avatarMenu.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                toggleAvatarMenu(false);
+            }
+        });
+    }
+    if (dom.noticePanel) {
+        dom.noticePanel.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                toggleNoticePanel(false);
+            }
+        });
+    }
     document.addEventListener('click', function (event) {
         if (dom.avatarMenu && dom.avatarButton && !dom.avatarMenu.contains(event.target) && !dom.avatarButton.contains(event.target)) {
-            dom.avatarMenu.classList.remove('is-open');
+            toggleAvatarMenu(false);
         }
         if (dom.noticePanel && dom.noticeButton && !dom.noticePanel.contains(event.target) && !dom.noticeButton.contains(event.target)) {
+            toggleNoticePanel(false);
+        }
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') { return; }
+        if (dom.avatarMenu && dom.avatarMenu.classList.contains('is-open')) {
+            toggleAvatarMenu(false);
+        }
+        if (dom.noticePanel && dom.noticePanel.classList.contains('is-open')) {
             toggleNoticePanel(false);
         }
     });
