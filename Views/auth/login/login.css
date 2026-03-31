@@ -146,8 +146,8 @@ input {
 
 .toggle-password {
     position: absolute;
-    top: 50%;
-    right: 8px;
+    bottom: -37%;
+    left: 365px;
     transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
@@ -220,7 +220,7 @@ button:hover {
 @keyframes mostrarError {
     0% { opacity: 1; }
     80% { opacity: 1; }
-    100% { opacity: 0; display: none; }
+    100% { opacity: 0; }
 }
 
 .m365-btn {
