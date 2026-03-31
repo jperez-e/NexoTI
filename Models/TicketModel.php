@@ -63,6 +63,13 @@ class TicketModel
     {  
         return (int) $this->db->lastInsertId();  
     }  
+
+    public function existsCodigo(string $codigo): bool
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) AS total FROM tickets WHERE codigo = ?');
+        $stmt->execute([$codigo]);
+        return (int) ($stmt->fetch()['total'] ?? 0) > 0;
+    }
  
     private function baseSelect(): string  
     {  
@@ -89,6 +96,43 @@ class TicketModel
         $sql = $this->baseSelect() . ' ORDER BY t.id DESC';  
         return $this->db->query($sql)->fetchAll();  
     }  
+
+    public function search(array $filters, int $page, int $perPage, int $rolId, int $userId): array
+    {
+        $params = [];
+        $sql = $this->baseSelect()
+            . $this->buildSearchWhereClause($filters, $rolId, $userId, $params)
+            . ' ORDER BY t.fecha_creacion DESC, t.id DESC LIMIT ? OFFSET ?';
+
+        $stmt = $this->db->prepare($sql);
+        $index = 1;
+        foreach ($params as $value) {
+            $stmt->bindValue($index, $value);
+            $index++;
+        }
+        $stmt->bindValue($index, $perPage, PDO::PARAM_INT);
+        $stmt->bindValue($index + 1, max(0, ($page - 1) * $perPage), PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function countSearch(array $filters, int $rolId, int $userId): int
+    {
+        $params = [];
+        $sql = 'SELECT COUNT(*) AS total FROM tickets t '
+            . 'JOIN usuarios u ON t.usuario_id = u.id '
+            . 'JOIN roles ru ON u.rol_id = ru.id '
+            . 'LEFT JOIN usuarios ut ON t.tecnico_id = ut.id '
+            . 'LEFT JOIN roles rt ON ut.rol_id = rt.id '
+            . 'JOIN categorias c ON t.categoria_id = c.id '
+            . 'JOIN prioridades p ON t.prioridad_id = p.id '
+            . 'JOIN estados_ticket e ON t.estado_id = e.id'
+            . $this->buildSearchWhereClause($filters, $rolId, $userId, $params);
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (int) ($stmt->fetch()['total'] ?? 0);
+    }
   
     public function getByUsuario(int $usuarioId): array  
     {  
@@ -97,6 +141,15 @@ class TicketModel
         $stmt->execute([$usuarioId]);  
         return $stmt->fetchAll();  
     }  
+
+    public function getResolvedTicketsByUsuario(int $usuarioId): array
+    {
+        $sql = $this->baseSelect()
+            . ' WHERE t.usuario_id = ? AND LOWER(e.nombre) = ? ORDER BY t.fecha_creacion DESC, t.id DESC';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$usuarioId, 'resuelto']);
+        return $stmt->fetchAll();
+    }
   
     public function getByTecnico(int $tecnicoId): array  
     {  
@@ -105,6 +158,15 @@ class TicketModel
         $stmt->execute([$tecnicoId]);  
         return $stmt->fetchAll();  
     }  
+
+    public function getOpenTicketsForAssignment(): array
+    {
+        $sql = $this->baseSelect()
+            . ' WHERE LOWER(e.nombre) = ? ORDER BY t.fecha_creacion DESC, t.id DESC';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['abierto']);
+        return $stmt->fetchAll();
+    }
  
     public function getById(int $ticketId): ?array  
     {  
@@ -138,7 +200,7 @@ class TicketModel
         return $row ? (int) $row['id'] : null;  
     }  
  
-    public function getDashboardCounts(int $rolId, int $userId): array  
+    public function getDashboardCounts(int $rolId, int $userId): array
     {  
         // El dashboard cambia segun el rol: usuario ve sus tickets, tecnico sus asignaciones y admin todo el sistema.
         $joinExtra = '';  
@@ -190,4 +252,98 @@ class TicketModel
   
         return $counts;  
     }  
+
+    public function getNotifications(int $rolId, int $userId, int $limit = 6): array
+    {
+        $params = [];
+        $sql = $this->baseSelect()
+            . $this->buildNotificationWhereClause($rolId, $userId, $params)
+            . ' ORDER BY t.fecha_creacion DESC, t.id DESC LIMIT ?';
+
+        $stmt = $this->db->prepare($sql);
+        $index = 1;
+        foreach ($params as $value) {
+            $stmt->bindValue($index, $value);
+            $index++;
+        }
+        $stmt->bindValue($index, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function countNotifications(int $rolId, int $userId): int
+    {
+        $params = [];
+        $sql = 'SELECT COUNT(*) AS total FROM tickets t '
+            . 'JOIN usuarios u ON t.usuario_id = u.id '
+            . 'JOIN roles ru ON u.rol_id = ru.id '
+            . 'LEFT JOIN usuarios ut ON t.tecnico_id = ut.id '
+            . 'LEFT JOIN roles rt ON ut.rol_id = rt.id '
+            . 'JOIN categorias c ON t.categoria_id = c.id '
+            . 'JOIN prioridades p ON t.prioridad_id = p.id '
+            . 'JOIN estados_ticket e ON t.estado_id = e.id'
+            . $this->buildNotificationWhereClause($rolId, $userId, $params);
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (int) ($stmt->fetch()['total'] ?? 0);
+    }
+
+    private function buildSearchWhereClause(array $filters, int $rolId, int $userId, array &$params): string
+    {
+        $conditions = $this->buildVisibilityConditions($rolId, $userId, $params);
+
+        $query = trim((string) ($filters['query'] ?? ''));
+        if ($query !== '') {
+            $like = '%' . $query . '%';
+            $conditions[] = '('
+                . 't.codigo LIKE ? OR t.titulo LIKE ? OR t.descripcion LIKE ? OR '
+                . 'u.nombre LIKE ? OR COALESCE(ut.nombre, \'\') LIKE ? OR '
+                . 'e.nombre LIKE ? OR c.nombre LIKE ? OR p.nombre LIKE ?'
+                . ')';
+            array_push($params, $like, $like, $like, $like, $like, $like, $like, $like);
+        }
+
+        $estado = $filters['estado'] ?? null;
+        if (is_string($estado) && $estado !== '') {
+            $conditions[] = 'LOWER(e.nombre) = LOWER(?)';
+            $params[] = $estado;
+        }
+
+        return $conditions === [] ? '' : ' WHERE ' . implode(' AND ', $conditions);
+    }
+
+    private function buildVisibilityConditions(int $rolId, int $userId, array &$params): array
+    {
+        if ($rolId === 3) {
+            $params[] = $userId;
+            return ['t.usuario_id = ?'];
+        }
+        if ($rolId === 2) {
+            $params[] = $userId;
+            return ['t.tecnico_id = ?'];
+        }
+
+        return [];
+    }
+
+    private function buildNotificationWhereClause(int $rolId, int $userId, array &$params): string
+    {
+        if ($rolId === 1) {
+            $params[] = 'abierto';
+            return ' WHERE LOWER(e.nombre) = ?';
+        }
+
+        if ($rolId === 2) {
+            $params[] = $userId;
+            $params[] = 'abierto';
+            $params[] = 'en proceso';
+            $params[] = 'resuelto';
+            return ' WHERE t.tecnico_id = ? AND LOWER(e.nombre) IN (?, ?, ?)';
+        }
+
+        $params[] = $userId;
+        $params[] = 'resuelto';
+        return ' WHERE t.usuario_id = ? AND LOWER(e.nombre) = ?';
+    }
 } 

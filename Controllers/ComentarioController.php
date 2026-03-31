@@ -21,6 +21,7 @@ class ComentarioController extends BaseController
         $this->requireLogin();
         $rolId = $this->currentRoleId();
         $userId = $this->currentUserId();
+        $ticketIds = array_values(array_filter(array_map('intval', explode(',', (string) ($_GET['ticket_ids'] ?? '')))));
 
         if ($rolId === 3) {
             $rows = $this->model->getByUsuario($userId);
@@ -28,6 +29,13 @@ class ComentarioController extends BaseController
             $rows = $this->model->getByTecnico($userId);
         } else {
             $rows = $this->model->getAll();
+        }
+
+        if ($ticketIds !== []) {
+            $allowedIds = array_flip($ticketIds);
+            $rows = array_values(array_filter($rows, static function (array $row) use ($allowedIds): bool {
+                return isset($allowedIds[(int) ($row['ticket_id'] ?? 0)]);
+            }));
         }
 
         $this->jsonOk('Comentarios cargados', $rows);

@@ -1,10 +1,23 @@
-let allTickets = [];
+let pageTickets = [];
+let assignableTickets = [];
+let closableTickets = [];
 let allComments = [];
 let allAttachments = [];
 let availableStatuses = [];
+let notificationItems = [];
+let notificationTotal = 0;
 let expandedTicketId = null;
 let activeStatusFilter = 'todos';
 let currentTicketPage = 1;
+let searchTimer = null;
+let currentTicketMeta = {
+    page: 1,
+    per_page: 5,
+    total: 0,
+    total_pages: 1,
+    query: '',
+    estado: null,
+};
 const ticketsPerPage = 5;
 const dom = {};
 
@@ -20,6 +33,12 @@ async function fetchJSON(url) {
     const response = await fetch(url);
     const payload = await response.json();
     return payload && payload.status !== false && payload.data ? payload.data : [];
+}
+
+async function fetchPayload(url) {
+    const response = await fetch(url);
+    const payload = await response.json();
+    return payload && payload.status !== false ? payload : { status: false, message: 'No se pudo cargar la informacion.', data: {} };
 }
 
 async function postJSON(url, payload) {
@@ -409,47 +428,34 @@ function buildTicketThread(ticket) {
     return wrapper;
 }
 
-function buildNotificationItems() {
-    if (isAdminUser()) {
-        return allTickets.filter(function (ticket) {
-            return String(ticket.estado_nombre).toLowerCase() === 'abierto';
-        }).map(function (ticket) {
-            return { title: 'Ticket abierto pendiente', text: ticket.codigo + ' - ' + ticket.titulo };
-        });
+function buildNotificationTitle(ticket) {
+    const state = normalizeStatusName(ticket.estado_nombre);
+    if (isAdminUser() && state === 'abierto') {
+        return 'Ticket abierto pendiente';
     }
     if (isTechUser()) {
-        return allTickets.filter(function (ticket) {
-            const state = String(ticket.estado_nombre).toLowerCase();
-            return state === 'abierto' || state === 'en proceso' || state === 'resuelto';
-        }).map(function (ticket) {
-            return { title: 'Seguimiento asignado', text: ticket.codigo + ' - ' + ticket.titulo };
-        });
+        return 'Seguimiento asignado';
     }
-    return allTickets.filter(function (ticket) {
-        return String(ticket.estado_nombre).toLowerCase() === 'resuelto';
-    }).map(function (ticket) {
-        return { title: 'Pendiente de confirmacion', text: ticket.codigo + ' - ' + ticket.titulo };
-    });
+    return 'Pendiente de confirmacion';
 }
 
 function renderNotificationsPanel() {
     if (!dom.noticePanel || !dom.noticeCount) { return; }
-    const rows = buildNotificationItems();
-    dom.noticeCount.textContent = String(rows.length);
-    dom.noticeCount.classList.toggle('hidden', rows.length === 0);
-    dom.noticeCount.setAttribute('aria-hidden', rows.length === 0 ? 'true' : 'false');
+    dom.noticeCount.textContent = String(notificationTotal);
+    dom.noticeCount.classList.toggle('hidden', notificationTotal === 0);
+    dom.noticeCount.setAttribute('aria-hidden', notificationTotal === 0 ? 'true' : 'false');
     dom.noticePanel.innerHTML = '';
-    if (rows.length === 0) {
+    if (notificationItems.length === 0) {
         dom.noticePanel.innerHTML = '<p class="notice-empty">No hay notificaciones pendientes.</p>';
         return;
     }
-    rows.slice(0, 6).forEach(function (row) {
+    notificationItems.forEach(function (ticket) {
         const item = document.createElement('div');
         item.className = 'notice-item';
         const title = document.createElement('strong');
-        title.textContent = row.title;
+        title.textContent = buildNotificationTitle(ticket);
         const text = document.createElement('span');
-        text.textContent = row.text;
+        text.textContent = ticket.codigo + ' - ' + ticket.titulo;
         item.appendChild(title);
         item.appendChild(text);
         dom.noticePanel.appendChild(item);
@@ -457,7 +463,20 @@ function renderNotificationsPanel() {
 }
 
 async function refreshTicketsView() {
-    await Promise.all([loadComments(), loadAttachments(), loadTickets()]);
+    await loadTickets();
+}
+
+async function loadExpandedTicketData(ticketId) {
+    if (!ticketId) {
+        allComments = [];
+        allAttachments = [];
+        return;
+    }
+
+    await Promise.all([
+        loadComments([ticketId]),
+        loadAttachments([ticketId]),
+    ]);
 }
 
 async function uploadTicketAttachments(ticketId, files) {
@@ -816,14 +835,8 @@ function preserveTicketPosition(ticketId, work) {
 function renderTickets(tickets) {
     if (!dom.ticketsList) { return; }
     dom.ticketsList.innerHTML = '';
-    updateResultsInfo(tickets.length);
-    const totalPages = Math.max(1, Math.ceil(tickets.length / ticketsPerPage));
-    if (currentTicketPage > totalPages) {
-        currentTicketPage = totalPages;
-    }
-    const pageStart = (currentTicketPage - 1) * ticketsPerPage;
-    const pageTickets = tickets.slice(pageStart, pageStart + ticketsPerPage);
-    updateTicketsPager(tickets.length, totalPages);
+    updateResultsInfo();
+    updateTicketsPager();
     if (tickets.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'empty';
@@ -845,9 +858,10 @@ function renderTickets(tickets) {
         item.classList.toggle('is-open', isExpanded);
         const summary = buildTicketSummary(ticket, isExpanded);
         summary.addEventListener('click', function () {
-            preserveTicketPosition(ticket.id, function () {
+            preserveTicketPosition(ticket.id, async function () {
                 expandedTicketId = isExpanded ? null : ticket.id;
-                renderTickets(filterTicketsBySearch());
+                await loadExpandedTicketData(expandedTicketId);
+                renderTickets(pageTickets);
             });
         });
         item.appendChild(summary);
@@ -859,28 +873,9 @@ function renderTickets(tickets) {
     dom.ticketsList.appendChild(list);
 }
 
-function filterTicketsBySearch() {
-    const query = dom.search ? dom.search.value.trim().toLowerCase() : '';
-    return allTickets.filter(function (ticket) {
-        const statusName = normalizeStatusName(ticket.estado_nombre);
-        const passesStatus = activeStatusFilter === 'todos' || statusName === normalizeStatusName(activeStatusFilter);
-        if (!passesStatus) {
-            return false;
-        }
-        if (query === '') {
-            return true;
-        }
-        const source = [
-            ticket.codigo, ticket.titulo, ticket.descripcion, ticket.usuario_nombre, ticket.tecnico_nombre,
-            ticket.estado_nombre, ticket.categoria_nombre, ticket.prioridad_nombre, ticket.usuario_rol_nombre, ticket.tecnico_rol_nombre,
-        ].join(' ').toLowerCase();
-        return source.includes(query);
-    });
-}
-
 function syncAdminAssignState() {
     if (!dom.assignTicket || !dom.assignState) { return; }
-    const selectedTicket = allTickets.find(function (ticket) {
+    const selectedTicket = assignableTickets.find(function (ticket) {
         return String(ticket.id) === String(dom.assignTicket.value);
     });
     if (selectedTicket && selectedTicket.estado_id) {
@@ -888,43 +883,37 @@ function syncAdminAssignState() {
     }
 }
 
-function refreshTicketSelects(tickets) {
+function refreshTicketSelects() {
     if (dom.assignTicket) {
-        fillSelect(dom.assignTicket, tickets.filter(function (ticket) {
-            return String(ticket.estado_nombre).toLowerCase() === 'abierto';
-        }), function (ticket) {
+        fillSelect(dom.assignTicket, assignableTickets, function (ticket) {
             return ticket.codigo + ' - ' + ticket.titulo;
         }, 'id');
         syncAdminAssignState();
     }
     if (dom.closeTicket) {
-        fillSelect(dom.closeTicket, tickets.filter(function (ticket) {
-            return String(ticket.estado_nombre).toLowerCase() === 'resuelto';
-        }), function (ticket) {
+        fillSelect(dom.closeTicket, closableTickets, function (ticket) {
             return ticket.codigo + ' - ' + ticket.titulo;
         }, 'id');
     }
 }
 
-function applySearch() {
-    currentTicketPage = 1;
-    const filteredTickets = filterTicketsBySearch();
-    renderTickets(filteredTickets);
-    refreshTicketSelects(allTickets);
-}
-
-function updateResultsInfo(totalVisible) {
+function updateResultsInfo() {
     if (!dom.resultsInfo) { return; }
     const query = normalizedSearchQuery();
     const filterLabel = activeStatusFilter === 'todos' ? 'todos los estados' : activeStatusFilter;
     if (query === '') {
-        dom.resultsInfo.textContent = 'Mostrando ' + totalVisible + ' ticket(s) en ' + filterLabel + '.';
+        dom.resultsInfo.textContent = 'Mostrando ' + currentTicketMeta.total + ' ticket(s) en ' + filterLabel + '.';
         return;
     }
-    dom.resultsInfo.textContent = 'Resultados para "' + query + '" en ' + filterLabel + ': ' + totalVisible + ' ticket(s).';
+    dom.resultsInfo.textContent = 'Resultados para "' + query + '" en ' + filterLabel + ': ' + currentTicketMeta.total + ' ticket(s).';
 }
 
-function applyStatusFilter(filterValue) {
+async function applySearch() {
+    currentTicketPage = 1;
+    await loadTickets();
+}
+
+async function applyStatusFilter(filterValue) {
     activeStatusFilter = filterValue;
     currentTicketPage = 1;
     if (dom.statusFilters) {
@@ -934,34 +923,72 @@ function applyStatusFilter(filterValue) {
             button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
     }
-    applySearch();
+    await loadTickets();
 }
 
-function updateTicketsPager(totalItems, totalPages) {
+function updateTicketsPager() {
     if (!dom.ticketsPager || !dom.ticketsPrev || !dom.ticketsNext || !dom.ticketsPageInfo) { return; }
-    const hasItems = totalItems > 0;
+    const hasItems = currentTicketMeta.total > 0;
     dom.ticketsPager.classList.toggle('hidden', !hasItems);
     if (!hasItems) {
         dom.ticketsPageInfo.textContent = '';
         return;
     }
-    dom.ticketsPageInfo.textContent = 'Pagina ' + currentTicketPage + ' de ' + totalPages + ' - ' + totalItems + ' ticket(s)';
-    dom.ticketsPrev.disabled = currentTicketPage <= 1;
-    dom.ticketsNext.disabled = currentTicketPage >= totalPages;
+    dom.ticketsPageInfo.textContent = 'Pagina ' + currentTicketMeta.page + ' de ' + currentTicketMeta.total_pages + ' - ' + currentTicketMeta.total + ' ticket(s)';
+    dom.ticketsPrev.disabled = currentTicketMeta.page <= 1;
+    dom.ticketsNext.disabled = currentTicketMeta.page >= currentTicketMeta.total_pages;
 }
 
 async function loadTickets() {
-    allTickets = await fetchJSON('api.php?c=ticket&m=list');
+    const params = new URLSearchParams({
+        page: String(currentTicketPage),
+        per_page: String(ticketsPerPage),
+        query: normalizedSearchQuery(),
+        estado: activeStatusFilter,
+    });
+    const payload = await fetchPayload('api.php?c=ticket&m=list&' + params.toString());
+    const data = payload.data || {};
+    pageTickets = Array.isArray(data.items) ? data.items : [];
+    assignableTickets = Array.isArray(data.assignable) ? data.assignable : [];
+    closableTickets = Array.isArray(data.closable) ? data.closable : [];
+    notificationItems = data.notifications && Array.isArray(data.notifications.items) ? data.notifications.items : [];
+    notificationTotal = data.notifications ? Number(data.notifications.count || 0) : 0;
+    currentTicketMeta = Object.assign({
+        page: currentTicketPage,
+        per_page: ticketsPerPage,
+        total: 0,
+        total_pages: 1,
+        query: normalizedSearchQuery(),
+        estado: activeStatusFilter === 'todos' ? null : activeStatusFilter,
+    }, data.meta || {});
+    currentTicketPage = Number(currentTicketMeta.page || 1);
+
+    if (expandedTicketId !== null && !pageTickets.some(function (ticket) { return String(ticket.id) === String(expandedTicketId); })) {
+        expandedTicketId = null;
+    }
+    await loadExpandedTicketData(expandedTicketId);
+
     renderNotificationsPanel();
-    applySearch();
+    renderTickets(pageTickets);
+    refreshTicketSelects();
 }
 
-async function loadComments() {
-    allComments = await fetchJSON('api.php?c=comentario&m=list');
+async function loadComments(ticketIds) {
+    if (!ticketIds || ticketIds.length === 0) {
+        allComments = [];
+        return;
+    }
+    const params = new URLSearchParams({ ticket_ids: ticketIds.join(',') });
+    allComments = await fetchJSON('api.php?c=comentario&m=list&' + params.toString());
 }
 
-async function loadAttachments() {
-    allAttachments = await fetchJSON('api.php?c=ticket&m=listAdjuntos');
+async function loadAttachments(ticketIds) {
+    if (!ticketIds || ticketIds.length === 0) {
+        allAttachments = [];
+        return;
+    }
+    const params = new URLSearchParams({ ticket_ids: ticketIds.join(',') });
+    allAttachments = await fetchJSON('api.php?c=ticket&m=listAdjuntos&' + params.toString());
 }
 
 async function loadCombos() {
@@ -1111,7 +1138,6 @@ function setupCreateForm() {
         const formData = new FormData(dom.ticketForm);
         const submitButton = dom.ticketForm.querySelector('button[type="submit"]');
         formData.set('_token', getCsrfToken());
-        if (!formData.get('codigo')) { formData.set('codigo', 'TCK-' + Date.now()); }
         setButtonLoading(submitButton, true, 'Creando...');
         try {
             const response = await fetch('api.php?c=ticket&m=create', { method: 'POST', body: formData });
@@ -1208,31 +1234,38 @@ document.addEventListener('DOMContentLoaded', async function () {
     setupCreateForm();
     setupAssignForm();
     setupCloseForm();
-    if (dom.search) { dom.search.addEventListener('input', applySearch); }
+    if (dom.search) {
+        dom.search.addEventListener('input', function () {
+            if (searchTimer) {
+                clearTimeout(searchTimer);
+            }
+            searchTimer = window.setTimeout(function () {
+                applySearch();
+            }, 250);
+        });
+    }
     if (dom.statusFilters) {
         dom.statusFilters.forEach(function (button) {
-            button.addEventListener('click', function () {
-                applyStatusFilter(button.dataset.statusFilter || 'todos');
+            button.addEventListener('click', async function () {
+                await applyStatusFilter(button.dataset.statusFilter || 'todos');
             });
         });
     }
     if (dom.ticketsPrev) {
-        dom.ticketsPrev.addEventListener('click', function () {
-            if (currentTicketPage <= 1) { return; }
-            preserveElementPosition(dom.ticketsPager, function () {
+        dom.ticketsPrev.addEventListener('click', async function () {
+            if (currentTicketMeta.page <= 1) { return; }
+            await preserveElementPosition(dom.ticketsPager, async function () {
                 currentTicketPage -= 1;
-                renderTickets(filterTicketsBySearch());
+                await loadTickets();
             });
         });
     }
     if (dom.ticketsNext) {
-        dom.ticketsNext.addEventListener('click', function () {
-            const totalItems = filterTicketsBySearch().length;
-            const totalPages = Math.max(1, Math.ceil(totalItems / ticketsPerPage));
-            if (currentTicketPage >= totalPages) { return; }
-            preserveElementPosition(dom.ticketsPager, function () {
+        dom.ticketsNext.addEventListener('click', async function () {
+            if (currentTicketMeta.page >= currentTicketMeta.total_pages) { return; }
+            await preserveElementPosition(dom.ticketsPager, async function () {
                 currentTicketPage += 1;
-                renderTickets(filterTicketsBySearch());
+                await loadTickets();
             });
         });
     }
@@ -1253,7 +1286,5 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
     await loadCombos();
     await loadTecnicos();
-    await loadComments();
-    await loadAttachments();
     await loadTickets();
 });

@@ -4,32 +4,38 @@ declare(strict_types=1);
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../Models/TicketModel.php';
 require_once __DIR__ . '/../Models/AdjuntoModel.php';
+require_once __DIR__ . '/../Services/TicketService.php';
 
 class TicketController extends BaseController
 {
     private TicketModel $model;
     private AdjuntoModel $adjuntos;
+    private TicketService $service;
 
     public function __construct()
     {
         $this->model = new TicketModel();
         $this->adjuntos = new AdjuntoModel();
+        $this->service = new TicketService();
     }
 
     public function list(): void
     {
         $this->requireLogin();
-        $rolId = $this->currentRoleId();
-        $userId = $this->currentUserId();
+        $page = (int) ($_GET['page'] ?? 1);
+        $perPage = (int) ($_GET['per_page'] ?? 5);
+        $query = trim((string) ($_GET['query'] ?? ''));
+        $estado = trim((string) ($_GET['estado'] ?? 'todos'));
 
-        if ($rolId === 3) {
-            $rows = $this->model->getByUsuario($userId);
-        } elseif ($rolId === 2) {
-            $rows = $this->model->getByTecnico($userId);
-        } else {
-            $rows = $this->model->getAll();
-        }
-        $this->jsonOk('Tickets cargados', $rows);
+        $payload = $this->service->listTickets(
+            ['query' => $query, 'estado' => $estado],
+            $page,
+            $perPage,
+            $this->currentRoleId(),
+            $this->currentUserId()
+        );
+
+        $this->jsonOk('Tickets cargados', $payload);
     }
 
     public function create(): void
@@ -37,13 +43,14 @@ class TicketController extends BaseController
         $this->requireLogin();
         $this->requirePost();
 
-        $codigo = trim(strip_tags((string) ($_POST['codigo'] ?? '')));
         $titulo = trim(strip_tags((string) ($_POST['titulo'] ?? '')));
         $descripcion = trim(strip_tags((string) ($_POST['descripcion'] ?? '')));
         $categoriaId = (int) ($_POST['categoria_id'] ?? 0);
         $prioridadId = (int) ($_POST['prioridad_id'] ?? 0);
         $estadoId = (int) ($_POST['estado_id'] ?? 0);
         $fechaOcurrenciaRaw = trim((string) ($_POST['fecha_ocurrencia'] ?? ''));
+
+        $codigo = $this->service->generateTicketCode();
 
         $sessionUserId = $this->currentUserId();
         $rolId = $this->currentRoleId();
@@ -65,7 +72,7 @@ class TicketController extends BaseController
             }
         }
 
-        if ($codigo === '' || $titulo === '' || $descripcion === '' || $categoriaId <= 0 || $prioridadId <= 0 || $estadoId <= 0) {
+        if ($titulo === '' || $descripcion === '' || $categoriaId <= 0 || $prioridadId <= 0 || $estadoId <= 0) {
             $this->jsonError('Completa todos los campos.');
         }
 
@@ -97,6 +104,7 @@ class TicketController extends BaseController
 
         $rolId = $this->currentRoleId();
         $userId = $this->currentUserId();
+        $ticketIds = array_values(array_filter(array_map('intval', explode(',', (string) ($_GET['ticket_ids'] ?? '')))));
 
         if ($rolId === 3) {
             $rows = $this->adjuntos->getByUsuario($userId);
@@ -104,6 +112,13 @@ class TicketController extends BaseController
             $rows = $this->adjuntos->getByTecnico($userId);
         } else {
             $rows = $this->adjuntos->getAll();
+        }
+
+        if ($ticketIds !== []) {
+            $allowedIds = array_flip($ticketIds);
+            $rows = array_values(array_filter($rows, static function (array $row) use ($allowedIds): bool {
+                return isset($allowedIds[(int) ($row['ticket_id'] ?? 0)]);
+            }));
         }
 
         $this->jsonOk('Adjuntos cargados', $rows);
