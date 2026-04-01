@@ -88,7 +88,7 @@ function showMessage(text, type) {
     node.className = type ? 'message ' + type : 'message';
     if (text !== '' && type) {
         clearMessageLater(node, 4000);
-        showToast(type === 'success' ? 'Operacion completada' : 'Atencion', text, type);
+        showToast(type === 'success' ? 'Operación completada' : 'Atención', text, type);
     }
 }
 
@@ -111,7 +111,7 @@ function ensureFormTools() {
         cancel.type = 'button';
         cancel.id = 'cancel-btn';
         cancel.className = 'btn ghost hidden';
-        setButtonContent(cancel, 'close', 'Cancelar edicion');
+        setButtonContent(cancel, 'close', 'Cancelar edición');
         actions.insertBefore(cancel, getNode('form-message'));
     }
 }
@@ -169,7 +169,7 @@ function renderRoles(list) {
         deleteBtn.className = 'btn danger';
         setButtonContent(deleteBtn, 'delete', 'Eliminar');
         deleteBtn.addEventListener('click', async function () {
-            const ok = window.confirm('Se eliminara el rol ' + row.nombre + '. Deseas continuar?');
+            const ok = window.confirm('Se eliminará el rol ' + row.nombre + '. ¿Deseas continuar?');
             if (!ok) {
                 return;
             }

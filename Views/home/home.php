@@ -8,6 +8,7 @@
     <link rel='stylesheet' href='/NexoTI/Views/home/home.css'>  
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+ <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
 </head>  
 <body>  
     <div class='layout'>  
@@ -25,7 +26,7 @@
                     <div class='hero-copy'>
                         <span class='hero-kicker'>Centro de operaciones</span>
                         <h2>Panel de control de soporte TI</h2>  
-                        <p>Consulta el estado del servicio, revisa actividad reciente y accede rapido a los modulos principales.</p>
+                        <p>Consulta el estado del servicio, revisa actividad reciente y accede rápido a los módulos principales.</p>
                     </div>
                     <div class='hero-actions'>
                         <a class='btn primary' href='/NexoTI/index.php?r=tickets'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M4 6h16v5a2 2 0 0 0 0 4v5H4v-5a2 2 0 0 0 0-4V6zm4 4v4h8v-4H8z' fill='currentColor'></path></svg></span><span class='btn-label'>Ir a tickets</span></a>
@@ -61,17 +62,17 @@
                         <h3>Flujo principal</h3>  
                         <ul>  
                             <li>Registrar incidencia y dar seguimiento al ticket</li>  
-                            <li>Asignar y responder segun el rol del usuario</li>  
-                            <li>Confirmar solucion y cerrar el caso</li>  
+                            <li>Asignar y responder según el rol del usuario</li>  
+                            <li>Confirmar solución y cerrar el caso</li>  
                         </ul>  
                     </div>  
                     <div class='card report-card'>  
-                        <h3>Area de reportes</h3>  
-                        <p>Consulta resumenes, historial y exportaciones sin mezclarlo con el dashboard principal.</p>
+                        <h3>Área de reportes</h3>  
+                        <p>Consulta resúmenes, historial y exportaciones sin mezclarlo con el dashboard principal.</p>
                         <?php if (((int) ($_SESSION['rol_id'] ?? 0)) === 1): ?>
                             <a class='btn ghost' href='/NexoTI/index.php?r=reportes'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 3h10l4 4v14H5V3zm9 1.5V8h3.5L14 4.5zM8 12h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V8z' fill='currentColor'></path></svg></span><span class='btn-label'>Abrir reportes</span></a>
                         <?php else: ?>
-                            <p class='report-note'>Los reportes completos estan disponibles para el administrador.</p>
+                            <p class='report-note'>Los reportes completos están disponibles para el administrador.</p>
                         <?php endif; ?>
                     </div>  
                 </section>  

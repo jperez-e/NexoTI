@@ -46,7 +46,7 @@ function updateReportPager(totalItems, totalPages) {
         return;
     }
 
-    info.textContent = 'Pagina ' + currentReportPage + ' de ' + totalPages + ' - ' + totalItems + ' ticket(s)';
+    info.textContent = 'Página ' + currentReportPage + ' de ' + totalPages + ' - ' + totalItems + ' ticket(s)';
     prev.disabled = currentReportPage <= 1;
     next.disabled = currentReportPage >= totalPages;
 }

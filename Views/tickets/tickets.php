@@ -7,7 +7,7 @@ $isAdmin = $rolId === 1;
 $isTech = $rolId === 2;
 $isUser = $rolId === 3;
 $nombreUsuario = (string) ($_SESSION['nombre'] ?? 'Usuario');
-$rolNombre = (string) ($_SESSION['rol_nombre'] ?? ($isAdmin ? 'Admin' : ($isTech ? 'Tecnico' : 'Usuario')));
+$rolNombre = (string) ($_SESSION['rol_nombre'] ?? ($isAdmin ? 'Admin' : ($isTech ? 'Técnico' : 'Usuario')));
 $foto = (string) ($_SESSION['foto'] ?? '');
 $fotoUrl = $foto !== '' ? '/NexoTI/' . ltrim($foto, '/') : '';
 $parts = preg_split('/\s+/', trim($nombreUsuario));
@@ -29,6 +29,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=8'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+ <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/tickets/tickets.state.js?v=1' defer></script>
     <script src='/NexoTI/Views/tickets/tickets.api.js?v=1' defer></script>
@@ -63,7 +64,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                         </button>
                         <span class='user-name'><?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?></span>
                         <div class='avatar-wrapper'>
-                            <button class='avatar-btn' id='avatar-btn' type='button' aria-haspopup='menu' aria-expanded='false' aria-controls='avatar-menu' aria-label='Abrir menu de perfil'>
+                            <button class='avatar-btn' id='avatar-btn' type='button' aria-haspopup='menu' aria-expanded='false' aria-controls='avatar-menu' aria-label='Abrir menú de perfil'>
                                 <?php if ($fotoUrl !== ''): ?>
                                     <img src='<?php echo htmlspecialchars($fotoUrl, ENT_QUOTES, 'UTF-8'); ?>' alt='Avatar'>
                                 <?php else: ?>
@@ -72,7 +73,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             </button>
                             <div class='avatar-menu' id='avatar-menu' role='menu' aria-hidden='true'>
                                 <a href='/NexoTI/index.php?r=perfil' role='menuitem'>Ajustes de perfil</a>
-                                <a href='/NexoTI/index.php?r=logout' role='menuitem'>Cerrar sesion</a>
+                                <a href='/NexoTI/index.php?r=logout' role='menuitem'>Cerrar sesión</a>
                             </div>
                         </div>
                     </div>
@@ -94,11 +95,11 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                         <input type='hidden' name='usuario_id' value='<?php echo $userId; ?>'>
                         <div class='grid'>
                             <label>
-                                Titulo
-                                <input name='titulo' type='text' placeholder='Ej: Impresora sin conexion' required>
+                                Título
+                                <input name='titulo' type='text' placeholder='Ej: Impresora sin conexión' required>
                             </label>
                             <label>
-                                Categoria
+                                Categoría
                                 <select name='categoria_id' id='categoria_id' required></select>
                             </label>
                             <label>
@@ -117,7 +118,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             </label>
                         </div>
                         <label>
-                            Descripcion
+                            Descripción
                             <textarea name='descripcion' rows='4' placeholder='Describe el problema' required></textarea>
                         </label>
                         <label>
@@ -141,7 +142,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                                 <select name='ticket_id' id='assign_ticket_id' required></select>
                             </label>
                             <label>
-                                Tecnico
+                                Técnico
                                 <select name='tecnico_id' id='assign_tecnico_id'></select>
                             </label>
                             <?php if (!$isUser): ?>

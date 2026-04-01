@@ -28,9 +28,9 @@ function buildParticipantsPanel(ticket) {
     list.className = 'participants-list';
     list.appendChild(buildParticipant(ticket.usuario_nombre || 'Usuario', ticket.usuario_rol_nombre || 'Usuario', resolvePhoto(ticket.usuario_foto), 'Solicitante'));
     if (ticket.tecnico_id) {
-        list.appendChild(buildParticipant(ticket.tecnico_nombre || 'Tecnico', ticket.tecnico_rol_nombre || 'Tecnico', resolvePhoto(ticket.tecnico_foto), 'Responsable actual'));
+        list.appendChild(buildParticipant(ticket.tecnico_nombre || 'Técnico', ticket.tecnico_rol_nombre || 'Técnico', resolvePhoto(ticket.tecnico_foto), 'Responsable actual'));
     } else {
-        list.appendChild(buildParticipant('Sin asignar', 'Tecnico', '', 'Pendiente de asignacion'));
+        list.appendChild(buildParticipant('Sin asignar', 'Técnico', '', 'Pendiente de asignación'));
     }
     panel.appendChild(head);
     panel.appendChild(list);
@@ -124,7 +124,7 @@ function buildAttachmentEntry(attachment) {
     caption.className = 'attachment-caption';
     caption.textContent = attachment.nombre_original || 'Archivo adjunto';
     if (attachment.comentario_id) {
-        caption.textContent += ' · vinculada a una respuesta';
+        caption.textContent += ' · adjunta a una respuesta';
     }
 
     wrap.appendChild(link);
@@ -147,7 +147,7 @@ function buildTicketThread(ticket) {
         photoUrl: resolvePhoto(ticket.usuario_foto),
         dateText: ticket.fecha_creacion,
         bodyText: ticket.descripcion,
-        tag: 'Descripcion',
+        tag: 'Descripción',
         variant: 'is-initial',
     }));
     attachmentsForTicket(ticket.id).forEach(function (attachment) {
@@ -179,7 +179,7 @@ function buildNotificationTitle(ticket) {
     if (isTechUser()) {
         return 'Seguimiento asignado';
     }
-    return 'Pendiente de confirmacion';
+    return 'Pendiente de confirmación';
 }
 
 function renderNotificationsPanel() {
@@ -232,7 +232,7 @@ function renderNotificationsPanel() {
             const action = document.createElement('button');
             action.type = 'button';
             action.className = 'notice-action';
-            action.textContent = 'Marcar leida';
+            action.textContent = 'Marcar como le�da';
             action.addEventListener('click', async function () {
                 const data = await postJSON('api.php?c=notificacion&m=read', { id: notification.id });
                 if (data.status) {
@@ -281,7 +281,7 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     }
     const textarea = document.createElement('textarea');
     textarea.rows = 4;
-    textarea.placeholder = 'Escribe una respuesta aqui...';
+    textarea.placeholder = 'Escribe una respuesta aquí...';
     body.appendChild(textarea);
     const attachmentLabel = document.createElement('label');
     attachmentLabel.className = 'reply-attachments';
@@ -406,8 +406,8 @@ function buildTicketSummary(ticket, isExpanded) {
     const metaGrid = document.createElement('div');
     metaGrid.className = 'meta-grid';
     metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Usuario: ' + (ticket.usuario_nombre || 'N/A'), query));
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Tecnico: ' + (ticket.tecnico_nombre || 'Sin asignar'), query));
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Categoria: ' + (ticket.categoria_nombre || 'N/A'), query));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Técnico: ' + (ticket.tecnico_nombre || 'Sin asignar'), query));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Categoría: ' + (ticket.categoria_nombre || 'N/A'), query));
     metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Prioridad: ' + (ticket.prioridad_nombre || 'N/A'), query));
 
     const footer = document.createElement('div');
@@ -482,7 +482,7 @@ function preserveTicketPosition(ticketId, work) {
 
     if (result && typeof result.then === 'function') {
         return result.finally(function () {
-            // Al re-renderizar el listado, restauramos la posicion del ticket activo para evitar saltos molestos.
+            // Al re-renderizar el listado, restauramos la posición del ticket activo para evitar saltos molestos.
             restoreTicketPosition(ticketId, previousTop);
         });
     }
@@ -499,7 +499,7 @@ function renderTickets(tickets) {
     if (tickets.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'empty';
-        empty.textContent = normalizedSearchQuery() === '' ? 'No hay tickets registrados.' : 'No se encontraron tickets con ese criterio de busqueda.';
+        empty.textContent = normalizedSearchQuery() === '' ? 'No hay tickets registrados.' : 'No se encontraron tickets con ese criterio de búsqueda.';
         dom.ticketsList.appendChild(empty);
         return;
     }
@@ -575,7 +575,7 @@ function updateTicketsPager() {
         dom.ticketsPageInfo.textContent = '';
         return;
     }
-    dom.ticketsPageInfo.textContent = 'Pagina ' + currentTicketMeta.page + ' de ' + currentTicketMeta.total_pages + ' - ' + currentTicketMeta.total + ' ticket(s)';
+    dom.ticketsPageInfo.textContent = 'Página ' + currentTicketMeta.page + ' de ' + currentTicketMeta.total_pages + ' - ' + currentTicketMeta.total + ' ticket(s)';
     dom.ticketsPrev.disabled = currentTicketMeta.page <= 1;
     dom.ticketsNext.disabled = currentTicketMeta.page >= currentTicketMeta.total_pages;
 }

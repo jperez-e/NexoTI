@@ -8,6 +8,7 @@
     <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css?v=3'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+ <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/reportes/reportes.js?v=4' defer></script>
 </head>
 <body>
@@ -15,8 +16,8 @@
         <?php require __DIR__ . '/../partials/sidebar.php'; ?>
         <div class='content'>
             <header class='topbar'>
-                <h1>Reportes y Exportacion</h1>
-                <p>Consulta el resumen historico, revisa el historial reciente y descarga reportes listos para PDF, CSV y Excel.</p>
+                <h1>Reportes y Exportación</h1>
+                <p>Consulta el resumen histórico, revisa el historial reciente y descarga reportes listos para PDF, CSV y Excel.</p>
             </header>
             <main class='reports'>
                 <section class='hero-card'>
@@ -36,7 +37,7 @@
                 <section class='card export-card'>
                     <div class='section-head'>
                         <div>
-                            <span class='section-kicker'>Exportacion</span>
+                            <span class='section-kicker'>Exportación</span>
                             <h2>Archivos descargables</h2>
                         </div>
                     </div>
@@ -57,7 +58,7 @@
                     </div>
                     <div class='table-wrap'>
                         <table class='report-table'>
-                            <thead><tr><th>Codigo</th><th>Titulo</th><th>Usuario</th><th>Tecnico</th><th>Estado</th><th>Fecha</th></tr></thead>
+                            <thead><tr><th>Código</th><th>Título</th><th>Usuario</th><th>Técnico</th><th>Estado</th><th>Fecha</th></tr></thead>
                             <tbody id='report-preview'><tr><td colspan='6'>Cargando datos...</td></tr></tbody>
                         </table>
                     </div>

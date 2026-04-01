@@ -39,7 +39,7 @@ function sidebarIcon(string $name): string
         <a class='nav-link<?php echo $route === 'perfil' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=perfil'><span class='nav-icon'><?php echo sidebarIcon('perfil'); ?></span><span>Mi perfil</span></a>
         <?php if ($isAdmin): ?>
             <a class='nav-link<?php echo $route === 'usuarios' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=usuarios'><span class='nav-icon'><?php echo sidebarIcon('usuarios'); ?></span><span>Usuarios</span></a>
-            <a class='nav-link<?php echo $route === 'categorias' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=categorias'><span class='nav-icon'><?php echo sidebarIcon('categorias'); ?></span><span>Categorias</span></a>
+            <a class='nav-link<?php echo $route === 'categorias' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=categorias'><span class='nav-icon'><?php echo sidebarIcon('categorias'); ?></span><span>Categorías</span></a>
             <a class='nav-link<?php echo $route === 'prioridades' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=prioridades'><span class='nav-icon'><?php echo sidebarIcon('prioridades'); ?></span><span>Prioridades</span></a>
             <a class='nav-link<?php echo $route === 'estados' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=estados'><span class='nav-icon'><?php echo sidebarIcon('estados'); ?></span><span>Estados</span></a>
             <a class='nav-link<?php echo $route === 'roles' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=roles'><span class='nav-icon'><?php echo sidebarIcon('roles'); ?></span><span>Roles</span></a>
@@ -47,6 +47,6 @@ function sidebarIcon(string $name): string
         <?php endif; ?>
     </nav>
     <?php if ($showSidebarLogout): ?>
-        <a class='nav-link logout' href='/NexoTI/index.php?r=logout'><span class='nav-icon'><?php echo sidebarIcon('logout'); ?></span><span>Cerrar sesion</span></a>
+        <a class='nav-link logout' href='/NexoTI/index.php?r=logout'><span class='nav-icon'><?php echo sidebarIcon('logout'); ?></span><span>Cerrar sesión</span></a>
     <?php endif; ?>
 </aside>

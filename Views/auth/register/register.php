@@ -13,7 +13,7 @@
         <section class=brand> 
             <div class=logo>NexoTI</div> 
             <h1>Registro TI</h1> 
-            <p>Crea tu cuenta para acceder a la mesa de ayuda.</p> 
+            <p>Registra un nuevo usuario para acceder a la mesa de ayuda.</p> 
         </section> 
         <section class=form> 
             <h2>Registro de usuario</h2> 
@@ -28,7 +28,7 @@
                 <input id=password name=password type=password required> 
                 <button type=submit class='btn primary'>Crear cuenta</button> 
             </form> 
-            <div class=register><a href=/NexoTI/index.php?r=home>Volver al panel</a></div> 
+            <div class=register><a href=/NexoTI/index.php?r=home>Volver al panel principal</a></div> 
         </section> 
     </div> 
 </body> 

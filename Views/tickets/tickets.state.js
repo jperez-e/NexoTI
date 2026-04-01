@@ -38,7 +38,7 @@ async function fetchJSON(url) {
 async function fetchPayload(url) {
     const response = await fetch(url);
     const payload = await response.json();
-    return payload && payload.status !== false ? payload : { status: false, message: 'No se pudo cargar la informacion.', data: {} };
+    return payload && payload.status !== false ? payload : { status: false, message: 'No se pudo cargar la información.', data: {} };
 }
 
 async function postJSON(url, payload) {
@@ -101,7 +101,7 @@ function setMessage(node, text, type, title) {
     node.setAttribute('aria-hidden', text === '' ? 'true' : 'false');
     if (text !== '' && type) {
         clearMessageLater(node, 'message', 4000);
-        showToast(title || (type === 'success' ? 'Operacion completada' : 'Atencion'), text, type);
+        showToast(title || (type === 'success' ? 'Operación completada' : 'Atención'), text, type);
     }
 }
 
@@ -135,7 +135,7 @@ function initialsFromName(name) {
 function normalizeRoleLabel(roleName) {
     const value = String(roleName || '').toLowerCase();
     if (value.includes('admin')) { return 'Admin'; }
-    if (value.includes('tecn')) { return 'Tecnico'; }
+    if (value.includes('tecn')) { return 'Técnico'; }
     return 'Usuario';
 }
 

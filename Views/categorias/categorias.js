@@ -90,7 +90,7 @@ function showMessage(text, type) {
 
     if (text !== '' && type) {
         clearMessageLater(node, 4000);
-        showToast(type === 'success' ? 'Operacion completada' : 'Atencion', text, type);
+        showToast(type === 'success' ? 'Operación completada' : 'Atención', text, type);
     }
 }
 
@@ -119,7 +119,7 @@ function ensureFormTools() {
         cancel.type = 'button';
         cancel.id = 'cancel-btn';
         cancel.className = 'btn ghost hidden';
-        setButtonContent(cancel, 'close', 'Cancelar edicion');
+        setButtonContent(cancel, 'close', 'Cancelar edición');
         actions.insertBefore(cancel, getNode('form-message'));
     }
 }
@@ -129,8 +129,8 @@ function resetForm() {
     const form = getNode('categoria-form');
     form.reset();
     getNode('categoria-id').value = '';
-    getNode('form-title').textContent = 'Nueva categoria';
-    setButtonContent(getNode('submit-btn'), 'save', 'Guardar categoria');
+    getNode('form-title').textContent = 'Nueva categoría';
+    setButtonContent(getNode('submit-btn'), 'save', 'Guardar categoría');
     getNode('cancel-btn').classList.add('hidden');
     showMessage('', '');
 }
@@ -140,8 +140,8 @@ function startEdit(row) {
     getNode('categoria-id').value = row.id;
     getNode('nombre').value = row.nombre;
     getNode('descripcion').value = row.descripcion ? row.descripcion : '';
-    getNode('form-title').textContent = 'Editar categoria';
-    setButtonContent(getNode('submit-btn'), 'save', 'Actualizar categoria');
+    getNode('form-title').textContent = 'Editar categoría';
+    setButtonContent(getNode('submit-btn'), 'save', 'Actualizar categoría');
     getNode('cancel-btn').classList.remove('hidden');
     showMessage('', '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -152,7 +152,7 @@ function renderCategorias(list) {
     container.innerHTML = '';
 
     if (list.length === 0) {
-        container.innerHTML = '<p class="message">No hay categorias registradas.</p>';
+        container.innerHTML = '<p class="message">No hay categorías registradas.</p>';
         return;
     }
 
@@ -182,7 +182,7 @@ function renderCategorias(list) {
         deleteBtn.className = 'btn danger';
         setButtonContent(deleteBtn, 'delete', 'Eliminar');
         deleteBtn.addEventListener('click', async function () {
-            const ok = window.confirm('Se eliminara la categoria ' + row.nombre + '. Deseas continuar?');
+            const ok = window.confirm('Se eliminará la categoría ' + row.nombre + '. ¿Deseas continuar?');
             if (!ok) {
                 return;
             }

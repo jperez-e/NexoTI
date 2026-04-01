@@ -3,11 +3,12 @@
 <head> 
     <meta charset='UTF-8'> 
     <meta name='viewport' content='width=device-width,initial-scale=1.0'> 
-    <title>NexoTI - Categorias</title> 
+    <title>NexoTI - Categorías</title> 
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
     <link rel='stylesheet' href='/NexoTI/Views/categorias/categorias.css'> 
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+ <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/categorias/categorias.js?v=2' defer></script> 
 </head> 
@@ -17,25 +18,25 @@
         <main class='page'> 
             <header class='page-header'> 
                 <div> 
-                    <h1>Categorias</h1> 
-                    <p>Gestiona categorias del sistema.</p> 
+                    <h1>Categorías</h1> 
+                    <p>Gestiona categorías del sistema.</p> 
                 </div> 
                 <a class='btn' href='/NexoTI/index.php?r=home'><span class='btn-label'>Volver al inicio</span></a> 
             </header> 
  
             <section class='card'> 
-                <h2>Nueva categoria</h2> 
+                <h2>Nueva categoría</h2> 
                 <form id='categoria-form'> 
                     <label> 
                         Nombre 
                         <input id='nombre' name='nombre' type='text' placeholder='Ej: Hardware' required> 
                     </label> 
                     <label> 
-                        Descripcion 
-                        <textarea id='descripcion' name='descripcion' rows='3' placeholder='Describe la categoria'></textarea> 
+                        Descripción 
+                        <textarea id='descripcion' name='descripcion' rows='3' placeholder='Describe la categoría'></textarea> 
                     </label> 
                     <div class='actions'> 
-                        <button type='submit' class='btn primary' id='submit-btn'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z' fill='currentColor'></path></svg></span><span class='btn-label'>Guardar categoria</span></button> 
+                        <button type='submit' class='btn primary' id='submit-btn'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z' fill='currentColor'></path></svg></span><span class='btn-label'>Guardar categoría</span></button> 
                         <span id='form-message' class='message'></span> 
                     </div> 
                 </form> 

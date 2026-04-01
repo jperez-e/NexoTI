@@ -78,7 +78,7 @@ function ensureFormTools() {
         cancel.type = 'button';  
         cancel.id = 'cancel-btn';  
         cancel.className = 'btn ghost hidden';  
-        setButtonContent(cancel, 'close', 'Cancelar edicion');
+        setButtonContent(cancel, 'close', 'Cancelar edición');
         actions.insertBefore(cancel, getNode('form-message'));  
     }  
     if (!getNode('usuario-id')) {  
@@ -160,7 +160,7 @@ function renderUsuarios(list) {
         deleteBtn.className = 'btn danger';  
         setButtonContent(deleteBtn, 'delete', 'Eliminar');
         deleteBtn.addEventListener('click', async function () {  
-            const ok = window.confirm('Se eliminara el usuario ' + row.nombre + '. Deseas continuar?');  
+            const ok = window.confirm('Se eliminará el usuario ' + row.nombre + '. ¿Deseas continuar?');  
             if (!ok) { return; }  
             setButtonLoading(deleteBtn, true, 'Eliminando...');
             try {

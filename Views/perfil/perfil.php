@@ -25,6 +25,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <link rel='stylesheet' href='/NexoTI/Views/perfil/perfil.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+ <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
 </head>
 <body>
     <div class='layout'>
@@ -33,9 +34,9 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
             <header class='page-header'>
                 <div>
                     <h1>Ajustes de perfil</h1>
-                    <p>Actualiza tu foto para que aparezca en el sistema.</p>
+                    <p>Actualiza tu foto para que se muestre en el sistema.</p>
                 </div>
-                <a class='btn ghost' href='/NexoTI/index.php?r=tickets'>Volver a tickets</a>
+                <a class='btn ghost' href='/NexoTI/index.php?r=tickets'>Volver a Tickets</a>
             </header>
 
             <section class='card profile-card'>

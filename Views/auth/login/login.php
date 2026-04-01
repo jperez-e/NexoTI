@@ -14,7 +14,7 @@
         <section class=brand>  
             <div class=logo>NexoTI</div>  
             <h1>Mesa de Ayuda TI</h1>  
-            <p>Gestiona incidencias, asignaciones y soluciones desde un solo lugar.</p>  
+            <p>Gestiona incidencias, asignaciones y soluciones en un solo lugar.</p>  
         </section>  
         <section class=form>  
             <h2>Iniciar sesión</h2>  

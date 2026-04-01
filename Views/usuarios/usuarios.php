@@ -8,6 +8,7 @@
     <link rel='stylesheet' href='/NexoTI/Views/usuarios/usuarios.css'>  
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+ <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/usuarios/usuarios.js?v=2' defer></script>  
 </head>  
@@ -27,14 +28,14 @@
                 <form id='usuario-form'>  
                     <label>  
                         Nombre  
-                        <input id='nombre' name='nombre' type='text' placeholder='Ej: Ana Perez' required>  
+                        <input id='nombre' name='nombre' type='text' placeholder='Ej: Ana Pérez' required>  
                     </label>  
                     <label>  
                         Correo  
                         <input id='email' name='email' type='email' placeholder='ana@nexoti.com' required>  
                     </label>  
                     <label>  
-                        Contrasena  
+                        Contraseña  
                         <input id='password' name='password' type='password' placeholder='Solo se requiere al crear o si deseas cambiarla'>  
                     </label>  
                     <label>  

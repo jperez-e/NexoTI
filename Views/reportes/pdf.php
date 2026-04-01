@@ -41,11 +41,11 @@ if (is_file($logoPath)) {
     <table>
         <thead>
             <tr>
-                <th>Codigo</th>
-                <th>Titulo</th>
+                <th>Código</th>
+                <th>Título</th>
                 <th>Usuario</th>
-                <th>Tecnico</th>
-                <th>Categoria</th>
+                <th>Técnico</th>
+                <th>Categoría</th>
                 <th>Prioridad</th>
                 <th>Estado</th>
                 <th>Fecha Creacion</th>

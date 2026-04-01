@@ -8,6 +8,7 @@
     <link rel='stylesheet' href='/NexoTI/Views/roles/roles.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
+ <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/roles/roles.js?v=2' defer></script>
 </head>
