@@ -566,3 +566,16 @@ function updateResultsInfo() {
     }
     dom.resultsInfo.textContent = 'Resultados para "' + query + '" en ' + filterLabel + ': ' + currentTicketMeta.total + ' ticket(s).';
 }
+
+function updateTicketsPager() {
+    if (!dom.ticketsPager || !dom.ticketsPrev || !dom.ticketsNext || !dom.ticketsPageInfo) { return; }
+    const hasItems = currentTicketMeta.total > 0;
+    dom.ticketsPager.classList.toggle('hidden', !hasItems);
+    if (!hasItems) {
+        dom.ticketsPageInfo.textContent = '';
+        return;
+    }
+    dom.ticketsPageInfo.textContent = 'Pagina ' + currentTicketMeta.page + ' de ' + currentTicketMeta.total_pages + ' - ' + currentTicketMeta.total + ' ticket(s)';
+    dom.ticketsPrev.disabled = currentTicketMeta.page <= 1;
+    dom.ticketsNext.disabled = currentTicketMeta.page >= currentTicketMeta.total_pages;
+}
