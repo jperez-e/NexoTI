@@ -197,3 +197,124 @@ body {
         text-align: center;
     }
 }
+/* Ruta 3: Reportes mas ejecutivos */ 
+.content { 
+    max-width: 1240px; 
+    margin: 0 auto; 
+} 
+.topbar { 
+    padding: 28px 30px; 
+    border: 1px solid rgba(191, 219, 254, 0.42); 
+    border-radius: 24px; 
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(219, 234, 254, 0.92)); 
+    box-shadow: 0 22px 36px rgba(15, 23, 42, 0.14); 
+    color: #0f172a; 
+} 
+.topbar h1 { 
+    color: #0f172a; 
+} 
+.topbar p { 
+    max-width: 840px; 
+    color: #475569; 
+} 
+.hero-card { 
+    border: 1px solid rgba(226, 232, 240, 0.88); 
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.92)); 
+} 
+.stats-grid { 
+    gap: 18px; 
+} 
+.stat-card { 
+    position: relative; 
+    overflow: hidden; 
+    border: 1px solid rgba(226, 232, 240, 0.9); 
+    background: linear-gradient(180deg, #ffffff, #f8fafc); 
+} 
+.stat-card::before { 
+    content: ''; 
+    position: absolute; 
+    inset: 0 auto auto 0; 
+    width: 100%; 
+    height: 4px; 
+    background: linear-gradient(90deg, #2563eb, #38bdf8); 
+} 
+.stat-card:nth-child(2)::before { 
+    background: linear-gradient(90deg, #ea580c, #f59e0b); 
+} 
+.stat-card:nth-child(3)::before { 
+    background: linear-gradient(90deg, #0f766e, #14b8a6); 
+} 
+.stat-card:nth-child(4)::before { 
+    background: linear-gradient(90deg, #475569, #94a3b8); 
+} 
+.section-head { 
+    margin-bottom: 18px; 
+} 
+.export-card, 
+.card { 
+    border: 1px solid rgba(226, 232, 240, 0.88); 
+} 
+.table-wrap { 
+    border: 1px solid rgba(226, 232, 240, 0.9); 
+    border-radius: 18px; 
+    background: #ffffff; 
+} 
+.report-table th { 
+    position: sticky; 
+    top: 0; 
+    background: #f8fafc; 
+    z-index: 1; 
+} 
+.report-table tbody tr:nth-child(even) { 
+    background: #fcfdff; 
+} 
+.report-code { 
+    display: inline-flex; 
+    align-items: center; 
+    padding: 6px 10px; 
+    border-radius: 999px; 
+    background: #eff6ff; 
+    color: #1d4ed8; 
+    font-weight: 800; 
+    font-size: 0.82rem; 
+    letter-spacing: 0.04em; 
+} 
+.report-status { 
+    display: inline-flex; 
+    align-items: center; 
+    padding: 6px 10px; 
+    border-radius: 999px; 
+    font-size: 0.82rem; 
+    font-weight: 800; 
+} 
+.report-status-abierto { 
+    background: #dbeafe; 
+    color: #1d4ed8; 
+} 
+.report-status-progreso { 
+    background: #ccfbf1; 
+    color: #0f766e; 
+} 
+.report-status-resuelto { 
+    background: #dcfce7; 
+    color: #15803d; 
+} 
+.report-status-cerrado { 
+    background: #e2e8f0; 
+    color: #334155; 
+} 
+.report-user-muted { 
+    color: #64748b; 
+} 
+.pager { 
+    margin-top: 20px; 
+    padding-top: 4px; 
+} 
+@media (max-width: 760px) { 
+    .topbar { 
+        padding: 22px; 
+    } 
+    .hero-card { 
+        align-items: flex-start; 
+    } 
+}
