@@ -97,6 +97,10 @@ class TicketController extends BaseController
 
         $ticketId = $this->model->getLastInsertId();
         $this->handleAdjuntos($ticketId);
+        $createdTicket = $this->model->getById($ticketId);
+        if ($createdTicket !== null) {
+            $this->notifications->notifyCreated($createdTicket, $this->currentUserId());
+        }
 
         $this->jsonOk('Ticket creado', ['id' => $ticketId]);
     }

@@ -64,6 +64,29 @@ class NotificationService
         );
     }
 
+    public function notifyCreated(array $ticket, int $actorId): void
+    {
+        $recipients = [];
+        foreach ($this->users->getAdminIds() as $adminId) {
+            if ($adminId !== $actorId) {
+                $recipients[] = $adminId;
+            }
+        }
+
+        if ($recipients === []) {
+            return;
+        }
+
+        $this->notifyUsers(
+            $recipients,
+            (int) ($ticket['id'] ?? 0),
+            $actorId,
+            'creacion',
+            'Nuevo ticket creado',
+            $this->buildTicketSummary($ticket) . ' fue creado y requiere revision.'
+        );
+    }
+
     public function notifyReply(array $ticket, int $actorId, string $comment): void
     {
         $recipients = $this->collectTicketParticipants($ticket, $actorId);
