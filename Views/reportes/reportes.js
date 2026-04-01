@@ -13,10 +13,39 @@ function byId(id) {
     return document.getElementById(id);
 }
 
-function appendCell(row, text) {
-    const td = document.createElement('td');
-    td.textContent = text;
-    row.appendChild(td);
+function appendCell(row, text) { 
+    const td = document.createElement('td'); 
+    td.textContent = text; 
+    row.appendChild(td); 
+} 
+function normalizeReportStatusClass(value) { 
+    const raw = String(value || '').toLowerCase(); 
+    if (raw.includes('progreso') || raw.includes('proceso')) { return 'progreso'; } 
+    if (raw.includes('resuelto')) { return 'resuelto'; } 
+    if (raw.includes('cerrado')) { return 'cerrado'; } 
+    return 'abierto'; 
+} 
+function appendCodeCell(row, text) { 
+    const td = document.createElement('td'); 
+    const badge = document.createElement('span'); 
+    badge.className = 'report-code'; 
+    badge.textContent = text || 'Sin código'; 
+    td.appendChild(badge); 
+    row.appendChild(td); 
+} 
+function appendStatusCell(row, text) { 
+    const td = document.createElement('td'); 
+    const badge = document.createElement('span'); 
+    badge.className = 'report-status report-status-' + normalizeReportStatusClass(text); 
+    badge.textContent = text || 'Sin estado'; 
+    td.appendChild(badge); 
+    row.appendChild(td); 
+} 
+function appendUserCell(row, text, fallback) { 
+    const td = document.createElement('td'); 
+    td.textContent = text || fallback; 
+    if (!text) { td.className = 'report-user-muted'; } 
+    row.appendChild(td); 
 }
 
 function formatDate(value) {
@@ -104,11 +133,11 @@ function renderPreviewPage() {
 
     pageRows.forEach(function (item) {
         const tr = document.createElement('tr');
-        appendCell(tr, item.codigo);
+        appendCodeCell(tr, item.codigo);
         appendCell(tr, item.titulo);
-        appendCell(tr, item.usuario);
-        appendCell(tr, item.tecnico || 'Sin asignar');
-        appendCell(tr, item.estado);
+        appendUserCell(tr, item.usuario, 'Sin usuario');
+        appendUserCell(tr, item.tecnico, 'Sin asignar');
+        appendStatusCell(tr, item.estado);
         appendCell(tr, formatDate(item.fecha_creacion));
         tbody.appendChild(tr);
     });

@@ -5,11 +5,11 @@
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Reportes</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css?v=4'>
+    <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css?v=5'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
-    <script src='/NexoTI/Views/reportes/reportes.js?v=4' defer></script>
+    <script src='/NexoTI/Views/reportes/reportes.js?v=5' defer></script>
 </head>
 <body>
     <div class='layout'>
