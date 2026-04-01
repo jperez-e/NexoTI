@@ -85,7 +85,7 @@ function buildAttachmentEntry(attachment) {
     strong.textContent = attachment.usuario_nombre ? 'Evidencia de ' + attachment.usuario_nombre : 'Evidencia adjunta';
     author.appendChild(strong);
     if (attachment.rol_nombre) {
-        author.appendChild(createRoleBadge(attachment.rol_nombre));
+        author.appendChild(buildRoleBadge(attachment.rol_nombre));
     }
 
     const meta = document.createElement('div');
@@ -141,33 +141,34 @@ function buildAttachmentEntry(attachment) {
 function buildTicketThread(ticket) {
     const wrapper = document.createElement('div');
     wrapper.className = 'ticket-thread';
-    wrapper.appendChild(buildThreadEntry({
-        name: ticket.usuario_nombre || 'Usuario',
-        roleName: ticket.usuario_rol_nombre || 'Usuario',
-        photoUrl: resolvePhoto(ticket.usuario_foto),
-        dateText: ticket.fecha_creacion,
-        bodyText: ticket.descripcion,
-        tag: 'Descripción',
-        variant: 'is-initial',
-    }));
-    attachmentsForTicket(ticket.id).forEach(function (attachment) {
-        wrapper.appendChild(buildAttachmentEntry(attachment));
-    });
-    allComments
+    const attachments = attachmentsForTicket(ticket.id);
+    const comments = allComments
         .filter(function (comment) { return String(comment.ticket_id) === String(ticket.id); })
         .slice()
-        .reverse()
-        .forEach(function (comment) {
-            wrapper.appendChild(buildThreadEntry({
-                name: comment.usuario_nombre || 'Usuario',
-                roleName: comment.rol_nombre || 'Usuario',
-                photoUrl: resolvePhoto(comment.usuario_foto),
-                dateText: comment.fecha,
-                bodyText: comment.comentario,
-                tag: normalizeRoleLabel(comment.rol_nombre),
-                variant: 'is-comment',
-            }));
-        });
+        .reverse();
+
+    if (attachments.length === 0 && comments.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'empty thread-empty';
+        empty.textContent = 'No hay respuestas ni evidencias en este ticket todavía.';
+        wrapper.appendChild(empty);
+        return wrapper;
+    }
+
+    attachments.forEach(function (attachment) {
+        wrapper.appendChild(buildAttachmentEntry(attachment));
+    });
+    comments.forEach(function (comment) {
+        wrapper.appendChild(buildThreadEntry({
+            name: comment.usuario_nombre || 'Usuario',
+            roleName: comment.rol_nombre || 'Usuario',
+            photoUrl: resolvePhoto(comment.usuario_foto),
+            dateText: comment.fecha,
+            bodyText: comment.comentario,
+            tag: normalizeRoleLabel(comment.rol_nombre),
+            variant: 'is-comment',
+        }));
+    });
     return wrapper;
 }
 
@@ -324,9 +325,83 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     return { box: box, textarea: textarea };
 }
 
+function buildInlineAssignment(ticket) {
+    const panel = document.createElement('div');
+    panel.className = 'inline-assign';
+
+    const title = document.createElement('p');
+    title.className = 'inline-assign-title';
+    title.textContent = 'Asignación del ticket';
+
+    const grid = document.createElement('div');
+    grid.className = 'inline-assign-grid';
+
+    const techLabel = document.createElement('label');
+    techLabel.className = 'inline-assign-field';
+    techLabel.textContent = 'Técnico';
+    const techSelect = document.createElement('select');
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = 'Sin asignar';
+    techSelect.appendChild(emptyOption);
+    availableTechnicians.forEach(function (tecnico) {
+        const option = document.createElement('option');
+        option.value = tecnico.id;
+        option.textContent = tecnico.nombre + ' (' + tecnico.email + ')';
+        if (String(tecnico.id) === String(ticket.tecnico_id || '')) {
+            option.selected = true;
+        }
+        techSelect.appendChild(option);
+    });
+    techLabel.appendChild(techSelect);
+
+    const stateLabel = document.createElement('label');
+    stateLabel.className = 'inline-assign-field';
+    stateLabel.textContent = 'Estado';
+    const stateSelect = document.createElement('select');
+    availableStatuses.forEach(function (status) {
+        const option = document.createElement('option');
+        option.value = status.id;
+        option.textContent = status.nombre;
+        if (String(status.id) === String(ticket.estado_id || '')) {
+            option.selected = true;
+        }
+        stateSelect.appendChild(option);
+    });
+    stateLabel.appendChild(stateSelect);
+
+    grid.appendChild(techLabel);
+    grid.appendChild(stateLabel);
+
+    const footer = document.createElement('div');
+    footer.className = 'inline-assign-actions';
+    const messageNode = document.createElement('span');
+    messageNode.className = 'message inline-message';
+    messageNode.setAttribute('role', 'status');
+    messageNode.setAttribute('aria-live', 'polite');
+    messageNode.setAttribute('aria-hidden', 'true');
+    const assignButton = document.createElement('button');
+    assignButton.type = 'button';
+    assignButton.className = 'btn primary';
+    setButtonContent(assignButton, 'refresh', 'Guardar asignación');
+    assignButton.addEventListener('click', function () {
+        submitInlineAssignment(ticket, techSelect, stateSelect, messageNode, assignButton);
+    });
+    footer.appendChild(assignButton);
+    footer.appendChild(messageNode);
+
+    panel.appendChild(title);
+    panel.appendChild(grid);
+    panel.appendChild(footer);
+    return panel;
+}
+
 function buildInlineActions(ticket) {
     const wrapper = document.createElement('div');
     wrapper.className = 'inline-tools';
+    if (isAdminUser()) {
+        wrapper.appendChild(buildInlineAssignment(ticket));
+    }
     const actions = document.createElement('div');
     actions.className = 'inline-actions';
     const messageNode = document.createElement('span');
@@ -397,6 +472,7 @@ function buildTicketSummary(ticket, isExpanded) {
     info.appendChild(title);
     const status = document.createElement('span');
     status.className = 'status';
+    status.classList.add('status-' + statusClassSuffix(ticket.estado_nombre || ''));
     appendHighlightedText(status, ticket.estado_nombre ? ticket.estado_nombre : 'Sin estado', query);
     head.appendChild(info);
     head.appendChild(status);
@@ -532,23 +608,7 @@ function renderTickets(tickets) {
     dom.ticketsList.appendChild(list);
 }
 
-function syncAdminAssignState() {
-    if (!dom.assignTicket || !dom.assignState) { return; }
-    const selectedTicket = assignableTickets.find(function (ticket) {
-        return String(ticket.id) === String(dom.assignTicket.value);
-    });
-    if (selectedTicket && selectedTicket.estado_id) {
-        dom.assignState.value = String(selectedTicket.estado_id);
-    }
-}
-
 function refreshTicketSelects() {
-    if (dom.assignTicket) {
-        fillSelect(dom.assignTicket, assignableTickets, function (ticket) {
-            return ticket.codigo + ' - ' + ticket.titulo;
-        }, 'id');
-        syncAdminAssignState();
-    }
     if (dom.closeTicket) {
         fillSelect(dom.closeTicket, closableTickets, function (ticket) {
             return ticket.codigo + ' - ' + ticket.titulo;
@@ -559,12 +619,17 @@ function refreshTicketSelects() {
 function updateResultsInfo() {
     if (!dom.resultsInfo) { return; }
     const query = normalizedSearchQuery();
-    const filterLabel = activeStatusFilter === 'todos' ? 'todos los estados' : activeStatusFilter;
+    const statusLabel = dom.statusFilterSelect && dom.statusFilterSelect.selectedOptions[0]
+        ? dom.statusFilterSelect.selectedOptions[0].textContent
+        : (activeStatusFilter === 'todos' ? 'Todos los estados' : activeStatusFilter);
+    const assignmentLabel = dom.assignmentFilterSelect && dom.assignmentFilterSelect.selectedOptions[0]
+        ? dom.assignmentFilterSelect.selectedOptions[0].textContent
+        : (activeAssignmentFilter === 'todos' ? 'Todos' : activeAssignmentFilter);
     if (query === '') {
-        dom.resultsInfo.textContent = 'Mostrando ' + currentTicketMeta.total + ' ticket(s) en ' + filterLabel + '.';
+        dom.resultsInfo.textContent = 'Mostrando ' + currentTicketMeta.total + ' ticket(s) · Estado: ' + statusLabel + ' · Asignación: ' + assignmentLabel + '.';
         return;
     }
-    dom.resultsInfo.textContent = 'Resultados para "' + query + '" en ' + filterLabel + ': ' + currentTicketMeta.total + ' ticket(s).';
+    dom.resultsInfo.textContent = 'Resultados para "' + query + '" · Estado: ' + statusLabel + ' · Asignación: ' + assignmentLabel + ' · ' + currentTicketMeta.total + ' ticket(s).';
 }
 
 function updateTicketsPager() {

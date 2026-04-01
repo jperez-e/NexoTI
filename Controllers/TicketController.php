@@ -29,9 +29,10 @@ class TicketController extends BaseController
         $perPage = (int) ($_GET['per_page'] ?? 5);
         $query = trim((string) ($_GET['query'] ?? ''));
         $estado = trim((string) ($_GET['estado'] ?? 'todos'));
+        $asignacion = trim((string) ($_GET['asignacion'] ?? 'todos'));
 
         $payload = $this->service->listTickets(
-            ['query' => $query, 'estado' => $estado],
+            ['query' => $query, 'estado' => $estado, 'asignacion' => $asignacion],
             $page,
             $perPage,
             $this->currentRoleId(),

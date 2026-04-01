@@ -36,6 +36,7 @@ class TicketService
                 'total_pages' => $totalPages,
                 'query' => $normalizedFilters['query'],
                 'estado' => $normalizedFilters['estado'],
+                'asignacion' => $normalizedFilters['asignacion'],
             ],
             'assignable' => $roleId === 1 ? $this->tickets->getOpenTicketsForAssignment() : [],
             'closable' => $roleId === 3 ? $this->tickets->getResolvedTicketsByUsuario($userId) : [],
@@ -60,6 +61,7 @@ class TicketService
         return [
             'query' => $query,
             'estado' => $estado,
+            'asignacion' => $this->normalizeAssignmentFilter((string) ($filters['asignacion'] ?? 'todos')),
         ];
     }
 
@@ -74,6 +76,21 @@ class TicketService
         }
 
         return ucfirst($normalized);
+    }
+
+    private function normalizeAssignmentFilter(string $value): ?string
+    {
+        $normalized = $this->normalizeLabel($value);
+        if ($normalized === '' || $normalized === 'todos') {
+            return null;
+        }
+        if ($normalized === 'asignados') {
+            return 'asignados';
+        }
+        if ($normalized === 'no asignados' || $normalized === 'no_asignados' || $normalized === 'sin asignar' || $normalized === 'sin_asignar') {
+            return 'sin_asignar';
+        }
+        return null;
     }
 
     private function normalizeLabel(string $value): string

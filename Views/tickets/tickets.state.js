@@ -4,10 +4,12 @@ let closableTickets = [];
 let allComments = [];
 let allAttachments = [];
 let availableStatuses = [];
+let availableTechnicians = [];
 let notificationItems = [];
 let notificationTotal = 0;
 let expandedTicketId = null;
 let activeStatusFilter = 'todos';
+let activeAssignmentFilter = 'todos';
 let currentTicketPage = 1;
 let searchTimer = null;
 let currentTicketMeta = {
@@ -17,6 +19,7 @@ let currentTicketMeta = {
     total_pages: 1,
     query: '',
     estado: null,
+    asignacion: null,
 };
 const ticketsPerPage = 5;
 const dom = {};
@@ -156,6 +159,10 @@ function normalizeStatusName(value) {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/\s+/g, ' ')
         .trim();
+}
+
+function statusClassSuffix(value) {
+    return normalizeStatusName(value).replace(/\s+/g, '-');
 }
 
 function normalizedSearchQuery() {

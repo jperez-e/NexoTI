@@ -583,6 +583,42 @@ textarea {
     gap: 10px;
 }
 
+.inline-assign {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.inline-assign-title {
+    margin: 0;
+    color: #1e3a8a;
+    font-size: 0.96rem;
+    font-weight: 800;
+}
+
+.inline-assign-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.inline-assign-field {
+    display: grid;
+    gap: 8px;
+    color: #1e3a8a;
+    font-size: 0.9rem;
+}
+
+.inline-assign-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
 .inline-message {
     min-height: 20px;
     width: 100%;
@@ -971,6 +1007,10 @@ textarea {
 }
 
 @media (max-width: 720px) {
+    .inline-assign-grid {
+        grid-template-columns: 1fr;
+    }
+
     .participant-card,
     .thread-entry,
     .reply-composer {
@@ -1183,4 +1223,82 @@ textarea {
  width: 100%;
  justify-content: center;
  }
+}
+
+/* Ajustes de filtros, notificaciones y estados */
+.list-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.filter-field {
+    display: grid;
+    gap: 8px;
+    color: #1e3a8a;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.filter-field select {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.notice-panel {
+    max-height: min(70vh, 420px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable both-edges;
+}
+
+.notice-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.96);
+    padding-bottom: 6px;
+}
+
+.status {
+    border-width: 1px;
+}
+
+.status.status-abierto {
+    border-color: #f59e0b;
+    background: #fef3c7;
+    color: #78350f;
+}
+
+.status.status-en-proceso {
+    border-color: #60a5fa;
+    background: #dbeafe;
+    color: #1e3a8a;
+}
+
+.status.status-resuelto {
+    border-color: #4ade80;
+    background: #dcfce7;
+    color: #14532d;
+}
+
+.status.status-cerrado {
+    border-color: #94a3b8;
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.thread-empty {
+    margin: 0;
+    padding: 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+@media (max-width: 720px) {
+    .list-filters {
+        grid-template-columns: 1fr;
+    }
 }

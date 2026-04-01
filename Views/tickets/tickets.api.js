@@ -118,6 +118,7 @@ async function loadTickets() {
         per_page: String(ticketsPerPage),
         query: normalizedSearchQuery(),
         estado: activeStatusFilter,
+        asignacion: activeAssignmentFilter,
     });
     const payload = await fetchPayload('api.php?c=ticket&m=list&' + params.toString());
     const data = payload.data || {};
@@ -131,6 +132,7 @@ async function loadTickets() {
         total_pages: 1,
         query: normalizedSearchQuery(),
         estado: activeStatusFilter === 'todos' ? null : activeStatusFilter,
+        asignacion: activeAssignmentFilter === 'todos' ? null : activeAssignmentFilter,
     }, data.meta || {});
     currentTicketPage = Number(currentTicketMeta.page || 1);
 
@@ -178,21 +180,54 @@ async function loadCombos() {
     fillSelect(dom.categoria, categorias, 'nombre', 'id');
     fillSelect(dom.prioridad, prioridades, 'nombre', 'id');
     fillSelect(dom.estado, estados, 'nombre', 'id');
-    fillSelect(dom.assignState, estados, 'nombre', 'id');
+    if (dom.statusFilterSelect) {
+        dom.statusFilterSelect.innerHTML = '';
+        const allOption = document.createElement('option');
+        allOption.value = 'todos';
+        allOption.textContent = 'Todos los estados';
+        dom.statusFilterSelect.appendChild(allOption);
+        estados.forEach(function (status) {
+            const option = document.createElement('option');
+            option.value = normalizeStatusName(status.nombre);
+            option.textContent = status.nombre;
+            dom.statusFilterSelect.appendChild(option);
+        });
+        dom.statusFilterSelect.value = activeStatusFilter;
+    }
 }
 
 async function loadTecnicos() {
-    if (!dom.assignTech) { return; }
     const tecnicos = await fetchJSON('api.php?c=usuario&m=tecnicos');
-    dom.assignTech.innerHTML = '';
-    const emptyOption = document.createElement('option');
-    emptyOption.value = '';
-    emptyOption.textContent = 'Sin asignar';
-    dom.assignTech.appendChild(emptyOption);
-    tecnicos.forEach(function (tecnico) {
-        const option = document.createElement('option');
-        option.value = tecnico.id;
-        option.textContent = tecnico.nombre + ' (' + tecnico.email + ')';
-        dom.assignTech.appendChild(option);
-    });
+    availableTechnicians = Array.isArray(tecnicos) ? tecnicos.slice() : [];
+}
+
+async function submitInlineAssignment(ticket, techSelect, stateSelect, messageNode, assignButton) {
+    const ticketId = Number(ticket.id || 0);
+    const estadoId = Number(stateSelect ? stateSelect.value : 0);
+    const tecnicoRaw = techSelect ? techSelect.value : '';
+    const tecnicoId = tecnicoRaw === '' ? '' : Number(tecnicoRaw);
+
+    if (ticketId <= 0 || estadoId <= 0) {
+        setInlineMessage(messageNode, 'Selecciona un estado válido para continuar.', 'error');
+        return;
+    }
+
+    setButtonLoading(assignButton, true, 'Guardando...');
+    try {
+        const data = await postJSON('api.php?c=ticket&m=assign', {
+            ticket_id: ticketId,
+            tecnico_id: tecnicoId,
+            estado_id: estadoId,
+        });
+        if (!data.status) {
+            setInlineMessage(messageNode, data.message ? data.message : 'No se pudo actualizar la asignación.', 'error');
+            return;
+        }
+        setInlineMessage(messageNode, data.message ? data.message : 'Asignación actualizada.', 'success');
+        await preserveTicketPosition(ticketId, async function () {
+            await refreshTicketsView();
+        });
+    } finally {
+        setButtonLoading(assignButton, false);
+    }
 }

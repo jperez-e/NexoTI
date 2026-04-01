@@ -4,15 +4,14 @@ async function applySearch() {
 }
 
 async function applyStatusFilter(filterValue) {
-    activeStatusFilter = filterValue;
+    activeStatusFilter = filterValue || 'todos';
     currentTicketPage = 1;
-    if (dom.statusFilters) {
-        dom.statusFilters.forEach(function (button) {
-            const isActive = button.dataset.statusFilter === filterValue;
-            button.classList.toggle('is-active', isActive);
-            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-        });
-    }
+    await loadTickets();
+}
+
+async function applyAssignmentFilter(filterValue) {
+    activeAssignmentFilter = filterValue || 'todos';
+    currentTicketPage = 1;
     await loadTickets();
 }
 
@@ -156,41 +155,25 @@ function setupCreateForm() {
     });
 }
 
-function setupAssignForm() {
-    if (!dom.assignForm) { return; }
-    if (dom.assignState) {
-        dom.assignState.required = false;
-        const label = dom.assignState.closest('label');
-        if (label) { label.style.display = 'none'; }
-    }
-    if (dom.assignTicket) { dom.assignTicket.addEventListener('change', syncAdminAssignState); }
-    dom.assignForm.addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const submitButton = dom.assignForm.querySelector('button[type="submit"]');
-        setButtonLoading(submitButton, true, 'Asignando...');
-        try {
-            const data = await postJSON('api.php?c=ticket&m=assign', {
-                ticket_id: dom.assignTicket.value,
-                tecnico_id: dom.assignTech.value,
-                estado_id: dom.assignState.value,
-            });
-            setMessage(dom.assignMessage, data.message ? data.message : 'Proceso completado.', data.status ? 'success' : 'error', 'Asignacion');
-            if (data.status) {
-                const anchorId = expandedTicketId !== null ? expandedTicketId : dom.assignTicket.value;
-                await preserveTicketPosition(anchorId, async function () {
-                    await refreshTicketsView();
-                });
-            }
-        } finally {
-            setButtonLoading(submitButton, false);
-        }
-    });
-}
-
 function setupCloseForm() {
     if (!dom.closeForm) { return; }
     const closeCard = dom.closeForm.closest('.card');
     if (closeCard) { closeCard.style.display = 'none'; }
+}
+
+function setupListFilters() {
+    if (dom.statusFilterSelect) {
+        dom.statusFilterSelect.value = activeStatusFilter;
+        dom.statusFilterSelect.addEventListener('change', async function () {
+            await applyStatusFilter(dom.statusFilterSelect.value || 'todos');
+        });
+    }
+    if (dom.assignmentFilterSelect) {
+        dom.assignmentFilterSelect.value = activeAssignmentFilter;
+        dom.assignmentFilterSelect.addEventListener('change', async function () {
+            await applyAssignmentFilter(dom.assignmentFilterSelect.value || 'todos');
+        });
+    }
 }
 
 function cacheDom() {
@@ -203,7 +186,8 @@ function cacheDom() {
     dom.avatarMenu = byId('avatar-menu');
     dom.ticketsList = byId('tickets-list');
     dom.resultsInfo = byId('results-info');
-    dom.statusFilters = Array.from(document.querySelectorAll('[data-status-filter]'));
+    dom.statusFilterSelect = byId('status-filter-select');
+    dom.assignmentFilterSelect = byId('assignment-filter-select');
     dom.ticketsPager = byId('tickets-pager');
     dom.ticketsPrev = byId('tickets-prev');
     dom.ticketsNext = byId('tickets-next');
@@ -214,11 +198,6 @@ function cacheDom() {
     dom.prioridad = byId('prioridad_id');
     dom.estado = byId('estado_id');
     dom.occurrenceInput = dom.ticketForm ? dom.ticketForm.querySelector('input[name="fecha_ocurrencia"]') : null;
-    dom.assignForm = byId('assign-form');
-    dom.assignTicket = byId('assign_ticket_id');
-    dom.assignTech = byId('assign_tecnico_id');
-    dom.assignState = byId('assign_estado_id');
-    dom.assignMessage = byId('assign-message');
     dom.closeForm = byId('close-form');
     dom.closeTicket = byId('close_ticket_id');
     dom.closeMessage = byId('close-message');
@@ -228,8 +207,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     cacheDom();
     setupAvatarMenu();
     setupCreateForm();
-    setupAssignForm();
     setupCloseForm();
+    setupListFilters();
     if (dom.search) {
         dom.search.addEventListener('input', function () {
             if (searchTimer) {
@@ -238,13 +217,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             searchTimer = window.setTimeout(function () {
                 applySearch();
             }, 250);
-        });
-    }
-    if (dom.statusFilters) {
-        dom.statusFilters.forEach(function (button) {
-            button.addEventListener('click', async function () {
-                await applyStatusFilter(button.dataset.statusFilter || 'todos');
-            });
         });
     }
     if (dom.ticketsPrev) {

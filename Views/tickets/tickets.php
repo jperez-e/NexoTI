@@ -26,15 +26,15 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=9'>
+    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=12'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.state.js?v=1' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.api.js?v=1' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.render.js?v=1' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.events.js?v=1' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.state.js?v=4' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.api.js?v=4' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.render.js?v=4' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.events.js?v=4' defer></script>
 </head>
 <body
     data-role-id='<?php echo (int) $rolId; ?>'
@@ -132,34 +132,6 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     </form>
                 </section>
 
-                <?php if ($isAdmin): ?>
-                <section class='card'>
-                    <h2>Asignar ticket</h2>
-                    <form id='assign-form'>
-                        <div class='grid'>
-                            <label>
-                                Ticket
-                                <select name='ticket_id' id='assign_ticket_id' required></select>
-                            </label>
-                            <label>
-                                Técnico
-                                <select name='tecnico_id' id='assign_tecnico_id'></select>
-                            </label>
-                            <?php if (!$isUser): ?>
-                            <label>
-                                Estado
-                                <select name='estado_id' id='assign_estado_id' required></select>
-                            </label>
-                            <?php endif; ?>
-                        </div>
-                        <div class='actions'>
-                            <button type='submit' class='btn primary'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar ticket</span></button>
-                            <span id='assign-message' class='message' role='status' aria-live='polite'></span>
-                        </div>
-                    </form>
-                </section>
-                <?php endif; ?>
-
                 <?php if ($isUser): ?>
                 <section class='card'>
                     <h2>Confirmar cierre</h2>
@@ -184,12 +156,21 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                         </div>
                         <button class='btn ghost' id='refresh-btn' type='button'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Actualizar</span></button>
                     </div>
-                    <div class='status-filters' id='status-filters' role='tablist' aria-label='Filtrar tickets por estado'>
-                        <button class='status-filter is-active' type='button' data-status-filter='todos' aria-pressed='true'>Todos</button>
-                        <button class='status-filter' type='button' data-status-filter='abierto' aria-pressed='false'>Abiertos</button>
-                        <button class='status-filter' type='button' data-status-filter='en proceso' aria-pressed='false'>En progreso</button>
-                        <button class='status-filter' type='button' data-status-filter='resuelto' aria-pressed='false'>Resueltos</button>
-                        <button class='status-filter' type='button' data-status-filter='cerrado' aria-pressed='false'>Cerrados</button>
+                    <div class='list-filters' aria-label='Filtros de listado'>
+                        <label class='filter-field'>
+                            Estado
+                            <select id='status-filter-select'>
+                                <option value='todos'>Todos los estados</option>
+                            </select>
+                        </label>
+                        <label class='filter-field'>
+                            Asignación
+                            <select id='assignment-filter-select'>
+                                <option value='todos'>Todos</option>
+                                <option value='asignados'>Asignados</option>
+                                <option value='sin_asignar'>Sin asignar</option>
+                            </select>
+                        </label>
                     </div>
                     <div id='tickets-list' class='list'></div>
                     <div class='pager' id='tickets-pager'>
@@ -209,4 +190,3 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     </div>
 </body>
 </html>
-

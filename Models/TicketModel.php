@@ -310,6 +310,13 @@ class TicketModel
             $params[] = $estado;
         }
 
+        $asignacion = $filters['asignacion'] ?? null;
+        if ($asignacion === 'asignados') {
+            $conditions[] = 't.tecnico_id IS NOT NULL';
+        } elseif ($asignacion === 'sin_asignar') {
+            $conditions[] = 't.tecnico_id IS NULL';
+        }
+
         return $conditions === [] ? '' : ' WHERE ' . implode(' AND ', $conditions);
     }
 
