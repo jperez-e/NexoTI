@@ -219,7 +219,7 @@ function renderNotificationsPanel() {
         item.className = 'notice-item';
         item.classList.toggle('is-read', Number(notification.leida || 0) === 1);
         const title = document.createElement('strong');
-        title.textContent = notification.titulo || 'Notificacion';
+        title.textContent = notification.titulo || 'Notificación';
         const text = document.createElement('span');
         text.textContent = notification.mensaje || '';
         const meta = document.createElement('small');
@@ -232,7 +232,7 @@ function renderNotificationsPanel() {
             const action = document.createElement('button');
             action.type = 'button';
             action.className = 'notice-action';
-            action.textContent = 'Marcar como le�da';
+            action.textContent = 'Marcar como leída';
             action.addEventListener('click', async function () {
                 const data = await postJSON('api.php?c=notificacion&m=read', { id: notification.id });
                 if (data.status) {
@@ -401,7 +401,7 @@ function buildTicketSummary(ticket, isExpanded) {
     head.appendChild(info);
     head.appendChild(status);
 
-    const excerpt = buildHighlightedTextElement('p', 'ticket-excerpt', String(ticket.descripcion || '').trim() || 'Sin descripcion', query);
+    const excerpt = buildHighlightedTextElement('p', 'ticket-excerpt', String(ticket.descripcion || '').trim() || 'Sin descripción', query);
 
     const metaGrid = document.createElement('div');
     metaGrid.className = 'meta-grid';
