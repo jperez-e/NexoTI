@@ -49,6 +49,10 @@ $map = [
         'class' => 'ComentarioController',
         'methods' => ['list', 'create'],
     ],
+    'notificacion' => [
+        'class' => 'NotificacionController',
+        'methods' => ['list', 'read', 'readAll'],
+    ],
     'reporte' => [
         'class' => 'ReporteController',
         'methods' => ['index', 'ticketsCsv', 'ticketsExcel', 'ticketsPdf', 'resumen', 'preview'],

@@ -26,11 +26,14 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=7'>
+    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=8'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.js?v=20' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.state.js?v=1' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.api.js?v=1' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.render.js?v=1' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.events.js?v=1' defer></script>
 </head>
 <body
     data-role-id='<?php echo (int) $rolId; ?>'

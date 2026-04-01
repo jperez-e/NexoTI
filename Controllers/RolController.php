@@ -1,73 +1,47 @@
 <?php 
-declare(strict_types=1); 
- 
-require_once __DIR__ . '/BaseController.php'; 
-require_once __DIR__ . '/../Models/RolModel.php'; 
- 
-class RolController extends BaseController 
-{ 
-    private RolModel $model; 
- 
-    public function __construct() 
-    { 
-        $this->model = new RolModel(); 
-    } 
- 
-    public function list(): void 
-    { 
-        $this->requireLogin(); 
-        $this->requireRole([1]); 
-        $rows = $this->model->getAll(); 
-        $this->jsonOk('Roles cargados', $rows); 
-    } 
- 
-    public function create(): void 
-    { 
-        $this->requireLogin(); 
-        $this->requireRole([1]); 
-        $this->requirePost(); 
- 
-        $nombre = trim(strip_tags((string) ($_POST['nombre'] ?? ''))); 
-        if ($nombre === '') { 
-            $this->jsonError('Nombre requerido'); 
-        } 
+declare(strict_types=1);
 
-        $ok = $this->model->insert($nombre); 
-        $ok ? $this->jsonOk('Rol creado') : $this->jsonError('No se pudo crear'); 
-    } 
+require_once __DIR__ . '/CatalogController.php';
+require_once __DIR__ . '/../Models/RolModel.php';
 
-    public function update(): void
+class RolController extends CatalogController
+{
+    public function __construct()
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
-
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
-        $nombre = trim(strip_tags((string) ($payload['nombre'] ?? '')));
-
-        if ($id <= 0 || $nombre === '') {
-            $this->jsonError('Datos invalidos');
-        }
-
-        $ok = $this->model->update($id, $nombre);
-        $ok ? $this->jsonOk('Rol actualizado') : $this->jsonError('No se pudo actualizar');
+        $this->model = new RolModel();
     }
 
-    public function delete(): void
+    public function list(): void
     {
         $this->requireLogin();
         $this->requireRole([1]);
-        $this->requirePost();
+        $this->jsonOk($this->listMessage(), $this->model->getAll());
+    }
 
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
+    protected function listMessage(): string { return 'Roles cargados'; }
+    protected function createMessage(): string { return 'Rol creado'; }
+    protected function updateMessage(): string { return 'Rol actualizado'; }
+    protected function deleteMessage(): string { return 'Rol eliminado'; }
+    protected function invalidDataMessage(): string { return 'Datos invalidos'; }
+    protected function invalidEntityMessage(): string { return 'Rol invalido'; }
 
-        if ($id <= 0) {
-            $this->jsonError('Rol invalido');
-        }
+    protected function buildCreatePayload(array $payload): array
+    {
+        return ['nombre' => $this->sanitizeText($payload, 'nombre')];
+    }
 
-        $ok = $this->model->delete($id);
-        $ok ? $this->jsonOk('Rol eliminado') : $this->jsonError('No se pudo eliminar');
+    protected function buildUpdatePayload(array $payload): array
+    {
+        return $this->buildCreatePayload($payload);
+    }
+
+    protected function isCreatePayloadValid(array $payload): bool
+    {
+        return $payload['nombre'] !== '';
+    }
+
+    protected function isUpdatePayloadValid(int $id, array $payload): bool
+    {
+        return $id > 0 && $this->isCreatePayloadValid($payload);
     }
 }

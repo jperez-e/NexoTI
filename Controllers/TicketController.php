@@ -5,18 +5,21 @@ require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../Models/TicketModel.php';
 require_once __DIR__ . '/../Models/AdjuntoModel.php';
 require_once __DIR__ . '/../Services/TicketService.php';
+require_once __DIR__ . '/../Services/NotificationService.php';
 
 class TicketController extends BaseController
 {
     private TicketModel $model;
     private AdjuntoModel $adjuntos;
     private TicketService $service;
+    private NotificationService $notifications;
 
     public function __construct()
     {
         $this->model = new TicketModel();
         $this->adjuntos = new AdjuntoModel();
         $this->service = new TicketService();
+        $this->notifications = new NotificationService();
     }
 
     public function list(): void
@@ -130,6 +133,7 @@ class TicketController extends BaseController
         $this->requirePost();
 
         $ticketId = (int) ($_POST['ticket_id'] ?? 0);
+        $comentarioId = (int) ($_POST['comentario_id'] ?? 0);
         if ($ticketId <= 0) {
             $this->jsonError('Selecciona un ticket.');
         }
@@ -143,7 +147,7 @@ class TicketController extends BaseController
             $this->jsonError('No puedes adjuntar archivos en este ticket.', 403);
         }
 
-        $uploadedCount = $this->handleAdjuntos($ticketId);
+        $uploadedCount = $this->handleAdjuntos($ticketId, $comentarioId > 0 ? $comentarioId : null);
         if ($uploadedCount <= 0) {
             $this->jsonError('No se pudo cargar ningun archivo.');
         }
@@ -193,7 +197,7 @@ class TicketController extends BaseController
         return [];
     }
 
-    private function handleAdjuntos(int $ticketId): int
+    private function handleAdjuntos(int $ticketId, ?int $comentarioId = null): int
     {
         $baseDir = dirname(__DIR__);
         $dir = $baseDir . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'tickets';
@@ -225,7 +229,7 @@ class TicketController extends BaseController
 
             if (move_uploaded_file($tmp, $dest)) {
                 $relative = 'uploads/tickets/' . $filename;
-                if ($this->adjuntos->insert($ticketId, $relative, $name)) {
+                if ($this->adjuntos->insert($ticketId, $relative, $name, $this->currentUserId(), $comentarioId)) {
                     $uploaded++;
                 }
             }
@@ -253,6 +257,11 @@ class TicketController extends BaseController
 
         if (!$this->model->assign($ticketId, $tecnicoId, $estadoId)) {
             $this->jsonError('No se pudo actualizar.');
+        }
+
+        $ticket = $this->model->getById($ticketId);
+        if ($ticket !== null) {
+            $this->notifications->notifyAssignment($ticket, $tecnicoId, $this->currentUserId());
         }
 
         $this->jsonOk('Asignacion actualizada');
@@ -330,6 +339,8 @@ class TicketController extends BaseController
         if (!$this->model->updateEstado($ticketId, $cerradoId, $fechaCierre)) {
             $this->jsonError('No se pudo cerrar el ticket.');
         }
+
+        $this->notifications->notifyClosed($ticket, $userId);
 
         $this->jsonOk('Ticket cerrado');
     }

@@ -23,6 +23,11 @@ class ComentarioModel
         ]);
     }
 
+    public function getLastInsertId(): int
+    {
+        return (int) $this->db->lastInsertId();
+    }
+
     public function getAll(): array
     {
         $sql = 'SELECT c.id, c.ticket_id, c.usuario_id, c.comentario, c.fecha, '

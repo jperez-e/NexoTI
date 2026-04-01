@@ -4,16 +4,19 @@ declare(strict_types=1);
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../Models/ComentarioModel.php';
 require_once __DIR__ . '/../Models/TicketModel.php';
+require_once __DIR__ . '/../Services/NotificationService.php';
 
 class ComentarioController extends BaseController
 {
     private ComentarioModel $model;
     private TicketModel $tickets;
+    private NotificationService $notifications;
 
     public function __construct()
     {
         $this->model = new ComentarioModel();
         $this->tickets = new TicketModel();
+        $this->notifications = new NotificationService();
     }
 
     public function list(): void
@@ -68,6 +71,12 @@ class ComentarioController extends BaseController
         }
 
         $ok = $this->model->insert($ticketId, $userId, $comentario);
-        $ok ? $this->jsonOk('Comentario creado') : $this->jsonError('No se pudo crear.');
+        if (!$ok) {
+            $this->jsonError('No se pudo crear.');
+        }
+
+        $commentId = $this->model->getLastInsertId();
+        $this->notifications->notifyReply($ticket, $userId, $comentario);
+        $this->jsonOk('Comentario creado', ['id' => $commentId]);
     }
 }

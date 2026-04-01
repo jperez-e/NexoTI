@@ -69,6 +69,12 @@ class UsuarioModel
         return $stmt->fetchAll();
     }
 
+    public function getAdminIds(): array
+    {
+        $rows = $this->getByRol(1);
+        return array_map(static fn (array $row): int => (int) ($row['id'] ?? 0), $rows);
+    }
+
     public function getById(int $id): ?array
     {
         $sql = 'SELECT u.id, u.nombre, u.email, u.rol_id, r.nombre AS rol_nombre, u.activo, u.foto '

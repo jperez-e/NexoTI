@@ -2,14 +2,17 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../Models/TicketModel.php';
+require_once __DIR__ . '/NotificationService.php';
 
 class TicketService
 {
     private TicketModel $tickets;
+    private NotificationService $notifications;
 
     public function __construct()
     {
         $this->tickets = new TicketModel();
+        $this->notifications = new NotificationService();
     }
 
     public function listTickets(array $filters, int $page, int $perPage, int $roleId, int $userId): array
@@ -36,10 +39,7 @@ class TicketService
             ],
             'assignable' => $roleId === 1 ? $this->tickets->getOpenTicketsForAssignment() : [],
             'closable' => $roleId === 3 ? $this->tickets->getResolvedTicketsByUsuario($userId) : [],
-            'notifications' => [
-                'count' => $this->tickets->countNotifications($roleId, $userId),
-                'items' => $this->tickets->getNotifications($roleId, $userId, 6),
-            ],
+            'notifications' => $this->notifications->getPanelData($userId, 8),
         ];
     }
 

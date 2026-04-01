@@ -170,7 +170,7 @@ class TicketModel
  
     public function getById(int $ticketId): ?array  
     {  
-        $sql = 'SELECT id, usuario_id, tecnico_id, estado_id FROM tickets WHERE id = ?';  
+        $sql = 'SELECT id, codigo, titulo, usuario_id, tecnico_id, estado_id FROM tickets WHERE id = ?';  
         $stmt = $this->db->prepare($sql);  
         $stmt->execute([$ticketId]);  
         $row = $stmt->fetch();  

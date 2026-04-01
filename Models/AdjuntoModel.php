@@ -12,13 +12,21 @@ class AdjuntoModel
         $this->db = Conexion::get();
     }
 
-    public function insert(int $ticketId, string $archivo, string $nombreOriginal): bool
+    public function insert(
+        int $ticketId,
+        string $archivo,
+        string $nombreOriginal,
+        ?int $usuarioId = null,
+        ?int $comentarioId = null
+    ): bool
     {
-        $sql = "INSERT INTO ticket_adjuntos (ticket_id, archivo, nombre_original)
-                VALUES (:ticket_id, :archivo, :nombre_original)";
+        $sql = "INSERT INTO ticket_adjuntos (ticket_id, comentario_id, usuario_id, archivo, nombre_original)
+                VALUES (:ticket_id, :comentario_id, :usuario_id, :archivo, :nombre_original)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             ":ticket_id" => $ticketId,
+            ":comentario_id" => $comentarioId,
+            ":usuario_id" => $usuarioId,
             ":archivo" => $archivo,
             ":nombre_original" => $nombreOriginal,
         ]);
@@ -26,18 +34,24 @@ class AdjuntoModel
 
     public function getAll(): array
     {
-        $sql = "SELECT a.id, a.ticket_id, a.archivo, a.nombre_original, a.creado_en
+        $sql = "SELECT a.id, a.ticket_id, a.comentario_id, a.usuario_id, a.archivo, a.nombre_original, a.creado_en,
+                       u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre
                 FROM ticket_adjuntos a
                 INNER JOIN tickets t ON t.id = a.ticket_id
+                LEFT JOIN usuarios u ON u.id = a.usuario_id
+                LEFT JOIN roles r ON r.id = u.rol_id
                 ORDER BY a.creado_en ASC, a.id ASC";
         return $this->db->query($sql)->fetchAll();
     }
 
     public function getByUsuario(int $usuarioId): array
     {
-        $sql = "SELECT a.id, a.ticket_id, a.archivo, a.nombre_original, a.creado_en
+        $sql = "SELECT a.id, a.ticket_id, a.comentario_id, a.usuario_id, a.archivo, a.nombre_original, a.creado_en,
+                       u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre
                 FROM ticket_adjuntos a
                 INNER JOIN tickets t ON t.id = a.ticket_id
+                LEFT JOIN usuarios u ON u.id = a.usuario_id
+                LEFT JOIN roles r ON r.id = u.rol_id
                 WHERE t.usuario_id = :usuario_id
                 ORDER BY a.creado_en ASC, a.id ASC";
         $stmt = $this->db->prepare($sql);
@@ -47,9 +61,12 @@ class AdjuntoModel
 
     public function getByTecnico(int $tecnicoId): array
     {
-        $sql = "SELECT a.id, a.ticket_id, a.archivo, a.nombre_original, a.creado_en
+        $sql = "SELECT a.id, a.ticket_id, a.comentario_id, a.usuario_id, a.archivo, a.nombre_original, a.creado_en,
+                       u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre
                 FROM ticket_adjuntos a
                 INNER JOIN tickets t ON t.id = a.ticket_id
+                LEFT JOIN usuarios u ON u.id = a.usuario_id
+                LEFT JOIN roles r ON r.id = u.rol_id
                 WHERE t.tecnico_id = :tecnico_id
                 ORDER BY a.creado_en ASC, a.id ASC";
         $stmt = $this->db->prepare($sql);
@@ -59,10 +76,13 @@ class AdjuntoModel
 
     public function getByTicket(int $ticketId): array
     {
-        $sql = "SELECT id, ticket_id, archivo, nombre_original, creado_en
-                FROM ticket_adjuntos
-                WHERE ticket_id = :ticket_id
-                ORDER BY id DESC";
+        $sql = "SELECT a.id, a.ticket_id, a.comentario_id, a.usuario_id, a.archivo, a.nombre_original, a.creado_en,
+                       u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre
+                FROM ticket_adjuntos a
+                LEFT JOIN usuarios u ON u.id = a.usuario_id
+                LEFT JOIN roles r ON r.id = u.rol_id
+                WHERE a.ticket_id = :ticket_id
+                ORDER BY a.id DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([":ticket_id" => $ticketId]);
         return $stmt->fetchAll();

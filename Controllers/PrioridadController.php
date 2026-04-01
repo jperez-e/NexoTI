@@ -1,75 +1,43 @@
 <?php 
-declare(strict_types=1); 
- 
-require_once __DIR__ . '/BaseController.php'; 
-require_once __DIR__ . '/../Models/PrioridadModel.php'; 
- 
-class PrioridadController extends BaseController 
-{ 
-    private PrioridadModel $model; 
- 
-    public function __construct() 
-    { 
-        $this->model = new PrioridadModel(); 
-    } 
- 
-    public function list(): void 
-    { 
-        $this->requireLogin(); 
-        $rows = $this->model->getAll(); 
-        $this->jsonOk('Prioridades cargadas', $rows); 
-    } 
- 
-    public function create(): void 
-    { 
-        $this->requireLogin(); 
-        $this->requireRole([1]); 
-        $this->requirePost(); 
- 
-        $nombre = trim(strip_tags((string) ($_POST['nombre'] ?? ''))); 
-        $nivel = (int) ($_POST['nivel'] ?? 0); 
- 
-        if ($nombre === '' || $nivel <= 0) { 
-            $this->jsonError('Datos invalidos'); 
-        } 
+declare(strict_types=1);
 
-        $ok = $this->model->insert($nombre, $nivel); 
-        $ok ? $this->jsonOk('Prioridad creada') : $this->jsonError('No se pudo crear'); 
-    } 
+require_once __DIR__ . '/CatalogController.php';
+require_once __DIR__ . '/../Models/PrioridadModel.php';
 
-    public function update(): void
+class PrioridadController extends CatalogController
+{
+    public function __construct()
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
-
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
-        $nombre = trim(strip_tags((string) ($payload['nombre'] ?? '')));
-        $nivel = (int) ($payload['nivel'] ?? 0);
-
-        if ($id <= 0 || $nombre === '' || $nivel <= 0) {
-            $this->jsonError('Datos invalidos');
-        }
-
-        $ok = $this->model->update($id, $nombre, $nivel);
-        $ok ? $this->jsonOk('Prioridad actualizada') : $this->jsonError('No se pudo actualizar');
+        $this->model = new PrioridadModel();
     }
 
-    public function delete(): void
+    protected function listMessage(): string { return 'Prioridades cargadas'; }
+    protected function createMessage(): string { return 'Prioridad creada'; }
+    protected function updateMessage(): string { return 'Prioridad actualizada'; }
+    protected function deleteMessage(): string { return 'Prioridad eliminada'; }
+    protected function invalidDataMessage(): string { return 'Datos invalidos'; }
+    protected function invalidEntityMessage(): string { return 'Prioridad invalida'; }
+
+    protected function buildCreatePayload(array $payload): array
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        return [
+            'nombre' => $this->sanitizeText($payload, 'nombre'),
+            'nivel' => (int) ($payload['nivel'] ?? 0),
+        ];
+    }
 
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
+    protected function buildUpdatePayload(array $payload): array
+    {
+        return $this->buildCreatePayload($payload);
+    }
 
-        if ($id <= 0) {
-            $this->jsonError('Prioridad invalida');
-        }
+    protected function isCreatePayloadValid(array $payload): bool
+    {
+        return $payload['nombre'] !== '' && (int) $payload['nivel'] > 0;
+    }
 
-        $ok = $this->model->delete($id);
-        $ok ? $this->jsonOk('Prioridad eliminada') : $this->jsonError('No se pudo eliminar');
+    protected function isUpdatePayloadValid(int $id, array $payload): bool
+    {
+        return $id > 0 && $this->isCreatePayloadValid($payload);
     }
 }

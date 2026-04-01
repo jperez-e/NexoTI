@@ -1,75 +1,43 @@
 <?php 
-declare(strict_types=1); 
- 
-require_once __DIR__ . '/BaseController.php'; 
-require_once __DIR__ . '/../Models/CategoriaModel.php'; 
- 
-class CategoriaController extends BaseController 
-{ 
-    private CategoriaModel $model; 
- 
-    public function __construct() 
-    { 
-        $this->model = new CategoriaModel(); 
-    } 
- 
-    public function list(): void 
-    { 
-        $this->requireLogin(); 
-        $rows = $this->model->getAll(); 
-        $this->jsonOk('Categorias cargadas', $rows); 
-    } 
- 
-    public function create(): void 
-    { 
-        $this->requireLogin(); 
-        $this->requireRole([1]); 
-        $this->requirePost(); 
- 
-        $nombre = trim(strip_tags((string) ($_POST['nombre'] ?? ''))); 
-        $descripcion = trim(strip_tags((string) ($_POST['descripcion'] ?? ''))); 
- 
-        if ($nombre === '') { 
-            $this->jsonError('Nombre requerido'); 
-        } 
+declare(strict_types=1);
 
-        $ok = $this->model->insert($nombre, $descripcion); 
-        $ok ? $this->jsonOk('Categoria creada') : $this->jsonError('No se pudo crear'); 
-    } 
+require_once __DIR__ . '/CatalogController.php';
+require_once __DIR__ . '/../Models/CategoriaModel.php';
 
-    public function update(): void
+class CategoriaController extends CatalogController
+{
+    public function __construct()
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
-
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
-        $nombre = trim(strip_tags((string) ($payload['nombre'] ?? '')));
-        $descripcion = trim(strip_tags((string) ($payload['descripcion'] ?? '')));
-
-        if ($id <= 0 || $nombre === '') {
-            $this->jsonError('Datos invalidos');
-        }
-
-        $ok = $this->model->update($id, $nombre, $descripcion);
-        $ok ? $this->jsonOk('Categoria actualizada') : $this->jsonError('No se pudo actualizar');
+        $this->model = new CategoriaModel();
     }
 
-    public function delete(): void
+    protected function listMessage(): string { return 'Categorias cargadas'; }
+    protected function createMessage(): string { return 'Categoria creada'; }
+    protected function updateMessage(): string { return 'Categoria actualizada'; }
+    protected function deleteMessage(): string { return 'Categoria eliminada'; }
+    protected function invalidDataMessage(): string { return 'Datos invalidos'; }
+    protected function invalidEntityMessage(): string { return 'Categoria invalida'; }
+
+    protected function buildCreatePayload(array $payload): array
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        return [
+            'nombre' => $this->sanitizeText($payload, 'nombre'),
+            'descripcion' => $this->sanitizeText($payload, 'descripcion'),
+        ];
+    }
 
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
+    protected function buildUpdatePayload(array $payload): array
+    {
+        return $this->buildCreatePayload($payload);
+    }
 
-        if ($id <= 0) {
-            $this->jsonError('Categoria invalida');
-        }
+    protected function isCreatePayloadValid(array $payload): bool
+    {
+        return $payload['nombre'] !== '';
+    }
 
-        $ok = $this->model->delete($id);
-        $ok ? $this->jsonOk('Categoria eliminada') : $this->jsonError('No se pudo eliminar');
+    protected function isUpdatePayloadValid(int $id, array $payload): bool
+    {
+        return $id > 0 && $this->isCreatePayloadValid($payload);
     }
 }

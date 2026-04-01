@@ -1,73 +1,40 @@
 <?php 
-declare(strict_types=1); 
- 
-require_once __DIR__ . '/BaseController.php'; 
-require_once __DIR__ . '/../Models/EstadoTicketModel.php'; 
- 
-class EstadoTicketController extends BaseController 
-{ 
-    private EstadoTicketModel $model; 
- 
-    public function __construct() 
-    { 
-        $this->model = new EstadoTicketModel(); 
-    } 
- 
-    public function list(): void 
-    { 
-        $this->requireLogin(); 
-        $rows = $this->model->getAll(); 
-        $this->jsonOk('Estados cargados', $rows); 
-    } 
- 
-    public function create(): void 
-    { 
-        $this->requireLogin(); 
-        $this->requireRole([1]); 
-        $this->requirePost(); 
- 
-        $nombre = trim(strip_tags((string) ($_POST['nombre'] ?? ''))); 
- 
-        if ($nombre === '') { 
-            $this->jsonError('Nombre requerido'); 
-        } 
+declare(strict_types=1);
 
-        $ok = $this->model->insert($nombre); 
-        $ok ? $this->jsonOk('Estado creado') : $this->jsonError('No se pudo crear'); 
-    } 
+require_once __DIR__ . '/CatalogController.php';
+require_once __DIR__ . '/../Models/EstadoTicketModel.php';
 
-    public function update(): void
+class EstadoTicketController extends CatalogController
+{
+    public function __construct()
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
-
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
-        $nombre = trim(strip_tags((string) ($payload['nombre'] ?? '')));
-
-        if ($id <= 0 || $nombre === '') {
-            $this->jsonError('Datos invalidos');
-        }
-
-        $ok = $this->model->update($id, $nombre);
-        $ok ? $this->jsonOk('Estado actualizado') : $this->jsonError('No se pudo actualizar');
+        $this->model = new EstadoTicketModel();
     }
 
-    public function delete(): void
+    protected function listMessage(): string { return 'Estados cargados'; }
+    protected function createMessage(): string { return 'Estado creado'; }
+    protected function updateMessage(): string { return 'Estado actualizado'; }
+    protected function deleteMessage(): string { return 'Estado eliminado'; }
+    protected function invalidDataMessage(): string { return 'Datos invalidos'; }
+    protected function invalidEntityMessage(): string { return 'Estado invalido'; }
+
+    protected function buildCreatePayload(array $payload): array
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        return ['nombre' => $this->sanitizeText($payload, 'nombre')];
+    }
 
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
+    protected function buildUpdatePayload(array $payload): array
+    {
+        return $this->buildCreatePayload($payload);
+    }
 
-        if ($id <= 0) {
-            $this->jsonError('Estado invalido');
-        }
+    protected function isCreatePayloadValid(array $payload): bool
+    {
+        return $payload['nombre'] !== '';
+    }
 
-        $ok = $this->model->delete($id);
-        $ok ? $this->jsonOk('Estado eliminado') : $this->jsonError('No se pudo eliminar');
+    protected function isUpdatePayloadValid(int $id, array $payload): bool
+    {
+        return $id > 0 && $this->isCreatePayloadValid($payload);
     }
 }
