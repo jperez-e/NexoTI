@@ -637,9 +637,11 @@ function updateResultsInfo() {
     const statusLabel = dom.statusFilterSelect && dom.statusFilterSelect.selectedOptions[0]
         ? dom.statusFilterSelect.selectedOptions[0].textContent
         : (activeStatusFilter === 'todos' ? 'Todos los estados' : activeStatusFilter);
-    const assignmentLabel = dom.assignmentFilterSelect && dom.assignmentFilterSelect.selectedOptions[0]
+    const assignmentLabel = isTechUser()
+        ? 'Asignados'
+        : (dom.assignmentFilterSelect && dom.assignmentFilterSelect.selectedOptions[0]
         ? dom.assignmentFilterSelect.selectedOptions[0].textContent
-        : (activeAssignmentFilter === 'todos' ? 'Todos' : activeAssignmentFilter);
+        : (activeAssignmentFilter === 'todos' ? 'Todos' : activeAssignmentFilter));
     if (query === '') {
         dom.resultsInfo.textContent = 'Mostrando ' + currentTicketMeta.total + ' ticket(s) · Estado: ' + statusLabel + ' · Asignación: ' + assignmentLabel + '.';
         return;

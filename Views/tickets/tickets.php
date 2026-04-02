@@ -163,6 +163,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                                 <option value='todos'>Todos los estados</option>
                             </select>
                         </label>
+                        <?php if (!$isTech): ?>
                         <label class='filter-field'>
                             Asignación
                             <select id='assignment-filter-select'>
@@ -171,6 +172,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                                 <option value='sin_asignar'>Sin asignar</option>
                             </select>
                         </label>
+                        <?php endif; ?>
                     </div>
                     <div id='tickets-list' class='list'></div>
                     <div class='pager' id='tickets-pager'>

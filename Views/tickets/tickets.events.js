@@ -3,6 +3,11 @@ async function applySearch() {
     await loadTickets();
 }
 
+const NOTIFICATION_POLL_VISIBLE_MS = 10000;
+const NOTIFICATION_POLL_HIDDEN_MS = 30000;
+let notificationPollTimer = null;
+let notificationPollInFlight = false;
+
 async function applyStatusFilter(filterValue) {
     activeStatusFilter = filterValue || 'todos';
     currentTicketPage = 1;
@@ -167,6 +172,18 @@ function setupCloseForm() {
 }
 
 function setupListFilters() {
+    if (isTechUser()) {
+        activeAssignmentFilter = 'asignados';
+        if (dom.assignmentFilterSelect) {
+            dom.assignmentFilterSelect.value = 'asignados';
+            dom.assignmentFilterSelect.disabled = true;
+            const field = dom.assignmentFilterSelect.closest('.filter-field');
+            if (field) {
+                field.style.display = 'none';
+            }
+        }
+    }
+
     if (dom.statusFilterSelect) {
         dom.statusFilterSelect.value = activeStatusFilter;
         dom.statusFilterSelect.addEventListener('change', async function () {
@@ -179,6 +196,47 @@ function setupListFilters() {
             await applyAssignmentFilter(dom.assignmentFilterSelect.value || 'todos');
         });
     }
+}
+
+async function pollNotifications() {
+    if (notificationPollInFlight) { return; }
+    notificationPollInFlight = true;
+    try {
+        await loadNotifications();
+    } finally {
+        notificationPollInFlight = false;
+    }
+}
+
+function restartNotificationPolling() {
+    if (notificationPollTimer) {
+        clearInterval(notificationPollTimer);
+        notificationPollTimer = null;
+    }
+
+    const interval = document.visibilityState === 'visible'
+        ? NOTIFICATION_POLL_VISIBLE_MS
+        : NOTIFICATION_POLL_HIDDEN_MS;
+
+    notificationPollTimer = window.setInterval(function () {
+        pollNotifications();
+    }, interval);
+}
+
+function setupNotificationPolling() {
+    restartNotificationPolling();
+    document.addEventListener('visibilitychange', function () {
+        restartNotificationPolling();
+        if (document.visibilityState === 'visible') {
+            pollNotifications();
+        }
+    });
+    window.addEventListener('beforeunload', function () {
+        if (notificationPollTimer) {
+            clearInterval(notificationPollTimer);
+            notificationPollTimer = null;
+        }
+    });
 }
 
 function cacheDom() {
@@ -214,6 +272,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     setupCreateForm();
     setupCloseForm();
     setupListFilters();
+    setupNotificationPolling();
     if (dom.search) {
         dom.search.addEventListener('input', function () {
             if (searchTimer) {
