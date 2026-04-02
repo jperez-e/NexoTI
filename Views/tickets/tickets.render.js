@@ -146,14 +146,15 @@ function buildTicketThread(ticket) {
         .filter(function (comment) { return String(comment.ticket_id) === String(ticket.id); })
         .slice()
         .reverse();
-
-    if (attachments.length === 0 && comments.length === 0) {
-        const empty = document.createElement('p');
-        empty.className = 'empty thread-empty';
-        empty.textContent = 'No hay respuestas ni evidencias en este ticket todavía.';
-        wrapper.appendChild(empty);
-        return wrapper;
-    }
+    wrapper.appendChild(buildThreadEntry({
+        name: ticket.usuario_nombre || 'Usuario',
+        roleName: ticket.usuario_rol_nombre || 'Usuario',
+        photoUrl: resolvePhoto(ticket.usuario_foto),
+        dateText: ticket.fecha_creacion,
+        bodyText: String(ticket.descripcion || '').trim() || 'Sin descripción.',
+        tag: 'Descripción',
+        variant: 'is-initial',
+    }));
 
     attachments.forEach(function (attachment) {
         wrapper.appendChild(buildAttachmentEntry(attachment));
@@ -477,8 +478,6 @@ function buildTicketSummary(ticket, isExpanded) {
     head.appendChild(info);
     head.appendChild(status);
 
-    const excerpt = buildHighlightedTextElement('p', 'ticket-excerpt', String(ticket.descripcion || '').trim() || 'Sin descripción', query);
-
     const metaGrid = document.createElement('div');
     metaGrid.className = 'meta-grid';
     metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta ticket-meta-user', 'Usuario: ' + (ticket.usuario_nombre || 'N/A'), query));
@@ -499,7 +498,6 @@ function buildTicketSummary(ticket, isExpanded) {
     footer.appendChild(toggle);
 
     main.appendChild(head);
-    main.appendChild(excerpt);
     main.appendChild(metaGrid);
     main.appendChild(footer);
     summary.appendChild(main);

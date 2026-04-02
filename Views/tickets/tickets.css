@@ -65,10 +65,31 @@ body {
     background: var(--panel);  
     border-radius: 16px;  
     padding: 24px;  
-    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.2);  
+    border: 1px solid #cbd9ee;
+    box-shadow:
+        0 18px 30px rgba(15, 23, 42, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.65) inset;
+    position: relative;
+    overflow: hidden;
     display: grid;  
     gap: 16px;  
 }  
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #60a5fa, #38bdf8);
+}
+
+.card > h2 {
+    margin: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dbe4f0;
+}
  
 .grid {  
     display: grid;  
@@ -189,6 +210,51 @@ textarea {
     display: grid;  
     gap: 12px;  
 }  
+
+#tickets-list {
+    padding: 12px;
+    border: 1px solid #cfdced;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f8fbff, #eef4fb);
+}
+
+#tickets-list .ticket-list {
+    display: grid;
+    gap: 14px;
+}
+
+#tickets-list .ticket-item {
+    position: relative;
+    border: 1px solid #c5d7ee;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+#tickets-list .ticket-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    border-radius: 14px 0 0 14px;
+    background: linear-gradient(180deg, #60a5fa, #38bdf8);
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+#tickets-list .ticket-item:hover {
+    transform: translateY(-1px);
+    border-color: #93c5fd;
+    box-shadow: 0 16px 26px rgba(15, 23, 42, 0.12);
+}
+
+#tickets-list .ticket-item.is-open {
+    border-color: #60a5fa;
+    box-shadow: 0 18px 30px rgba(59, 130, 246, 0.2);
+}
  
 .ticket-item {  
     border: 1px solid var(--line);  
@@ -1098,7 +1164,7 @@ textarea {
 }
 
 .ticket-head-main h3 {
- font-size: 1.18rem;
+ font-size: 1.28rem;
  line-height: 1.35;
  color: #0f172a;
 }

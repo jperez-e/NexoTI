@@ -95,7 +95,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                         <input type='hidden' name='usuario_id' value='<?php echo $userId; ?>'>
                         <div class='grid'>
                             <label>
-                                Título
+                                Asunto
                                 <input name='titulo' type='text' placeholder='Ej: Impresora sin conexión' required>
                             </label>
                             <label>
