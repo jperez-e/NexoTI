@@ -52,10 +52,10 @@ class AdjuntoModel
                 INNER JOIN tickets t ON t.id = a.ticket_id
                 LEFT JOIN usuarios u ON u.id = a.usuario_id
                 LEFT JOIN roles r ON r.id = u.rol_id
-                WHERE t.usuario_id = :usuario_id
+                WHERE (t.usuario_id = :usuario_id OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = :usuario_id_participante))
                 ORDER BY a.creado_en ASC, a.id ASC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([":usuario_id" => $usuarioId]);
+        $stmt->execute([":usuario_id" => $usuarioId, ":usuario_id_participante" => $usuarioId]);
         return $stmt->fetchAll();
     }
 
@@ -67,10 +67,10 @@ class AdjuntoModel
                 INNER JOIN tickets t ON t.id = a.ticket_id
                 LEFT JOIN usuarios u ON u.id = a.usuario_id
                 LEFT JOIN roles r ON r.id = u.rol_id
-                WHERE t.tecnico_id = :tecnico_id
+                WHERE (t.tecnico_id = :tecnico_id OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = :tecnico_id_participante))
                 ORDER BY a.creado_en ASC, a.id ASC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([":tecnico_id" => $tecnicoId]);
+        $stmt->execute([":tecnico_id" => $tecnicoId, ":tecnico_id_participante" => $tecnicoId]);
         return $stmt->fetchAll();
     }
 

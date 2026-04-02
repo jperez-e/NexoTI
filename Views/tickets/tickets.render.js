@@ -1,4 +1,5 @@
-function buildParticipant(name, roleName, photoUrl, helperText) {
+function buildParticipant(name, roleName, photoUrl, helperText, options) {
+    const config = options || {};
     const item = document.createElement('div');
     item.className = 'participant-card';
     const content = document.createElement('div');
@@ -15,15 +16,36 @@ function buildParticipant(name, roleName, photoUrl, helperText) {
     content.appendChild(helper);
     item.appendChild(createAvatar(name, photoUrl, 'participant-avatar'));
     item.appendChild(content);
+    if (config.removable) {
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'btn ghost participant-remove';
+        setButtonContent(removeButton, 'close', 'Quitar');
+        removeButton.addEventListener('click', function () {
+            if (typeof config.onRemove === 'function') {
+                config.onRemove(removeButton);
+            }
+        });
+        item.appendChild(removeButton);
+    }
     return item;
 }
 
 function buildParticipantsPanel(ticket) {
+    const baseUserId = Number(ticket.usuario_id || 0);
+    const baseTechId = Number(ticket.tecnico_id || 0);
+    const canManageParticipants = isAdminUser() || (isTechUser() && baseTechId === currentUserId());
+    const extras = participantsForTicket(ticket.id).filter(function (participant) {
+        const id = Number(participant.usuario_id || 0);
+        return id > 0 && id !== baseUserId && id !== baseTechId;
+    });
+    const totalParticipants = (baseTechId ? 2 : 1) + extras.length;
+
     const panel = document.createElement('section');
     panel.className = 'participants-panel';
     const head = document.createElement('div');
     head.className = 'participants-head';
-    head.innerHTML = '<strong>Participantes</strong><span>' + (ticket.tecnico_id ? '2' : '1') + '</span>';
+    head.innerHTML = '<strong>Participantes</strong><span>' + String(totalParticipants) + '</span>';
     const list = document.createElement('div');
     list.className = 'participants-list';
     list.appendChild(buildParticipant(ticket.usuario_nombre || 'Usuario', ticket.usuario_rol_nombre || 'Usuario', resolvePhoto(ticket.usuario_foto), 'Solicitante'));
@@ -32,8 +54,74 @@ function buildParticipantsPanel(ticket) {
     } else {
         list.appendChild(buildParticipant('Sin asignar', 'Técnico', '', 'Pendiente de asignación'));
     }
+    const participantMessage = document.createElement('span');
+    participantMessage.className = 'message inline-message';
+    participantMessage.setAttribute('role', 'status');
+    participantMessage.setAttribute('aria-live', 'polite');
+    participantMessage.setAttribute('aria-hidden', 'true');
+
+    extras.forEach(function (participant) {
+        list.appendChild(buildParticipant(
+            participant.usuario_nombre || 'Participante',
+            participant.rol_nombre || 'Usuario',
+            resolvePhoto(participant.usuario_foto),
+            'Participante adicional',
+            canManageParticipants ? {
+                removable: true,
+                onRemove: function (button) {
+                    submitParticipantRemove(ticket, Number(participant.usuario_id || 0), participantMessage, button);
+                },
+            } : null
+        ));
+    });
+
+    if (canManageParticipants) {
+        const manager = document.createElement('div');
+        manager.className = 'participants-manager';
+        const managerLabel = document.createElement('label');
+        managerLabel.className = 'participants-manager-label';
+        managerLabel.textContent = 'Agregar participante';
+        const select = document.createElement('select');
+        const usedIds = {};
+        usedIds[String(baseUserId)] = true;
+        if (baseTechId > 0) {
+            usedIds[String(baseTechId)] = true;
+        }
+        extras.forEach(function (participant) {
+            usedIds[String(participant.usuario_id)] = true;
+        });
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Selecciona técnico o usuario';
+        select.appendChild(placeholder);
+        participantCandidates.forEach(function (candidate) {
+            if (!participantRoleAllowed(candidate.rol_id) || usedIds[String(candidate.id)]) {
+                return;
+            }
+            const option = document.createElement('option');
+            option.value = String(candidate.id);
+            option.textContent = candidate.nombre + ' · ' + (candidate.rol_nombre || '');
+            select.appendChild(option);
+        });
+        managerLabel.appendChild(select);
+        const addButton = document.createElement('button');
+        addButton.type = 'button';
+        addButton.className = 'btn primary';
+        setButtonContent(addButton, 'users', 'Agregar');
+        addButton.addEventListener('click', function () {
+            submitParticipantAdd(ticket, select, participantMessage, addButton);
+        });
+        manager.appendChild(managerLabel);
+        manager.appendChild(addButton);
+        panel.appendChild(head);
+        panel.appendChild(list);
+        panel.appendChild(manager);
+        panel.appendChild(participantMessage);
+        return panel;
+    }
     panel.appendChild(head);
     panel.appendChild(list);
+    panel.appendChild(participantMessage);
     return panel;
 }
 

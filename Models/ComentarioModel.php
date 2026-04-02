@@ -51,10 +51,10 @@ class ComentarioModel
             . 'INNER JOIN usuarios u ON u.id = c.usuario_id '
             . 'INNER JOIN roles r ON r.id = u.rol_id '
             . 'INNER JOIN tickets t ON t.id = c.ticket_id '
-            . 'WHERE t.usuario_id = ? '
+            . 'WHERE (t.usuario_id = ? OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = ?)) '
             . 'ORDER BY c.fecha DESC, c.id DESC';
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$usuarioId]);
+        $stmt->execute([$usuarioId, $usuarioId]);
         return $stmt->fetchAll();
     }
 
@@ -68,10 +68,10 @@ class ComentarioModel
             . 'INNER JOIN usuarios u ON u.id = c.usuario_id '
             . 'INNER JOIN roles r ON r.id = u.rol_id '
             . 'INNER JOIN tickets t ON t.id = c.ticket_id '
-            . 'WHERE t.tecnico_id = ? '
+            . 'WHERE (t.tecnico_id = ? OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = ?)) '
             . 'ORDER BY c.fecha DESC, c.id DESC';
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$tecnicoId]);
+        $stmt->execute([$tecnicoId, $tecnicoId]);
         return $stmt->fetchAll();
     }
 }

@@ -4,18 +4,21 @@ declare(strict_types=1);
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../Models/ComentarioModel.php';
 require_once __DIR__ . '/../Models/TicketModel.php';
+require_once __DIR__ . '/../Models/TicketParticipanteModel.php';
 require_once __DIR__ . '/../Services/NotificationService.php';
 
 class ComentarioController extends BaseController
 {
     private ComentarioModel $model;
     private TicketModel $tickets;
+    private TicketParticipanteModel $participantes;
     private NotificationService $notifications;
 
     public function __construct()
     {
         $this->model = new ComentarioModel();
         $this->tickets = new TicketModel();
+        $this->participantes = new TicketParticipanteModel();
         $this->notifications = new NotificationService();
     }
 
@@ -63,10 +66,11 @@ class ComentarioController extends BaseController
         if (!$ticket) {
             $this->jsonError('Ticket no encontrado.', 404);
         }
-        if ($rolId === 3 && (int) $ticket['usuario_id'] !== $userId) {
+        $isParticipant = $this->participantes->isParticipant($ticketId, $userId);
+        if ($rolId === 3 && (int) $ticket['usuario_id'] !== $userId && !$isParticipant) {
             $this->jsonError('No puedes comentar este ticket.', 403);
         }
-        if ($rolId === 2 && (int) ($ticket['tecnico_id'] ?? 0) !== $userId) {
+        if ($rolId === 2 && (int) ($ticket['tecnico_id'] ?? 0) !== $userId && !$isParticipant) {
             $this->jsonError('No puedes comentar este ticket.', 403);
         }
 

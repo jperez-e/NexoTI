@@ -324,11 +324,13 @@ class TicketModel
     {
         if ($rolId === 3) {
             $params[] = $userId;
-            return ['t.usuario_id = ?'];
+            $params[] = $userId;
+            return ['(t.usuario_id = ? OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = ?))'];
         }
         if ($rolId === 2) {
             $params[] = $userId;
-            return ['t.tecnico_id = ?'];
+            $params[] = $userId;
+            return ['(t.tecnico_id = ? OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = ?))'];
         }
 
         return [];

@@ -3,8 +3,10 @@ let assignableTickets = [];
 let closableTickets = [];
 let allComments = [];
 let allAttachments = [];
+let allParticipants = [];
 let availableStatuses = [];
 let availableTechnicians = [];
+let participantCandidates = [];
 let notificationItems = [];
 let notificationTotal = 0;
 let expandedTicketId = null;
@@ -28,6 +30,7 @@ const dom = {};
 function byId(id) { return document.getElementById(id); }
 function bodyData(name) { return document.body.dataset[name] ? String(document.body.dataset[name]) : ''; }
 function getCsrfToken() { const node = byId('csrf-token'); return node ? node.value : ''; }
+function currentUserId() { return Number(document.body.dataset.userId || 0); }
 function currentRoleId() { return Number(document.body.dataset.roleId || 0); }
 function isAdminUser() { return currentRoleId() === 1; }
 function isTechUser() { return currentRoleId() === 2; }
@@ -263,6 +266,20 @@ function attachmentsForTicket(ticketId) {
     return allAttachments.filter(function (attachment) {
         return String(attachment.ticket_id) === String(ticketId);
     });
+}
+
+function participantsForTicket(ticketId) {
+    return allParticipants.filter(function (participant) {
+        return String(participant.ticket_id) === String(ticketId);
+    });
+}
+
+function participantRoleAllowed(roleId) {
+    const id = Number(roleId || 0);
+    if (isAdminUser()) {
+        return id > 0;
+    }
+    return id === 2 || id === 3;
 }
 
 function isImageAttachment(name) {

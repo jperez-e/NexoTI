@@ -6,12 +6,14 @@ async function loadExpandedTicketData(ticketId) {
     if (!ticketId) {
         allComments = [];
         allAttachments = [];
+        allParticipants = [];
         return;
     }
 
     await Promise.all([
         loadComments([ticketId]),
         loadAttachments([ticketId]),
+        loadParticipants([ticketId]),
     ]);
 }
 
@@ -171,6 +173,23 @@ async function loadAttachments(ticketIds) {
     allAttachments = await fetchJSON('api.php?c=ticket&m=listAdjuntos&' + params.toString());
 }
 
+async function loadParticipants(ticketIds) {
+    if (!ticketIds || ticketIds.length === 0) {
+        allParticipants = [];
+        return;
+    }
+    const params = new URLSearchParams({ ticket_ids: ticketIds.join(',') });
+    allParticipants = await fetchJSON('api.php?c=ticket&m=listParticipantes&' + params.toString());
+}
+
+async function loadParticipantCandidates() {
+    if (!isAdminUser() && !isTechUser()) {
+        participantCandidates = [];
+        return;
+    }
+    participantCandidates = await fetchJSON('api.php?c=ticket&m=participantesCandidatos');
+}
+
 async function loadCombos() {
     const [categorias, prioridades, estados] = await Promise.all([
         fetchJSON('api.php?c=categoria&m=list'),
@@ -254,5 +273,57 @@ async function closeInlineTicket(ticketId, messageNode, closeButton) {
         });
     } finally {
         setButtonLoading(closeButton, false);
+    }
+}
+
+async function submitParticipantAdd(ticket, select, messageNode, button) {
+    const userId = Number(select ? select.value : 0);
+    if (userId <= 0) {
+        setInlineMessage(messageNode, 'Selecciona un usuario para agregar.', 'error');
+        return;
+    }
+
+    setButtonLoading(button, true, 'Agregando...');
+    try {
+        const data = await postJSON('api.php?c=ticket&m=addParticipante', {
+            ticket_id: Number(ticket.id),
+            usuario_id: userId,
+        });
+        if (!data.status) {
+            setInlineMessage(messageNode, data.message ? data.message : 'No se pudo agregar el participante.', 'error');
+            return;
+        }
+        setInlineMessage(messageNode, data.message ? data.message : 'Participante agregado.', 'success');
+        await preserveTicketPosition(ticket.id, async function () {
+            await refreshTicketsView();
+        });
+    } finally {
+        setButtonLoading(button, false);
+    }
+}
+
+async function submitParticipantRemove(ticket, userId, messageNode, button) {
+    const id = Number(userId || 0);
+    if (id <= 0) {
+        setInlineMessage(messageNode, 'Participante inválido.', 'error');
+        return;
+    }
+
+    setButtonLoading(button, true, 'Quitando...');
+    try {
+        const data = await postJSON('api.php?c=ticket&m=removeParticipante', {
+            ticket_id: Number(ticket.id),
+            usuario_id: id,
+        });
+        if (!data.status) {
+            setInlineMessage(messageNode, data.message ? data.message : 'No se pudo quitar el participante.', 'error');
+            return;
+        }
+        setInlineMessage(messageNode, data.message ? data.message : 'Participante removido.', 'success');
+        await preserveTicketPosition(ticket.id, async function () {
+            await refreshTicketsView();
+        });
+    } finally {
+        setButtonLoading(button, false);
     }
 }

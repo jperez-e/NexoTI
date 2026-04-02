@@ -69,6 +69,16 @@ class UsuarioModel
         return $stmt->fetchAll();
     }
 
+    public function getParticipantCandidates(): array
+    {
+        $sql = 'SELECT u.id, u.nombre, u.email, u.rol_id, r.nombre AS rol_nombre, u.activo, u.foto '
+            . 'FROM usuarios u '
+            . 'INNER JOIN roles r ON r.id = u.rol_id '
+            . 'WHERE u.activo = 1 '
+            . 'ORDER BY u.nombre ASC';
+        return $this->db->query($sql)->fetchAll();
+    }
+
     public function getAdminIds(): array
     {
         $rows = $this->getByRol(1);

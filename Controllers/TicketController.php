@@ -5,6 +5,8 @@ require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../Models/TicketModel.php';
 require_once __DIR__ . '/../Models/AdjuntoModel.php';
 require_once __DIR__ . '/../Models/ComentarioModel.php';
+require_once __DIR__ . '/../Models/TicketParticipanteModel.php';
+require_once __DIR__ . '/../Models/UsuarioModel.php';
 require_once __DIR__ . '/../Services/TicketService.php';
 require_once __DIR__ . '/../Services/NotificationService.php';
 
@@ -13,6 +15,8 @@ class TicketController extends BaseController
     private TicketModel $model;
     private AdjuntoModel $adjuntos;
     private ComentarioModel $comentarios;
+    private TicketParticipanteModel $participantes;
+    private UsuarioModel $usuarios;
     private TicketService $service;
     private NotificationService $notifications;
 
@@ -21,6 +25,8 @@ class TicketController extends BaseController
         $this->model = new TicketModel();
         $this->adjuntos = new AdjuntoModel();
         $this->comentarios = new ComentarioModel();
+        $this->participantes = new TicketParticipanteModel();
+        $this->usuarios = new UsuarioModel();
         $this->service = new TicketService();
         $this->notifications = new NotificationService();
     }
@@ -163,10 +169,139 @@ class TicketController extends BaseController
         $this->jsonOk('Evidencia cargada', ['count' => $uploadedCount]);
     }
 
+    public function listParticipantes(): void
+    {
+        $this->requireLogin();
+
+        $ticketIds = array_values(array_filter(array_map('intval', explode(',', (string) ($_GET['ticket_ids'] ?? '')))));
+        if ($ticketIds === []) {
+            $this->jsonOk('Participantes cargados', []);
+        }
+
+        $rows = $this->participantes->getByTicketIds($ticketIds);
+        if ($this->currentRoleId() === 1) {
+            $this->jsonOk('Participantes cargados', $rows);
+        }
+
+        $allowedTicketIds = [];
+        foreach ($ticketIds as $ticketId) {
+            $ticket = $this->model->getById($ticketId);
+            if ($ticket && $this->canAccessTicket($ticket)) {
+                $allowedTicketIds[$ticketId] = true;
+            }
+        }
+
+        $filtered = array_values(array_filter($rows, static function (array $row) use ($allowedTicketIds): bool {
+            return isset($allowedTicketIds[(int) ($row['ticket_id'] ?? 0)]);
+        }));
+
+        $this->jsonOk('Participantes cargados', $filtered);
+    }
+
+    public function participantesCandidatos(): void
+    {
+        $this->requireLogin();
+        $this->requireRole([1, 2]);
+
+        $rows = $this->usuarios->getParticipantCandidates();
+        $currentUserId = $this->currentUserId();
+        $rolId = $this->currentRoleId();
+        $rows = array_values(array_filter($rows, static function (array $row) use ($currentUserId): bool {
+            return (int) ($row['id'] ?? 0) !== $currentUserId;
+        }));
+        if ($rolId === 2) {
+            $rows = array_values(array_filter($rows, static function (array $row): bool {
+                return in_array((int) ($row['rol_id'] ?? 0), [2, 3], true);
+            }));
+        }
+
+        $this->jsonOk('Candidatos cargados', $rows);
+    }
+
+    public function addParticipante(): void
+    {
+        $this->requireLogin();
+        $this->requireRole([1, 2]);
+        $this->requirePost();
+
+        $payload = $this->requestData();
+        $ticketId = (int) ($payload['ticket_id'] ?? 0);
+        $usuarioId = (int) ($payload['usuario_id'] ?? 0);
+
+        if ($ticketId <= 0 || $usuarioId <= 0) {
+            $this->jsonError('Datos incompletos.');
+        }
+
+        $ticket = $this->model->getById($ticketId);
+        if (!$ticket) {
+            $this->jsonError('Ticket no encontrado.', 404);
+        }
+        if (!$this->canManageParticipants($ticket)) {
+            $this->jsonError('No tienes permisos para gestionar participantes en este ticket.', 403);
+        }
+
+        $usuario = $this->usuarios->getById($usuarioId);
+        if (!$usuario || (int) ($usuario['activo'] ?? 0) !== 1) {
+            $this->jsonError('Usuario no disponible.');
+        }
+        if ($this->currentRoleId() === 2 && !in_array((int) ($usuario['rol_id'] ?? 0), [2, 3], true)) {
+            $this->jsonError('Solo puedes agregar técnicos o usuarios.');
+        }
+        if ((int) $ticket['usuario_id'] === $usuarioId || (int) ($ticket['tecnico_id'] ?? 0) === $usuarioId) {
+            $this->jsonError('Ese usuario ya participa en el ticket.');
+        }
+        if ($this->participantes->isParticipant($ticketId, $usuarioId)) {
+            $this->jsonError('Ese usuario ya fue agregado.');
+        }
+        if (!$this->participantes->add($ticketId, $usuarioId)) {
+            $this->jsonError('No se pudo agregar el participante.');
+        }
+
+        $this->jsonOk('Participante agregado');
+    }
+
+    public function removeParticipante(): void
+    {
+        $this->requireLogin();
+        $this->requireRole([1, 2]);
+        $this->requirePost();
+
+        $payload = $this->requestData();
+        $ticketId = (int) ($payload['ticket_id'] ?? 0);
+        $usuarioId = (int) ($payload['usuario_id'] ?? 0);
+
+        if ($ticketId <= 0 || $usuarioId <= 0) {
+            $this->jsonError('Datos incompletos.');
+        }
+
+        $ticket = $this->model->getById($ticketId);
+        if (!$ticket) {
+            $this->jsonError('Ticket no encontrado.', 404);
+        }
+        if (!$this->canManageParticipants($ticket)) {
+            $this->jsonError('No tienes permisos para gestionar participantes en este ticket.', 403);
+        }
+        if ((int) $ticket['usuario_id'] === $usuarioId || (int) ($ticket['tecnico_id'] ?? 0) === $usuarioId) {
+            $this->jsonError('No puedes remover al solicitante o al técnico responsable.');
+        }
+        if (!$this->participantes->isParticipant($ticketId, $usuarioId)) {
+            $this->jsonError('Ese usuario no está como participante.');
+        }
+        if (!$this->participantes->remove($ticketId, $usuarioId)) {
+            $this->jsonError('No se pudo remover el participante.');
+        }
+
+        $this->jsonOk('Participante removido');
+    }
+
     private function canAccessTicket(array $ticket): bool
     {
         $rolId = $this->currentRoleId();
         $userId = $this->currentUserId();
+
+        if ($this->participantes->isParticipant((int) ($ticket['id'] ?? 0), $userId)) {
+            return true;
+        }
 
         if ($rolId === 1) {
             return true;
@@ -176,6 +311,20 @@ class TicketController extends BaseController
         }
 
         return (int) ($ticket['usuario_id'] ?? 0) === $userId;
+    }
+
+    private function canManageParticipants(array $ticket): bool
+    {
+        $rolId = $this->currentRoleId();
+        if ($rolId === 1) {
+            return true;
+        }
+
+        if ($rolId !== 2) {
+            return false;
+        }
+
+        return (int) ($ticket['tecnico_id'] ?? 0) === $this->currentUserId();
     }
 
     private function normalizeAdjuntos(): array

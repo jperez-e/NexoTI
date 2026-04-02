@@ -856,9 +856,14 @@ textarea {
 
 .participant-card {
     display: grid;
-    grid-template-columns: 58px 1fr;
+    grid-template-columns: 58px 1fr auto;
     align-items: center;
     gap: 14px;
+}
+
+.participant-remove {
+    min-width: 98px;
+    justify-content: center;
 }
 
 .participant-avatar,
@@ -910,6 +915,27 @@ textarea {
 
 .participant-content small {
     color: #64748b;
+}
+
+.participants-manager {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.participants-manager-label {
+    display: grid;
+    gap: 8px;
+    color: #1e3a8a;
+    font-size: 0.88rem;
+}
+
+.participants-manager select {
+    background: #ffffff;
+    border-color: #cbd5e1;
 }
 
 .thread-entry {
@@ -1094,6 +1120,10 @@ textarea {
     .thread-head {
         align-items: start;
         flex-direction: column;
+    }
+
+    .participants-manager {
+        grid-template-columns: 1fr;
     }
 }
 

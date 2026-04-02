@@ -43,7 +43,19 @@ $map = [
     ],
     'ticket' => [
         'class' => 'TicketController',
-        'methods' => ['list', 'create', 'assign', 'updateStatus', 'closeTicket', 'listAdjuntos', 'uploadAdjuntos'],
+        'methods' => [
+            'list',
+            'create',
+            'assign',
+            'updateStatus',
+            'closeTicket',
+            'listAdjuntos',
+            'uploadAdjuntos',
+            'listParticipantes',
+            'participantesCandidatos',
+            'addParticipante',
+            'removeParticipante',
+        ],
     ],
     'comentario' => [
         'class' => 'ComentarioController',

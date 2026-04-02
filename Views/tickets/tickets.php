@@ -26,17 +26,18 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=12'>
+    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=13'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.state.js?v=4' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.api.js?v=4' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.render.js?v=4' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.events.js?v=4' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.state.js?v=5' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.api.js?v=5' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.render.js?v=5' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.events.js?v=5' defer></script>
 </head>
 <body
+    data-user-id='<?php echo (int) $userId; ?>'
     data-role-id='<?php echo (int) $rolId; ?>'
     data-role-name='<?php echo htmlspecialchars($rolNombre, ENT_QUOTES, 'UTF-8'); ?>'
     data-user-name='<?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?>'

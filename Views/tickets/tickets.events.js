@@ -318,5 +318,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
     await loadCombos();
     await loadTecnicos();
+    await loadParticipantCandidates();
     await Promise.all([loadTickets(), loadNotifications()]);
 });
