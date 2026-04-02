@@ -72,6 +72,7 @@ $mapaApi = [
         'methods' => [
             'listar',
             'crear',
+            'eliminar',
             'asignar',
             'actualizarEstado',
             'cerrarTicket',

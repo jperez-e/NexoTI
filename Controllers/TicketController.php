@@ -511,4 +511,42 @@ class TicketController extends BaseController
 
         $this->responderOkJson('Ticket cerrado');
     }
+
+    public function eliminar(): void
+    {
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->requerirPost();
+
+        $payload = $this->obtenerDatosSolicitud();
+        $ticketId = (int) ($payload['ticket_id'] ?? $payload['id'] ?? 0);
+        if ($ticketId <= 0) {
+            $this->responderErrorJson('Selecciona un ticket válido.');
+        }
+
+        $ticket = $this->model->obtenerPorId($ticketId);
+        if (!$ticket) {
+            $this->responderErrorJson('Ticket no encontrado.', 404);
+        }
+
+        $adjuntos = $this->adjuntos->obtenerPorTicket($ticketId);
+        if (!$this->model->eliminarConDependencias($ticketId)) {
+            $this->responderErrorJson('No se pudo eliminar el ticket.');
+        }
+
+        $baseDir = dirname(__DIR__);
+        foreach ($adjuntos as $adjunto) {
+            $rutaRelativa = str_replace('\\', '/', ltrim((string) ($adjunto['archivo'] ?? ''), '/'));
+            if ($rutaRelativa === '' || !str_starts_with($rutaRelativa, 'uploads/tickets/')) {
+                continue;
+            }
+
+            $rutaAbsoluta = $baseDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rutaRelativa);
+            if (is_file($rutaAbsoluta)) {
+                @unlink($rutaAbsoluta);
+            }
+        }
+
+        $this->responderOkJson('Ticket eliminado');
+    }
 }

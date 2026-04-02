@@ -37,13 +37,13 @@ function iconoBarraLateral(string $nombre): string
         <a class='nav-link<?php echo $ruta === 'home' || $ruta === '' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=home'><span class='nav-icon'><?php echo iconoBarraLateral('inicio'); ?></span><span>Inicio</span></a>
         <a class='nav-link<?php echo $ruta === 'tickets' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=tickets'><span class='nav-icon'><?php echo iconoBarraLateral('tickets'); ?></span><span>Tickets</span></a>
         <a class='nav-link<?php echo $ruta === 'perfil' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=perfil'><span class='nav-icon'><?php echo iconoBarraLateral('perfil'); ?></span><span>Mi perfil</span></a>
+        <a class='nav-link<?php echo $ruta === 'reportes' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=reportes'><span class='nav-icon'><?php echo iconoBarraLateral('reportes'); ?></span><span>Reportes</span></a>
         <?php if ($esAdmin): ?>
             <a class='nav-link<?php echo $ruta === 'usuarios' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=usuarios'><span class='nav-icon'><?php echo iconoBarraLateral('usuarios'); ?></span><span>Usuarios</span></a>
             <a class='nav-link<?php echo $ruta === 'categorias' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=categorias'><span class='nav-icon'><?php echo iconoBarraLateral('categorias'); ?></span><span>Categorías</span></a>
             <a class='nav-link<?php echo $ruta === 'prioridades' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=prioridades'><span class='nav-icon'><?php echo iconoBarraLateral('prioridades'); ?></span><span>Prioridades</span></a>
             <a class='nav-link<?php echo $ruta === 'estados' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=estados'><span class='nav-icon'><?php echo iconoBarraLateral('estados'); ?></span><span>Estados</span></a>
             <a class='nav-link<?php echo $ruta === 'roles' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=roles'><span class='nav-icon'><?php echo iconoBarraLateral('roles'); ?></span><span>Roles</span></a>
-            <a class='nav-link<?php echo $ruta === 'reportes' ? ' active' : ''; ?>' href='/NexoTI/index.php?r=reportes'><span class='nav-icon'><?php echo iconoBarraLateral('reportes'); ?></span><span>Reportes</span></a>
         <?php endif; ?>
     </nav>
     <?php if ($mostrarCerrarSesionBarraLateral): ?>

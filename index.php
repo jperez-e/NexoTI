@@ -24,7 +24,7 @@ $autenticacion = new AuthController();
 $perfil = new PerfilController();
 
 // Estas rutas solo deben estar disponibles para el administrador.
-$rutasAdmin = ['categorias', 'prioridades', 'estados', 'roles', 'usuarios', 'show-register', 'register', 'reportes'];
+$rutasAdmin = ['categorias', 'prioridades', 'estados', 'roles', 'usuarios', 'show-register', 'register'];
 // Este mapa asocia cada ruta protegida con la vista que debe cargarse.
 $rutasVistasProtegidas = [
     'tickets' => __DIR__ . '/Views/tickets/tickets.php',

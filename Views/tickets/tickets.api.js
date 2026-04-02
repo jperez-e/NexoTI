@@ -276,6 +276,41 @@ async function cerrarTicketEnLinea(idTicket, nodoMensaje, botonCerrar) {
     }
 }
 
+async function eliminarTicketEnLinea(idTicket, nodoMensaje, botonEliminar) {
+    const id = Number(idTicket || 0);
+    if (id <= 0) {
+        establecerMensajeEnLinea(nodoMensaje, 'Selecciona un ticket válido.', 'error');
+        return;
+    }
+
+    const confirmado = window.confirm('Esta acción eliminará el ticket y su historial asociado. ¿Deseas continuar?');
+    if (!confirmado) {
+        return;
+    }
+
+    establecerBotonCargando(botonEliminar, true, 'Eliminando...');
+    try {
+        const datos = await enviarJson('api.php?c=ticket&m=eliminar', { ticket_id: id });
+        if (!datos.status) {
+            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo eliminar el ticket.', 'error');
+            return;
+        }
+
+        if (String(idTicketExpandido || '') === String(id)) {
+            idTicketExpandido = null;
+        }
+        if (String(idTicketRespuestaAbierta || '') === String(id)) {
+            idTicketRespuestaAbierta = null;
+        }
+        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Ticket eliminado.', 'success');
+        await preservarPosicionElemento(domElementos.ticketsList, async function () {
+            await refrescarVistaTickets();
+        });
+    } finally {
+        establecerBotonCargando(botonEliminar, false);
+    }
+}
+
 async function agregarParticipanteEnLinea(ticket, select, nodoMensaje, boton) {
     const idUsuario = Number(select ? select.value : 0);
     if (idUsuario <= 0) {

@@ -190,6 +190,37 @@ class TicketModel
         $stmt = $this->db->prepare($sql);  
         return $stmt->execute([$estadoId, $fechaCierre, $ticketId]);  
     }  
+
+    public function eliminarConDependencias(int $ticketId): bool
+    {
+        if ($ticketId <= 0) {
+            return false;
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $this->db->prepare('DELETE FROM notificaciones WHERE ticket_id = ?')->execute([$ticketId]);
+            $this->db->prepare('DELETE FROM ticket_participantes WHERE ticket_id = ?')->execute([$ticketId]);
+            $this->db->prepare('DELETE FROM ticket_adjuntos WHERE ticket_id = ?')->execute([$ticketId]);
+            $this->db->prepare('DELETE FROM comentarios_ticket WHERE ticket_id = ?')->execute([$ticketId]);
+
+            $stmt = $this->db->prepare('DELETE FROM tickets WHERE id = ?');
+            $stmt->execute([$ticketId]);
+            if ($stmt->rowCount() <= 0) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (\Throwable $error) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            return false;
+        }
+    }
   
     public function obtenerIdEstadoPorNombre(string $nombre): ?int  
     {  

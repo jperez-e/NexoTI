@@ -20,23 +20,43 @@ class ReporteController extends BaseController
     public function resumen(): void
     {
         $this->requerirSesion();
-        $this->requerirRol([1]);
-        $this->responderOkJson('Resumen cargado', $this->modelo->obtenerResumen());
+        [$fechaDesde, $fechaHasta] = $this->obtenerFiltroFechas();
+
+        $idRol = $this->obtenerIdRolActual();
+        $idUsuario = $this->obtenerIdUsuarioActual();
+        $resumen = $this->modelo->obtenerResumen($idRol, $idUsuario, $fechaDesde, $fechaHasta);
+
+        $resumen['promedio_resolucion_horas'] = $this->modelo->obtenerPromedioResolucionHoras($idRol, $idUsuario, $fechaDesde, $fechaHasta);
+        $resumen['promedio_primera_respuesta_horas'] = $this->modelo->obtenerPromedioPrimeraRespuestaHoras($idRol, $idUsuario, $fechaDesde, $fechaHasta);
+        $resumen['estados'] = $this->modelo->obtenerDistribucionEstados($idRol, $idUsuario, $fechaDesde, $fechaHasta);
+        $resumen['prioridades'] = $this->modelo->obtenerDistribucionPrioridades($idRol, $idUsuario, $fechaDesde, $fechaHasta);
+        $resumen['categorias'] = $this->modelo->obtenerDistribucionCategorias($idRol, $idUsuario, $fechaDesde, $fechaHasta);
+        $resumen['backlog_prioridad'] = $this->modelo->obtenerBacklogPorPrioridad($idRol, $idUsuario, $fechaDesde, $fechaHasta);
+        $resumen['tendencia_mensual'] = $this->modelo->obtenerTendenciaMensual($idRol, $idUsuario, $fechaDesde, $fechaHasta);
+        $resumen['rendimiento_tecnicos'] = $idRol === 1
+            ? $this->modelo->obtenerRendimientoTecnicos($fechaDesde, $fechaHasta)
+            : [];
+        $resumen['rol_id'] = $idRol;
+
+        $this->responderOkJson('Resumen cargado', $resumen);
     }
 
     public function vistaPrevia(): void
     {
         $this->requerirSesion();
-        $this->requerirRol([1]);
+        [$fechaDesde, $fechaHasta] = $this->obtenerFiltroFechas();
         // El historial se pagina en el navegador para que el admin avance por bloques sin perder contexto.
-        $this->responderOkJson('Vista previa cargada', $this->modelo->obtenerTicketsReporte());
+        $this->responderOkJson(
+            'Vista previa cargada',
+            $this->modelo->obtenerTicketsReporte($this->obtenerIdRolActual(), $this->obtenerIdUsuarioActual(), $fechaDesde, $fechaHasta)
+        );
     }
 
     public function exportarTicketsCsv(): void
     {
         $this->requerirSesion();
-        $this->requerirRol([1]);
-        $rows = $this->modelo->obtenerTicketsReporte();
+        [$fechaDesde, $fechaHasta] = $this->obtenerFiltroFechas();
+        $rows = $this->modelo->obtenerTicketsReporte($this->obtenerIdRolActual(), $this->obtenerIdUsuarioActual(), $fechaDesde, $fechaHasta);
         // El BOM y la linea sep=, ayudan a que Excel abra el archivo con acentos y columnas correctas.
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=reporte_tickets.csv');
@@ -54,8 +74,8 @@ class ReporteController extends BaseController
     public function exportarTicketsExcel(): void
     {
         $this->requerirSesion();
-        $this->requerirRol([1]);
-        $rows = $this->modelo->obtenerTicketsReporte();
+        [$fechaDesde, $fechaHasta] = $this->obtenerFiltroFechas();
+        $rows = $this->modelo->obtenerTicketsReporte($this->obtenerIdRolActual(), $this->obtenerIdUsuarioActual(), $fechaDesde, $fechaHasta);
 
         header('Content-Type: application/vnd.ms-excel; charset=utf-8');
         header('Content-Disposition: attachment; filename=reporte_tickets.xls');
@@ -82,8 +102,8 @@ class ReporteController extends BaseController
     public function exportarTicketsPdf(): void
     {
         $this->requerirSesion();
-        $this->requerirRol([1]);
-        $rows = $this->modelo->obtenerTicketsReporte();
+        [$fechaDesde, $fechaHasta] = $this->obtenerFiltroFechas();
+        $rows = $this->modelo->obtenerTicketsReporte($this->obtenerIdRolActual(), $this->obtenerIdUsuarioActual(), $fechaDesde, $fechaHasta);
         // DOMPDF permite reutilizar una plantilla HTML parecida a la vista web en lugar de construir el PDF manualmente.
         $options = new Options();
         $options->set('isRemoteEnabled', true);
@@ -105,5 +125,16 @@ class ReporteController extends BaseController
         ob_start();
         require __DIR__ . '/../Views/reportes/pdf.php';
         return (string) ob_get_clean();
+    }
+
+    private function obtenerFiltroFechas(): array
+    {
+        $fechaDesde = trim((string) ($_GET['desde'] ?? ''));
+        $fechaHasta = trim((string) ($_GET['hasta'] ?? ''));
+
+        return [
+            $fechaDesde !== '' ? $fechaDesde : null,
+            $fechaHasta !== '' ? $fechaHasta : null,
+        ];
     }
 }

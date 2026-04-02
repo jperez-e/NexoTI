@@ -548,6 +548,16 @@ function construirAccionesEnLinea(ticket) {
         });
     });
     actions.appendChild(replyButton);
+    if (esUsuarioAdmin()) {
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'btn danger';
+        establecerContenidoBoton(deleteButton, 'delete', 'Eliminar ticket');
+        deleteButton.addEventListener('click', function () {
+            eliminarTicketEnLinea(ticket.id, messageNode, deleteButton);
+        });
+        actions.appendChild(deleteButton);
+    }
     if (esUsuarioFinal() && String(ticket.estado_nombre).toLowerCase() === 'resuelto') {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
