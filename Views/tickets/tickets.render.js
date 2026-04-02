@@ -55,11 +55,13 @@ function buildThreadEntry(entry) {
     const date = document.createElement('span');
     date.className = 'thread-date';
     date.textContent = formatTicketDate(entry.dateText);
-    const tag = document.createElement('span');
-    tag.className = 'thread-tag';
-    tag.textContent = entry.tag;
     meta.appendChild(date);
-    meta.appendChild(tag);
+    if (entry.tag) {
+        const tag = document.createElement('span');
+        tag.className = 'thread-tag';
+        tag.textContent = entry.tag;
+        meta.appendChild(tag);
+    }
     const text = document.createElement('p');
     text.className = 'thread-text';
     text.textContent = entry.bodyText;
@@ -160,14 +162,17 @@ function buildTicketThread(ticket) {
         wrapper.appendChild(buildAttachmentEntry(attachment));
     });
     comments.forEach(function (comment) {
+        const commentText = String(comment.comentario || '').trim();
+        const normalizedCommentText = normalizeStatusName(commentText);
+        const isClosureAccepted = normalizedCommentText.includes('acepto la solucion')
+            && normalizedCommentText.includes('confirmo el cierre');
         wrapper.appendChild(buildThreadEntry({
             name: comment.usuario_nombre || 'Usuario',
             roleName: comment.rol_nombre || 'Usuario',
             photoUrl: resolvePhoto(comment.usuario_foto),
             dateText: comment.fecha,
-            bodyText: comment.comentario,
-            tag: normalizeRoleLabel(comment.rol_nombre),
-            variant: 'is-comment',
+            bodyText: commentText,
+            variant: isClosureAccepted ? 'is-closure-accepted' : 'is-comment',
         }));
     });
     return wrapper;

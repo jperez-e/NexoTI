@@ -232,3 +232,27 @@ async function submitInlineAssignment(ticket, techSelect, stateSelect, messageNo
         setButtonLoading(assignButton, false);
     }
 }
+
+async function closeInlineTicket(ticketId, messageNode, closeButton) {
+    const id = Number(ticketId || 0);
+    if (id <= 0) {
+        setInlineMessage(messageNode, 'Selecciona un ticket válido.', 'error');
+        return;
+    }
+
+    setButtonLoading(closeButton, true, 'Cerrando...');
+    try {
+        const data = await postJSON('api.php?c=ticket&m=closeTicket', { ticket_id: id });
+        if (!data.status) {
+            setInlineMessage(messageNode, data.message ? data.message : 'No se pudo cerrar el ticket.', 'error');
+            return;
+        }
+
+        setInlineMessage(messageNode, data.message ? data.message : 'Ticket cerrado.', 'success');
+        await preserveTicketPosition(id, async function () {
+            await refreshTicketsView();
+        });
+    } finally {
+        setButtonLoading(closeButton, false);
+    }
+}

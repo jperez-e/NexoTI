@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../Models/TicketModel.php';
 require_once __DIR__ . '/../Models/AdjuntoModel.php';
+require_once __DIR__ . '/../Models/ComentarioModel.php';
 require_once __DIR__ . '/../Services/TicketService.php';
 require_once __DIR__ . '/../Services/NotificationService.php';
 
@@ -11,6 +12,7 @@ class TicketController extends BaseController
 {
     private TicketModel $model;
     private AdjuntoModel $adjuntos;
+    private ComentarioModel $comentarios;
     private TicketService $service;
     private NotificationService $notifications;
 
@@ -18,6 +20,7 @@ class TicketController extends BaseController
     {
         $this->model = new TicketModel();
         $this->adjuntos = new AdjuntoModel();
+        $this->comentarios = new ComentarioModel();
         $this->service = new TicketService();
         $this->notifications = new NotificationService();
     }
@@ -344,6 +347,9 @@ class TicketController extends BaseController
         if (!$this->model->updateEstado($ticketId, $cerradoId, $fechaCierre)) {
             $this->jsonError('No se pudo cerrar el ticket.');
         }
+
+        // Dejamos trazabilidad funcional en el hilo: el usuario final confirma que acepta la solucion.
+        $this->comentarios->insert($ticketId, $userId, 'El usuario aceptó la solución y confirmó el cierre del ticket.');
 
         $this->notifications->notifyClosed($ticket, $userId);
 

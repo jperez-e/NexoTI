@@ -1242,6 +1242,16 @@ textarea {
  background: linear-gradient(180deg, #ffffff, #f8fafc);
 }
 
+.thread-entry.is-closure-accepted {
+ background: linear-gradient(180deg, #ecfdf5, #dcfce7);
+ border-color: #86efac;
+}
+
+.thread-entry.is-closure-accepted .thread-text {
+ color: #166534;
+ font-weight: 700;
+}
+
 .thread-text {
  line-height: 1.6;
 }

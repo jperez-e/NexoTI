@@ -144,7 +144,7 @@ function normalizeRoleLabel(roleName) {
 }
 
 function roleClassName(roleName) {
-    return normalizeRoleLabel(roleName).toLowerCase();
+    return normalizeStatusName(normalizeRoleLabel(roleName));
 }
 
 function formatTicketDate(value) {
