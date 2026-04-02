@@ -854,6 +854,17 @@ textarea {
     gap: 12px;
 }
 
+.participants-empty {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
 .participant-card {
     display: grid;
     grid-template-columns: 58px 1fr auto;

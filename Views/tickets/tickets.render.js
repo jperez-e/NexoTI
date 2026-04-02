@@ -39,7 +39,15 @@ function construirPanelParticipantes(ticket) {
         const id = Number(participant.usuario_id || 0);
         return id > 0 && id !== baseUserId && id !== baseTechId;
     });
-    const totalParticipants = (baseTechId ? 2 : 1) + extras.length;
+    const extrasOrdenados = extras.slice().sort(function (a, b) {
+        const aEsTecnico = normalizarEtiquetaRol(a.rol_nombre || '') === 'Técnico' ? 1 : 0;
+        const bEsTecnico = normalizarEtiquetaRol(b.rol_nombre || '') === 'Técnico' ? 1 : 0;
+        if (aEsTecnico !== bEsTecnico) {
+            return bEsTecnico - aEsTecnico;
+        }
+        return String(a.usuario_nombre || '').localeCompare(String(b.usuario_nombre || ''), 'es', { sensitivity: 'base' });
+    });
+    const totalParticipants = 1 + (baseTechId > 0 ? 1 : 0) + extrasOrdenados.length;
 
     const panel = document.createElement('section');
     panel.className = 'participants-panel';
@@ -51,8 +59,11 @@ function construirPanelParticipantes(ticket) {
     list.appendChild(construirParticipante(ticket.usuario_nombre || 'Usuario', ticket.usuario_rol_nombre || 'Usuario', resolverFoto(ticket.usuario_foto), 'Solicitante'));
     if (ticket.tecnico_id) {
         list.appendChild(construirParticipante(ticket.tecnico_nombre || 'Técnico', ticket.tecnico_rol_nombre || 'Técnico', resolverFoto(ticket.tecnico_foto), 'Responsable actual'));
-    } else {
-        list.appendChild(construirParticipante('Sin asignar', 'Técnico', '', 'Pendiente de asignación'));
+    } else if (extrasOrdenados.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'participants-empty';
+        empty.textContent = 'Sin técnico asignado aún.';
+        list.appendChild(empty);
     }
     const participantMessage = document.createElement('span');
     participantMessage.className = 'message inline-message';
@@ -60,12 +71,13 @@ function construirPanelParticipantes(ticket) {
     participantMessage.setAttribute('aria-live', 'polite');
     participantMessage.setAttribute('aria-hidden', 'true');
 
-    extras.forEach(function (participant) {
+    extrasOrdenados.forEach(function (participant) {
+        const esTecnico = normalizarEtiquetaRol(participant.rol_nombre || '') === 'Técnico';
         list.appendChild(construirParticipante(
             participant.usuario_nombre || 'Participante',
             participant.rol_nombre || 'Usuario',
             resolverFoto(participant.usuario_foto),
-            'Participante adicional',
+            esTecnico ? 'Técnico participante' : 'Participante adicional',
             canManageParticipants ? {
                 removable: true,
                 onRemove: function (button) {
@@ -87,7 +99,7 @@ function construirPanelParticipantes(ticket) {
         if (baseTechId > 0) {
             usedIds[String(baseTechId)] = true;
         }
-        extras.forEach(function (participant) {
+        extrasOrdenados.forEach(function (participant) {
             usedIds[String(participant.usuario_id)] = true;
         });
         const placeholder = document.createElement('option');

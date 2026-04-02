@@ -282,6 +282,12 @@ async function agregarParticipanteEnLinea(ticket, select, nodoMensaje, boton) {
         establecerMensajeEnLinea(nodoMensaje, 'Selecciona un usuario para agregar.', 'error');
         return;
     }
+    const idSolicitante = Number(ticket && ticket.usuario_id ? ticket.usuario_id : 0);
+    const idTecnicoAsignado = Number(ticket && ticket.tecnico_id ? ticket.tecnico_id : 0);
+    if (idUsuario === idSolicitante || (idTecnicoAsignado > 0 && idUsuario === idTecnicoAsignado)) {
+        establecerMensajeEnLinea(nodoMensaje, 'Ese usuario ya participa en el ticket.', 'error');
+        return;
+    }
 
     establecerBotonCargando(boton, true, 'Agregando...');
     try {

@@ -247,7 +247,9 @@ class TicketController extends BaseController
         if ($this->obtenerIdRolActual() === 2 && !in_array((int) ($usuario['rol_id'] ?? 0), [2, 3], true)) {
             $this->responderErrorJson('Solo puedes agregar técnicos o usuarios.');
         }
-        if ((int) $ticket['usuario_id'] === $usuarioId || (int) ($ticket['tecnico_id'] ?? 0) === $usuarioId) {
+        $idSolicitante = (int) ($ticket['usuario_id'] ?? 0);
+        $idTecnicoAsignado = (int) ($ticket['tecnico_id'] ?? 0);
+        if ($idSolicitante === $usuarioId || $idTecnicoAsignado === $usuarioId) {
             $this->responderErrorJson('Ese usuario ya participa en el ticket.');
         }
         if ($this->participantes->esParticipante($ticketId, $usuarioId)) {
@@ -414,6 +416,11 @@ class TicketController extends BaseController
 
         if (!$this->model->asignar($ticketId, $tecnicoId, $estadoId)) {
             $this->responderErrorJson('No se pudo actualizar.');
+        }
+
+        // Si el tecnico pasa a ser responsable principal, se limpia de participantes extra para evitar duplicidad.
+        if ($tecnicoId !== null && $tecnicoId > 0) {
+            $this->participantes->quitar($ticketId, $tecnicoId);
         }
 
         $ticket = $this->model->obtenerPorId($ticketId);
