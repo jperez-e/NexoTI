@@ -137,16 +137,16 @@ function iniciarEdicion(row) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function renderizarRoles(list) {
-    const container = obtenerNodo('roles-list');
-    container.innerHTML = '';
+function renderizarRoles(lista) {
+    const contenedor = obtenerNodo('roles-list');
+    contenedor.innerHTML = '';
 
-    if (list.length === 0) {
-        container.innerHTML = '<p class="message">No hay roles registrados.</p>';
+    if (lista.length === 0) {
+        contenedor.innerHTML = '<p class="message">No hay roles registrados.</p>';
         return;
     }
 
-    list.forEach(function (row) {
+    lista.forEach(function (row) {
         const item = document.createElement('div');
         item.className = 'item';
 
@@ -204,7 +204,7 @@ function renderizarRoles(list) {
         actions.appendChild(deleteBtn);
         item.appendChild(title);
         item.appendChild(actions);
-        container.appendChild(item);
+        contenedor.appendChild(item);
     });
 }
 

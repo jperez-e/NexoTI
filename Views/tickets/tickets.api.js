@@ -2,8 +2,8 @@ async function refrescarVistaTickets() {
     await Promise.all([cargarTickets(), cargarNotificaciones()]);
 }
 
-async function cargarDatosTicketExpandido(ticketId) {
-    if (!ticketId) {
+async function cargarDatosTicketExpandido(idTicket) {
+    if (!idTicket) {
         todosComentarios = [];
         todosAdjuntos = [];
         todosParticipantes = [];
@@ -11,104 +11,104 @@ async function cargarDatosTicketExpandido(ticketId) {
     }
 
     await Promise.all([
-        cargarComentarios([ticketId]),
-        cargarAdjuntos([ticketId]),
-        cargarParticipantes([ticketId]),
+        cargarComentarios([idTicket]),
+        cargarAdjuntos([idTicket]),
+        cargarParticipantes([idTicket]),
     ]);
 }
 
-async function subirAdjuntosTicket(ticketId, files, commentId) {
-    if (!files || files.length === 0) {
+async function subirAdjuntosTicket(idTicket, archivos, idComentario) {
+    if (!archivos || archivos.length === 0) {
         return { status: true, data: { count: 0 } };
     }
 
-    const formData = new FormData();
-    formData.set('ticket_id', String(ticketId));
-    if (commentId) {
-        formData.set('comentario_id', String(commentId));
+    const datosFormulario = new FormData();
+    datosFormulario.set('ticket_id', String(idTicket));
+    if (idComentario) {
+        datosFormulario.set('comentario_id', String(idComentario));
     }
-    formData.set('_token', obtenerTokenCsrf());
-    Array.from(files).forEach(function (file) {
-        formData.append('adjuntos[]', file);
+    datosFormulario.set('_token', obtenerTokenCsrf());
+    Array.from(archivos).forEach(function (archivo) {
+        datosFormulario.append('adjuntos[]', archivo);
     });
 
-    const response = await fetch('api.php?c=ticket&m=subirAdjuntos', {
+    const respuesta = await fetch('api.php?c=ticket&m=subirAdjuntos', {
         method: 'POST',
-        body: formData,
+        body: datosFormulario,
     });
-    return response.json();
+    return respuesta.json();
 }
 
-async function enviarRespuestaEnLinea(ticket, textarea, stateSelect, attachmentInput, messageNode, replyBox, toggleButton, sendButton) {
-    const comentario = textarea.value.trim();
-    const selectedStateId = stateSelect ? String(stateSelect.value) : '';
-    const currentStateId = ticket.estado_id ? String(ticket.estado_id) : '';
-    const mustUpdateState = esUsuarioTecnico() && selectedStateId !== '' && selectedStateId !== currentStateId;
-    const files = attachmentInput ? Array.from(attachmentInput.files || []) : [];
+async function enviarRespuestaEnLinea(ticket, areaTexto, selectEstado, entradaAdjuntos, nodoMensaje, contenedorRespuesta, botonAlternar, botonEnviar) {
+    const comentario = areaTexto.value.trim();
+    const idEstadoSeleccionado = selectEstado ? String(selectEstado.value) : '';
+    const idEstadoActual = ticket.estado_id ? String(ticket.estado_id) : '';
+    const debeActualizarEstado = esUsuarioTecnico() && idEstadoSeleccionado !== '' && idEstadoSeleccionado !== idEstadoActual;
+    const archivos = entradaAdjuntos ? Array.from(entradaAdjuntos.files || []) : [];
 
-    if (comentario === '' && !mustUpdateState && files.length === 0) {
-        establecerMensajeEnLinea(messageNode, 'Escribe una respuesta, selecciona un nuevo estado o agrega evidencia.', 'error');
+    if (comentario === '' && !debeActualizarEstado && archivos.length === 0) {
+        establecerMensajeEnLinea(nodoMensaje, 'Escribe una respuesta, selecciona un nuevo estado o agrega evidencia.', 'error');
         return;
     }
-    establecerBotonCargando(sendButton, true, 'Enviando...');
+    establecerBotonCargando(botonEnviar, true, 'Enviando...');
     try {
-        let statusResponse = { status: true };
-        if (mustUpdateState) {
-            statusResponse = await enviarJson('api.php?c=ticket&m=actualizarEstado', { ticket_id: ticket.id, estado_id: selectedStateId });
-            if (!statusResponse.status) {
-                establecerMensajeEnLinea(messageNode, statusResponse.message ? statusResponse.message : 'No se pudo actualizar el estado.', 'error');
+        let respuestaEstado = { status: true };
+        if (debeActualizarEstado) {
+            respuestaEstado = await enviarJson('api.php?c=ticket&m=actualizarEstado', { ticket_id: ticket.id, estado_id: idEstadoSeleccionado });
+            if (!respuestaEstado.status) {
+                establecerMensajeEnLinea(nodoMensaje, respuestaEstado.message ? respuestaEstado.message : 'No se pudo actualizar el estado.', 'error');
                 return;
             }
         }
-        let commentResponse = { status: true };
-        let commentId = null;
+        let respuestaComentario = { status: true };
+        let idComentario = null;
         if (comentario !== '') {
-            commentResponse = await enviarJson('api.php?c=comentario&m=crear', { ticket_id: ticket.id, comentario: comentario });
-            if (!commentResponse.status) {
-                establecerMensajeEnLinea(messageNode, commentResponse.message ? commentResponse.message : 'No se pudo enviar la respuesta.', 'error');
+            respuestaComentario = await enviarJson('api.php?c=comentario&m=crear', { ticket_id: ticket.id, comentario: comentario });
+            if (!respuestaComentario.status) {
+                establecerMensajeEnLinea(nodoMensaje, respuestaComentario.message ? respuestaComentario.message : 'No se pudo enviar la respuesta.', 'error');
                 return;
             }
-            commentId = commentResponse.data && commentResponse.data.id ? Number(commentResponse.data.id) : null;
+            idComentario = respuestaComentario.data && respuestaComentario.data.id ? Number(respuestaComentario.data.id) : null;
         }
-        let attachmentResponse = { status: true, data: { count: 0 } };
-        if (files.length > 0) {
-            attachmentResponse = await subirAdjuntosTicket(ticket.id, files, commentId);
-            if (!attachmentResponse.status) {
-                establecerMensajeEnLinea(messageNode, attachmentResponse.message ? attachmentResponse.message : 'No se pudieron cargar los adjuntos.', 'error');
+        let respuestaAdjuntos = { status: true, data: { count: 0 } };
+        if (archivos.length > 0) {
+            respuestaAdjuntos = await subirAdjuntosTicket(ticket.id, archivos, idComentario);
+            if (!respuestaAdjuntos.status) {
+                establecerMensajeEnLinea(nodoMensaje, respuestaAdjuntos.message ? respuestaAdjuntos.message : 'No se pudieron cargar los adjuntos.', 'error');
                 return;
             }
         }
 
-        const uploadedCount = Number((attachmentResponse.data && attachmentResponse.data.count) || 0);
-        const successParts = [];
+        const cantidadAdjuntos = Number((respuestaAdjuntos.data && respuestaAdjuntos.data.count) || 0);
+        const partesExito = [];
         if (comentario !== '') {
-            successParts.push('respuesta enviada');
+            partesExito.push('respuesta enviada');
         }
-        if (mustUpdateState) {
-            successParts.push('estado actualizado');
+        if (debeActualizarEstado) {
+            partesExito.push('estado actualizado');
         }
-        if (uploadedCount > 0) {
-            successParts.push(uploadedCount === 1 ? '1 evidencia cargada' : uploadedCount + ' evidencias cargadas');
+        if (cantidadAdjuntos > 0) {
+            partesExito.push(cantidadAdjuntos === 1 ? '1 evidencia cargada' : cantidadAdjuntos + ' evidencias cargadas');
         }
-        let successMessage = 'Proceso completado.';
-        if (successParts.length === 1) {
-            successMessage = successParts[0].charAt(0).toUpperCase() + successParts[0].slice(1) + '.';
-        } else if (successParts.length === 2) {
-            successMessage = successParts[0].charAt(0).toUpperCase() + successParts[0].slice(1) + ' y ' + successParts[1] + '.';
-        } else if (successParts.length >= 3) {
-            successMessage = successParts[0].charAt(0).toUpperCase() + successParts[0].slice(1) + ', ' + successParts[1] + ' y ' + successParts[2] + '.';
+        let mensajeExito = 'Proceso completado.';
+        if (partesExito.length === 1) {
+            mensajeExito = partesExito[0].charAt(0).toUpperCase() + partesExito[0].slice(1) + '.';
+        } else if (partesExito.length === 2) {
+            mensajeExito = partesExito[0].charAt(0).toUpperCase() + partesExito[0].slice(1) + ' y ' + partesExito[1] + '.';
+        } else if (partesExito.length >= 3) {
+            mensajeExito = partesExito[0].charAt(0).toUpperCase() + partesExito[0].slice(1) + ', ' + partesExito[1] + ' y ' + partesExito[2] + '.';
         }
-        establecerMensajeEnLinea(messageNode, successMessage, 'success');
-        textarea.value = '';
-        if (attachmentInput) {
-            attachmentInput.value = '';
+        establecerMensajeEnLinea(nodoMensaje, mensajeExito, 'success');
+        areaTexto.value = '';
+        if (entradaAdjuntos) {
+            entradaAdjuntos.value = '';
         }
         idTicketRespuestaAbierta = String(ticket.id);
         await preservarPosicionTicket(ticket.id, async function () {
             await refrescarVistaTickets();
         });
     } finally {
-        establecerBotonCargando(sendButton, false);
+        establecerBotonCargando(botonEnviar, false);
     }
 }
 
@@ -155,30 +155,30 @@ async function cargarNotificaciones() {
     renderizarPanelNotificaciones();
 }
 
-async function cargarComentarios(ticketIds) {
-    if (!ticketIds || ticketIds.length === 0) {
+async function cargarComentarios(idsTicket) {
+    if (!idsTicket || idsTicket.length === 0) {
         todosComentarios = [];
         return;
     }
-    const params = new URLSearchParams({ ticket_ids: ticketIds.join(',') });
+    const params = new URLSearchParams({ ticket_ids: idsTicket.join(',') });
     todosComentarios = await obtenerJson('api.php?c=comentario&m=listar&' + params.toString());
 }
 
-async function cargarAdjuntos(ticketIds) {
-    if (!ticketIds || ticketIds.length === 0) {
+async function cargarAdjuntos(idsTicket) {
+    if (!idsTicket || idsTicket.length === 0) {
         todosAdjuntos = [];
         return;
     }
-    const params = new URLSearchParams({ ticket_ids: ticketIds.join(',') });
+    const params = new URLSearchParams({ ticket_ids: idsTicket.join(',') });
     todosAdjuntos = await obtenerJson('api.php?c=ticket&m=listarAdjuntos&' + params.toString());
 }
 
-async function cargarParticipantes(ticketIds) {
-    if (!ticketIds || ticketIds.length === 0) {
+async function cargarParticipantes(idsTicket) {
+    if (!idsTicket || idsTicket.length === 0) {
         todosParticipantes = [];
         return;
     }
-    const params = new URLSearchParams({ ticket_ids: ticketIds.join(',') });
+    const params = new URLSearchParams({ ticket_ids: idsTicket.join(',') });
     todosParticipantes = await obtenerJson('api.php?c=ticket&m=listarParticipantes&' + params.toString());
 }
 
@@ -202,15 +202,15 @@ async function cargarCombos() {
     llenarSelect(domElementos.estado, estados, 'nombre', 'id');
     if (domElementos.statusFilterSelect) {
         domElementos.statusFilterSelect.innerHTML = '';
-        const allOption = document.createElement('option');
-        allOption.value = 'todos';
-        allOption.textContent = 'Todos los estados';
-        domElementos.statusFilterSelect.appendChild(allOption);
-        estados.forEach(function (status) {
-            const option = document.createElement('option');
-            option.value = normalizarNombreEstado(status.nombre);
-            option.textContent = status.nombre;
-            domElementos.statusFilterSelect.appendChild(option);
+        const opcionTodos = document.createElement('option');
+        opcionTodos.value = 'todos';
+        opcionTodos.textContent = 'Todos los estados';
+        domElementos.statusFilterSelect.appendChild(opcionTodos);
+        estados.forEach(function (estado) {
+            const opcion = document.createElement('option');
+            opcion.value = normalizarNombreEstado(estado.nombre);
+            opcion.textContent = estado.nombre;
+            domElementos.statusFilterSelect.appendChild(opcion);
         });
         domElementos.statusFilterSelect.value = filtroEstadoActivo;
     }
@@ -221,109 +221,109 @@ async function cargarTecnicos() {
     tecnicosDisponibles = Array.isArray(tecnicos) ? tecnicos.slice() : [];
 }
 
-async function guardarAsignacionEnLinea(ticket, techSelect, stateSelect, messageNode, assignButton) {
-    const ticketId = Number(ticket.id || 0);
-    const estadoId = Number(stateSelect ? stateSelect.value : 0);
-    const tecnicoRaw = techSelect ? techSelect.value : '';
-    const tecnicoId = tecnicoRaw === '' ? '' : Number(tecnicoRaw);
+async function guardarAsignacionEnLinea(ticket, selectTecnico, selectEstado, nodoMensaje, botonAsignar) {
+    const idTicket = Number(ticket.id || 0);
+    const idEstado = Number(selectEstado ? selectEstado.value : 0);
+    const tecnicoRaw = selectTecnico ? selectTecnico.value : '';
+    const idTecnico = tecnicoRaw === '' ? '' : Number(tecnicoRaw);
 
-    if (ticketId <= 0 || estadoId <= 0) {
-        establecerMensajeEnLinea(messageNode, 'Selecciona un estado válido para continuar.', 'error');
+    if (idTicket <= 0 || idEstado <= 0) {
+        establecerMensajeEnLinea(nodoMensaje, 'Selecciona un estado válido para continuar.', 'error');
         return;
     }
 
-    establecerBotonCargando(assignButton, true, 'Guardando...');
+    establecerBotonCargando(botonAsignar, true, 'Guardando...');
     try {
-        const data = await enviarJson('api.php?c=ticket&m=asignar', {
-            ticket_id: ticketId,
-            tecnico_id: tecnicoId,
-            estado_id: estadoId,
+        const datos = await enviarJson('api.php?c=ticket&m=asignar', {
+            ticket_id: idTicket,
+            tecnico_id: idTecnico,
+            estado_id: idEstado,
         });
-        if (!data.status) {
-            establecerMensajeEnLinea(messageNode, data.message ? data.message : 'No se pudo actualizar la asignación.', 'error');
+        if (!datos.status) {
+            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo actualizar la asignación.', 'error');
             return;
         }
-        establecerMensajeEnLinea(messageNode, data.message ? data.message : 'Asignación actualizada.', 'success');
-        await preservarPosicionTicket(ticketId, async function () {
+        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Asignación actualizada.', 'success');
+        await preservarPosicionTicket(idTicket, async function () {
             await refrescarVistaTickets();
         });
     } finally {
-        establecerBotonCargando(assignButton, false);
+        establecerBotonCargando(botonAsignar, false);
     }
 }
 
-async function cerrarTicketEnLinea(ticketId, messageNode, closeButton) {
-    const id = Number(ticketId || 0);
+async function cerrarTicketEnLinea(idTicket, nodoMensaje, botonCerrar) {
+    const id = Number(idTicket || 0);
     if (id <= 0) {
-        establecerMensajeEnLinea(messageNode, 'Selecciona un ticket válido.', 'error');
+        establecerMensajeEnLinea(nodoMensaje, 'Selecciona un ticket válido.', 'error');
         return;
     }
 
-    establecerBotonCargando(closeButton, true, 'Cerrando...');
+    establecerBotonCargando(botonCerrar, true, 'Cerrando...');
     try {
-        const data = await enviarJson('api.php?c=ticket&m=cerrarTicket', { ticket_id: id });
-        if (!data.status) {
-            establecerMensajeEnLinea(messageNode, data.message ? data.message : 'No se pudo cerrar el ticket.', 'error');
+        const datos = await enviarJson('api.php?c=ticket&m=cerrarTicket', { ticket_id: id });
+        if (!datos.status) {
+            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo cerrar el ticket.', 'error');
             return;
         }
 
-        establecerMensajeEnLinea(messageNode, data.message ? data.message : 'Ticket cerrado.', 'success');
+        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Ticket cerrado.', 'success');
         await preservarPosicionTicket(id, async function () {
             await refrescarVistaTickets();
         });
     } finally {
-        establecerBotonCargando(closeButton, false);
+        establecerBotonCargando(botonCerrar, false);
     }
 }
 
-async function agregarParticipanteEnLinea(ticket, select, messageNode, button) {
-    const userId = Number(select ? select.value : 0);
-    if (userId <= 0) {
-        establecerMensajeEnLinea(messageNode, 'Selecciona un usuario para agregar.', 'error');
+async function agregarParticipanteEnLinea(ticket, select, nodoMensaje, boton) {
+    const idUsuario = Number(select ? select.value : 0);
+    if (idUsuario <= 0) {
+        establecerMensajeEnLinea(nodoMensaje, 'Selecciona un usuario para agregar.', 'error');
         return;
     }
 
-    establecerBotonCargando(button, true, 'Agregando...');
+    establecerBotonCargando(boton, true, 'Agregando...');
     try {
-        const data = await enviarJson('api.php?c=ticket&m=agregarParticipante', {
+        const datos = await enviarJson('api.php?c=ticket&m=agregarParticipante', {
             ticket_id: Number(ticket.id),
-            usuario_id: userId,
+            usuario_id: idUsuario,
         });
-        if (!data.status) {
-            establecerMensajeEnLinea(messageNode, data.message ? data.message : 'No se pudo agregar el participante.', 'error');
+        if (!datos.status) {
+            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo agregar el participante.', 'error');
             return;
         }
-        establecerMensajeEnLinea(messageNode, data.message ? data.message : 'Participante agregado.', 'success');
+        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Participante agregado.', 'success');
         await preservarPosicionTicket(ticket.id, async function () {
             await refrescarVistaTickets();
         });
     } finally {
-        establecerBotonCargando(button, false);
+        establecerBotonCargando(boton, false);
     }
 }
 
-async function quitarParticipanteEnLinea(ticket, userId, messageNode, button) {
-    const id = Number(userId || 0);
+async function quitarParticipanteEnLinea(ticket, idUsuario, nodoMensaje, boton) {
+    const id = Number(idUsuario || 0);
     if (id <= 0) {
-        establecerMensajeEnLinea(messageNode, 'Participante inválido.', 'error');
+        establecerMensajeEnLinea(nodoMensaje, 'Participante inválido.', 'error');
         return;
     }
 
-    establecerBotonCargando(button, true, 'Quitando...');
+    establecerBotonCargando(boton, true, 'Quitando...');
     try {
-        const data = await enviarJson('api.php?c=ticket&m=quitarParticipante', {
+        const datos = await enviarJson('api.php?c=ticket&m=quitarParticipante', {
             ticket_id: Number(ticket.id),
             usuario_id: id,
         });
-        if (!data.status) {
-            establecerMensajeEnLinea(messageNode, data.message ? data.message : 'No se pudo quitar el participante.', 'error');
+        if (!datos.status) {
+            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo quitar el participante.', 'error');
             return;
         }
-        establecerMensajeEnLinea(messageNode, data.message ? data.message : 'Participante removido.', 'success');
+        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Participante removido.', 'success');
         await preservarPosicionTicket(ticket.id, async function () {
             await refrescarVistaTickets();
         });
     } finally {
-        establecerBotonCargando(button, false);
+        establecerBotonCargando(boton, false);
     }
 }

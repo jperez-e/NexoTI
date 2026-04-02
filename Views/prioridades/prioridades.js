@@ -138,16 +138,16 @@ function iniciarEdicion(row) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function renderizarPrioridades(list) {
-    const container = obtenerNodo('prioridades-list');
-    container.innerHTML = '';
+function renderizarPrioridades(lista) {
+    const contenedor = obtenerNodo('prioridades-list');
+    contenedor.innerHTML = '';
 
-    if (list.length === 0) {
-        container.innerHTML = '<p class="message">No hay prioridades registradas.</p>';
+    if (lista.length === 0) {
+        contenedor.innerHTML = '<p class="message">No hay prioridades registradas.</p>';
         return;
     }
 
-    list.forEach(function (row) {
+    lista.forEach(function (row) {
         const item = document.createElement('div');
         item.className = 'item';
 
@@ -205,7 +205,7 @@ function renderizarPrioridades(list) {
         actions.appendChild(deleteBtn);
         item.appendChild(title);
         item.appendChild(actions);
-        container.appendChild(item);
+        contenedor.appendChild(item);
     });
 }
 

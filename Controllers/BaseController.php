@@ -57,20 +57,20 @@ class BaseController
             return $_POST;
         }
 
-        $payload = json_decode($raw, true);
-        return is_array($payload) ? $payload : $_POST;
+        $datos = json_decode($raw, true);
+        return is_array($datos) ? $datos : $_POST;
     }
 
-    protected function responderOkJson(string $message, array $data = []): void
+    protected function responderOkJson(string $mensaje, array $datos = []): void
     {
-        echo json_encode(['status' => true, 'message' => $message, 'data' => $data]);
+        echo json_encode(['status' => true, 'message' => $mensaje, 'data' => $datos]);
         exit;
     }
 
-    protected function responderErrorJson(string $message, int $statusCode = 400): void
+    protected function responderErrorJson(string $mensaje, int $codigoEstado = 400): void
     {
-        http_response_code($statusCode);
-        echo json_encode(['status' => false, 'message' => $message]);
+        http_response_code($codigoEstado);
+        echo json_encode(['status' => false, 'message' => $mensaje]);
         exit;
     }
 }

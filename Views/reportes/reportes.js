@@ -3,105 +3,105 @@ let paginaReporteActual = 1;
 const filasPorPaginaReporte = 5;
 
 async function obtenerJson(url) {
-    const res = await fetch(url);
-    const payload = await res.json();
-    if (!payload || payload.status === false) { return []; }
-    return payload.data || [];
+    const respuesta = await fetch(url);
+    const datosRespuesta = await respuesta.json();
+    if (!datosRespuesta || datosRespuesta.status === false) { return []; }
+    return datosRespuesta.data || [];
 }
 
 function porId(id) {
     return document.getElementById(id);
 }
 
-function agregarCelda(row, text) { 
-    const td = document.createElement('td'); 
-    td.textContent = text; 
-    row.appendChild(td); 
+function agregarCelda(fila, texto) { 
+    const celda = document.createElement('td'); 
+    celda.textContent = texto; 
+    fila.appendChild(celda); 
 } 
-function normalizarClaseEstadoReporte(value) { 
-    const raw = String(value || '').toLowerCase(); 
-    if (raw.includes('progreso') || raw.includes('proceso')) { return 'progreso'; } 
-    if (raw.includes('resuelto')) { return 'resuelto'; } 
-    if (raw.includes('cerrado')) { return 'cerrado'; } 
+function normalizarClaseEstadoReporte(valor) { 
+    const normalizado = String(valor || '').toLowerCase(); 
+    if (normalizado.includes('progreso') || normalizado.includes('proceso')) { return 'progreso'; } 
+    if (normalizado.includes('resuelto')) { return 'resuelto'; } 
+    if (normalizado.includes('cerrado')) { return 'cerrado'; } 
     return 'abierto'; 
 } 
-function agregarCeldaCodigo(row, text) { 
-    const td = document.createElement('td'); 
-    const badge = document.createElement('span'); 
-    badge.className = 'report-code'; 
-    badge.textContent = text || 'Sin código'; 
-    td.appendChild(badge); 
-    row.appendChild(td); 
+function agregarCeldaCodigo(fila, texto) { 
+    const celda = document.createElement('td'); 
+    const insignia = document.createElement('span'); 
+    insignia.className = 'report-code'; 
+    insignia.textContent = texto || 'Sin código'; 
+    celda.appendChild(insignia); 
+    fila.appendChild(celda); 
 } 
-function agregarCeldaEstado(row, text) { 
-    const td = document.createElement('td'); 
-    const badge = document.createElement('span'); 
-    badge.className = 'report-status report-status-' + normalizarClaseEstadoReporte(text); 
-    badge.textContent = text || 'Sin estado'; 
-    td.appendChild(badge); 
-    row.appendChild(td); 
+function agregarCeldaEstado(fila, texto) { 
+    const celda = document.createElement('td'); 
+    const insignia = document.createElement('span'); 
+    insignia.className = 'report-status report-status-' + normalizarClaseEstadoReporte(texto); 
+    insignia.textContent = texto || 'Sin estado'; 
+    celda.appendChild(insignia); 
+    fila.appendChild(celda); 
 } 
-function agregarCeldaUsuario(row, text, fallback) { 
-    const td = document.createElement('td'); 
-    td.textContent = text || fallback; 
-    if (!text) { td.className = 'report-user-muted'; } 
-    row.appendChild(td); 
+function agregarCeldaUsuario(fila, texto, respaldo) { 
+    const celda = document.createElement('td'); 
+    celda.textContent = texto || respaldo; 
+    if (!texto) { celda.className = 'report-user-muted'; } 
+    fila.appendChild(celda); 
 }
 
-function formatearFecha(value) {
-    if (!value) {
+function formatearFecha(valor) {
+    if (!valor) {
         return 'Sin fecha';
     }
 
-    const date = new Date(String(value).replace(' ', 'T'));
-    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('es-DO');
+    const fecha = new Date(String(valor).replace(' ', 'T'));
+    return Number.isNaN(fecha.getTime()) ? String(valor) : fecha.toLocaleString('es-DO');
 }
 
-function actualizarPaginadorReporte(totalItems, totalPages) {
-    const pager = porId('reportes-pager');
-    const prev = porId('reportes-prev');
-    const next = porId('reportes-next');
+function actualizarPaginadorReporte(totalElementos, totalPaginas) {
+    const paginador = porId('reportes-pager');
+    const anterior = porId('reportes-prev');
+    const siguiente = porId('reportes-next');
     const info = porId('reportes-page-info');
 
-    if (!pager || !prev || !next || !info) {
+    if (!paginador || !anterior || !siguiente || !info) {
         return;
     }
 
-    const hasItems = totalItems > 0;
-    pager.classList.toggle('hidden', !hasItems);
+    const hayElementos = totalElementos > 0;
+    paginador.classList.toggle('hidden', !hayElementos);
 
-    if (!hasItems) {
+    if (!hayElementos) {
         info.textContent = '';
         return;
     }
 
-    info.textContent = 'Página ' + paginaReporteActual + ' de ' + totalPages + ' - ' + totalItems + ' ticket(s)';
-    prev.disabled = paginaReporteActual <= 1;
-    next.disabled = paginaReporteActual >= totalPages;
+    info.textContent = 'Página ' + paginaReporteActual + ' de ' + totalPaginas + ' - ' + totalElementos + ' ticket(s)';
+    anterior.disabled = paginaReporteActual <= 1;
+    siguiente.disabled = paginaReporteActual >= totalPaginas;
 }
 
-function restaurarPosicionElemento(element, previousTop) {
-    if (!element || previousTop === null) {
+function restaurarPosicionElemento(elemento, topeAnterior) {
+    if (!elemento || topeAnterior === null) {
         return;
     }
 
     window.requestAnimationFrame(function () {
-        const nextTop = element.getBoundingClientRect().top;
-        window.scrollBy(0, nextTop - previousTop);
+        const siguienteTope = elemento.getBoundingClientRect().top;
+        window.scrollBy(0, siguienteTope - topeAnterior);
     });
 }
 
-function preservarPosicionElemento(element, work) {
-    const previousTop = element ? element.getBoundingClientRect().top : null;
-    const result = typeof work === 'function' ? work() : null;
+function preservarPosicionElemento(elemento, trabajo) {
+    const topeAnterior = elemento ? elemento.getBoundingClientRect().top : null;
+    const resultado = typeof trabajo === 'function' ? trabajo() : null;
 
-    if (result && typeof result.then === 'function') {
-        return result.finally(function () {
-            restaurarPosicionElemento(element, previousTop);
+    if (resultado && typeof resultado.then === 'function') {
+        return resultado.finally(function () {
+            restaurarPosicionElemento(elemento, topeAnterior);
         });
     }
 
-    restaurarPosicionElemento(element, previousTop);
+    restaurarPosicionElemento(elemento, topeAnterior);
     return Promise.resolve();
 }
 
@@ -123,34 +123,34 @@ function renderizarPaginaPrevia() {
         return;
     }
 
-    const totalPages = Math.max(1, Math.ceil(filasReporte.length / filasPorPaginaReporte));
-    if (paginaReporteActual > totalPages) {
-        paginaReporteActual = totalPages;
+    const totalPaginas = Math.max(1, Math.ceil(filasReporte.length / filasPorPaginaReporte));
+    if (paginaReporteActual > totalPaginas) {
+        paginaReporteActual = totalPaginas;
     }
 
-    const start = (paginaReporteActual - 1) * filasPorPaginaReporte;
-    const pageRows = filasReporte.slice(start, start + filasPorPaginaReporte);
+    const inicio = (paginaReporteActual - 1) * filasPorPaginaReporte;
+    const filasPagina = filasReporte.slice(inicio, inicio + filasPorPaginaReporte);
 
-    pageRows.forEach(function (item) {
-        const tr = document.createElement('tr');
-        agregarCeldaCodigo(tr, item.codigo);
-        agregarCelda(tr, item.titulo);
-        agregarCeldaUsuario(tr, item.usuario, 'Sin usuario');
-        agregarCeldaUsuario(tr, item.tecnico, 'Sin asignar');
-        agregarCeldaEstado(tr, item.estado);
-        agregarCelda(tr, formatearFecha(item.fecha_creacion));
-        tbody.appendChild(tr);
+    filasPagina.forEach(function (item) {
+        const fila = document.createElement('tr');
+        agregarCeldaCodigo(fila, item.codigo);
+        agregarCelda(fila, item.titulo);
+        agregarCeldaUsuario(fila, item.usuario, 'Sin usuario');
+        agregarCeldaUsuario(fila, item.tecnico, 'Sin asignar');
+        agregarCeldaEstado(fila, item.estado);
+        agregarCelda(fila, formatearFecha(item.fecha_creacion));
+        tbody.appendChild(fila);
     });
 
-    actualizarPaginadorReporte(filasReporte.length, totalPages);
+    actualizarPaginadorReporte(filasReporte.length, totalPaginas);
 }
 
 async function cargarResumen() {
-    const data = await obtenerJson('/NexoTI/api.php?c=reporte&m=resumen');
-    porId('stat-total').textContent = data.total || 0;
-    porId('stat-abiertos').textContent = data.abiertos || 0;
-    porId('stat-progreso').textContent = data.en_progreso || 0;
-    porId('stat-cerrados').textContent = data.cerrados || 0;
+    const datos = await obtenerJson('/NexoTI/api.php?c=reporte&m=resumen');
+    porId('stat-total').textContent = datos.total || 0;
+    porId('stat-abiertos').textContent = datos.abiertos || 0;
+    porId('stat-progreso').textContent = datos.en_progreso || 0;
+    porId('stat-cerrados').textContent = datos.cerrados || 0;
 }
 
 async function cargarVistaPrevia() {
@@ -163,17 +163,17 @@ document.addEventListener('DOMContentLoaded', function () {
     cargarResumen();
     cargarVistaPrevia();
 
-    const btn = porId('reload-reportes');
-    if (btn) {
-        btn.addEventListener('click', function () {
+    const botonRecargar = porId('reload-reportes');
+    if (botonRecargar) {
+        botonRecargar.addEventListener('click', function () {
             cargarResumen();
             cargarVistaPrevia();
         });
     }
 
-    const prev = porId('reportes-prev');
-    if (prev) {
-        prev.addEventListener('click', function () {
+    const botonAnterior = porId('reportes-prev');
+    if (botonAnterior) {
+        botonAnterior.addEventListener('click', function () {
             if (paginaReporteActual <= 1) { return; }
             preservarPosicionElemento(porId('reportes-pager'), function () {
                 paginaReporteActual -= 1;
@@ -182,11 +182,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const next = porId('reportes-next');
-    if (next) {
-        next.addEventListener('click', function () {
-            const totalPages = Math.max(1, Math.ceil(filasReporte.length / filasPorPaginaReporte));
-            if (paginaReporteActual >= totalPages) { return; }
+    const botonSiguiente = porId('reportes-next');
+    if (botonSiguiente) {
+        botonSiguiente.addEventListener('click', function () {
+            const totalPaginas = Math.max(1, Math.ceil(filasReporte.length / filasPorPaginaReporte));
+            if (paginaReporteActual >= totalPaginas) { return; }
             preservarPosicionElemento(porId('reportes-pager'), function () {
                 paginaReporteActual += 1;
                 renderizarPaginaPrevia();

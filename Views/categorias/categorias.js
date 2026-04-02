@@ -147,16 +147,16 @@ function iniciarEdicion(row) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function renderizarCategorias(list) {
-    const container = obtenerNodo('categorias-list');
-    container.innerHTML = '';
+function renderizarCategorias(lista) {
+    const contenedor = obtenerNodo('categorias-list');
+    contenedor.innerHTML = '';
 
-    if (list.length === 0) {
-        container.innerHTML = '<p class="message">No hay categorías registradas.</p>';
+    if (lista.length === 0) {
+        contenedor.innerHTML = '<p class="message">No hay categorías registradas.</p>';
         return;
     }
 
-    list.forEach(function (row) {
+    lista.forEach(function (row) {
         const item = document.createElement('div');
         item.className = 'item';
 
@@ -218,7 +218,7 @@ function renderizarCategorias(list) {
         item.appendChild(title);
         item.appendChild(desc);
         item.appendChild(actions);
-        container.appendChild(item);
+        contenedor.appendChild(item);
     });
 }
 

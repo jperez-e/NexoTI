@@ -154,15 +154,15 @@ function iniciarEdicion(user) {
     window.scrollTo({ top: 0, behavior: 'smooth' });  
 }  
   
-function renderizarUsuarios(list) {  
-    const container = obtenerNodo('usuarios-list');  
-    if (!container) { return; }  
-    container.innerHTML = '';  
-    if (list.length === 0) {  
-        container.innerHTML = '<p class=\"message\">No hay usuarios registrados.</p>';  
+function renderizarUsuarios(lista) {  
+    const contenedor = obtenerNodo('usuarios-list');  
+    if (!contenedor) { return; }  
+    contenedor.innerHTML = '';  
+    if (lista.length === 0) {  
+        contenedor.innerHTML = '<p class=\"message\">No hay usuarios registrados.</p>';  
         return;  
     }  
-    list.forEach(function (row) {  
+    lista.forEach(function (row) {  
         const item = document.createElement('div');  
         item.className = 'item'; 
         const title = document.createElement('h3');  
@@ -206,7 +206,7 @@ function renderizarUsuarios(list) {
         item.appendChild(title);  
         item.appendChild(meta);  
         item.appendChild(actions);  
-        container.appendChild(item);  
+        contenedor.appendChild(item);  
     });  
 }  
   
