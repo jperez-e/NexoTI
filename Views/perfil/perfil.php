@@ -6,6 +6,8 @@ $fotoUrl = $foto !== '' ? '/NexoTI/' . ltrim($foto, '/') : '';
 $nombre = (string) ($usuario['nombre'] ?? 'Usuario');
 $email = (string) ($usuario['email'] ?? '');
 $rol = (string) ($usuario['rol_nombre'] ?? 'Sin rol');
+$mensajeFlash = $mensaje ?? $message ?? null;
+$errorFlash = $error ?? null;
 $parts = preg_split('/\s+/', trim($nombre));
 $initials = 'U';
 if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
@@ -55,12 +57,12 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                         <p><strong>Rol:</strong> <span class='role-badge'><?php echo htmlspecialchars($rol, ENT_QUOTES, 'UTF-8'); ?></span></p>
                     </div>
 
-                    <?php if ($message !== null): ?>
-                        <p class='message success'><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></p>
+                    <?php if ($mensajeFlash !== null): ?>
+                        <p class='message success'><?php echo htmlspecialchars((string) $mensajeFlash, ENT_QUOTES, 'UTF-8'); ?></p>
                     <?php endif; ?>
 
-                    <?php if ($error !== null): ?>
-                        <p class='message error'><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
+                    <?php if ($errorFlash !== null): ?>
+                        <p class='message error'><?php echo htmlspecialchars((string) $errorFlash, ENT_QUOTES, 'UTF-8'); ?></p>
                     <?php endif; ?>
 
                     <form action='/NexoTI/index.php?r=perfil-update' method='post' enctype='multipart/form-data' class='profile-form'>

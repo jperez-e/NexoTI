@@ -24,6 +24,8 @@ class PerfilController extends BaseController
             return;
         }
 
+        // Compatibilidad con la vista actual mientras se completa la estandarizacion.
+        $message = $mensaje;
         require __DIR__ . '/../Views/perfil/perfil.php';
     }
 
