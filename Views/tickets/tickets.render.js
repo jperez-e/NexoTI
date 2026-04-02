@@ -481,10 +481,12 @@ function buildTicketSummary(ticket, isExpanded) {
 
     const metaGrid = document.createElement('div');
     metaGrid.className = 'meta-grid';
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Usuario: ' + (ticket.usuario_nombre || 'N/A'), query));
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Técnico: ' + (ticket.tecnico_nombre || 'Sin asignar'), query));
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Categoría: ' + (ticket.categoria_nombre || 'N/A'), query));
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta', 'Prioridad: ' + (ticket.prioridad_nombre || 'N/A'), query));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta ticket-meta-user', 'Usuario: ' + (ticket.usuario_nombre || 'N/A'), query));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta ticket-meta-tech', 'Técnico: ' + (ticket.tecnico_nombre || 'Sin asignar'), query));
+    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta ticket-meta-category', 'Categoría: ' + (ticket.categoria_nombre || 'N/A'), query));
+    const priorityMeta = buildHighlightedTextElement('p', 'ticket-meta ticket-meta-priority', 'Prioridad: ' + (ticket.prioridad_nombre || 'N/A'), query);
+    priorityMeta.classList.add('ticket-meta-priority-' + normalizeStatusName(ticket.prioridad_nombre || ''));
+    metaGrid.appendChild(priorityMeta);
 
     const footer = document.createElement('div');
     footer.className = 'ticket-summary-footer';
