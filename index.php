@@ -8,16 +8,25 @@ require_once __DIR__ . '/Controllers/AuthController.php';
 require_once __DIR__ . '/Controllers/PerfilController.php';
 
 // Se genera el token al entrar al sistema para que los formularios protegidos puedan reutilizarlo.
-Csrf::token();
+Csrf::obtenerToken();
 
-$route = trim((string) ($_GET['r'] ?? ''));
-$auth = new AuthController();
+$rutaSolicitada = trim((string) ($_GET['r'] ?? ''));
+$aliasRutas = [
+    'iniciarSesion' => 'login',
+    'cerrarSesion' => 'logout',
+    'inicio' => 'home',
+    'registrar' => 'register',
+    'mostrar-registro' => 'show-register',
+];
+$ruta = $aliasRutas[$rutaSolicitada] ?? $rutaSolicitada;
+
+$autenticacion = new AuthController();
 $perfil = new PerfilController();
 
 // Estas rutas solo deben estar disponibles para el administrador.
-$adminRoutes = ['categorias', 'prioridades', 'estados', 'roles', 'usuarios', 'show-register', 'register', 'reportes'];
+$rutasAdmin = ['categorias', 'prioridades', 'estados', 'roles', 'usuarios', 'show-register', 'register', 'reportes'];
 // Este mapa asocia cada ruta protegida con la vista que debe cargarse.
-$protectedViewRoutes = [
+$rutasVistasProtegidas = [
     'tickets' => __DIR__ . '/Views/tickets/tickets.php',
     'perfil' => __DIR__ . '/Views/perfil/perfil.php',
     'categorias' => __DIR__ . '/Views/categorias/categorias.php',
@@ -28,48 +37,48 @@ $protectedViewRoutes = [
     'reportes' => __DIR__ . '/Views/reportes/reportes.php',
 ];
 
-if ($route === 'logout') {
-    $auth->logout();
+if ($ruta === 'logout') {
+    $autenticacion->cerrarSesion();
 }
 
 // Si no hay sesion iniciada, el usuario solo puede ver o procesar el login.
 if (!isset($_SESSION['user_id'])) {
-    if ($route === 'login') {
-        $auth->login();
+    if ($ruta === 'login') {
+        $autenticacion->iniciarSesion();
         exit;
     }
 
-    $auth->showLogin();
+    $autenticacion->mostrarLogin();
     exit;
 }
 
-$rolId = (int) ($_SESSION['rol_id'] ?? 0);
-if (in_array($route, $adminRoutes, true) && $rolId !== 1) {
+$idRol = (int) ($_SESSION['rol_id'] ?? 0);
+if (in_array($ruta, $rutasAdmin, true) && $idRol !== 1) {
     http_response_code(403);
     echo 'Acceso denegado.';
     exit;
 }
 
-if ($route === '' || $route === 'home') {
-    $auth->home();
+if ($ruta === '' || $ruta === 'home') {
+    $autenticacion->inicio();
     exit;
 }
 
 // Estas rutas ejecutan logica del controlador antes de decidir una vista final.
-$controllerRoutes = [
-    'perfil' => [$perfil, 'index'],
-    'perfil-update' => [$perfil, 'update'],
-    'show-register' => [$auth, 'showRegister'],
-    'register' => [$auth, 'register'],
+$rutasControlador = [
+    'perfil' => [$perfil, 'mostrar'],
+    'perfil-update' => [$perfil, 'actualizar'],
+    'show-register' => [$autenticacion, 'mostrarRegistro'],
+    'register' => [$autenticacion, 'registrar'],
 ];
 
-if (isset($controllerRoutes[$route])) {
-    $controllerRoutes[$route]();
+if (isset($rutasControlador[$ruta])) {
+    $rutasControlador[$ruta]();
     exit;
 }
 
-if (isset($protectedViewRoutes[$route])) {
-    require $protectedViewRoutes[$route];
+if (isset($rutasVistasProtegidas[$ruta])) {
+    require $rutasVistasProtegidas[$ruta];
     exit;
 }
 

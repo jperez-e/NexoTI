@@ -9,10 +9,10 @@ class ComentarioModel
 
     public function __construct()
     {
-        $this->db = Conexion::get();
+        $this->db = Conexion::obtener();
     }
 
-    public function insert(int $ticketId, int $usuarioId, string $comentario): bool
+    public function insertar(int $ticketId, int $usuarioId, string $comentario): bool
     {
         $sql = 'INSERT INTO comentarios_ticket (ticket_id, usuario_id, comentario) VALUES (:ticket_id, :usuario_id, :comentario)';
         $stmt = $this->db->prepare($sql);
@@ -23,12 +23,12 @@ class ComentarioModel
         ]);
     }
 
-    public function getLastInsertId(): int
+    public function obtenerUltimoIdInsertado(): int
     {
         return (int) $this->db->lastInsertId();
     }
 
-    public function getAll(): array
+    public function obtenerTodos(): array
     {
         $sql = 'SELECT c.id, c.ticket_id, c.usuario_id, c.comentario, c.fecha, '
             . 'u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre, '
@@ -41,7 +41,7 @@ class ComentarioModel
         return $this->db->query($sql)->fetchAll();
     }
 
-    public function getByUsuario(int $usuarioId): array
+    public function obtenerPorUsuario(int $usuarioId): array
     {
         // El usuario final solo debe ver comentarios de tickets que le pertenecen.
         $sql = 'SELECT c.id, c.ticket_id, c.usuario_id, c.comentario, c.fecha, '
@@ -58,7 +58,7 @@ class ComentarioModel
         return $stmt->fetchAll();
     }
 
-    public function getByTecnico(int $tecnicoId): array
+    public function obtenerPorTecnico(int $tecnicoId): array
     {
         // El tecnico solo consulta comentarios de tickets asignados a el.
         $sql = 'SELECT c.id, c.ticket_id, c.usuario_id, c.comentario, c.fecha, '

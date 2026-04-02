@@ -1,4 +1,4 @@
-function buildParticipant(name, roleName, photoUrl, helperText, options) {
+function construirParticipante(name, roleName, photoUrl, helperText, options) {
     const config = options || {};
     const item = document.createElement('div');
     item.className = 'participant-card';
@@ -8,19 +8,19 @@ function buildParticipant(name, roleName, photoUrl, helperText, options) {
     title.textContent = name;
     const role = document.createElement('span');
     role.className = 'participant-role';
-    role.textContent = normalizeRoleLabel(roleName);
+    role.textContent = normalizarEtiquetaRol(roleName);
     const helper = document.createElement('small');
     helper.textContent = helperText;
     content.appendChild(title);
     content.appendChild(role);
     content.appendChild(helper);
-    item.appendChild(createAvatar(name, photoUrl, 'participant-avatar'));
+    item.appendChild(crearAvatar(name, photoUrl, 'participant-avatar'));
     item.appendChild(content);
     if (config.removable) {
         const removeButton = document.createElement('button');
         removeButton.type = 'button';
         removeButton.className = 'btn ghost participant-remove';
-        setButtonContent(removeButton, 'close', 'Quitar');
+        establecerContenidoBoton(removeButton, 'close', 'Quitar');
         removeButton.addEventListener('click', function () {
             if (typeof config.onRemove === 'function') {
                 config.onRemove(removeButton);
@@ -31,11 +31,11 @@ function buildParticipant(name, roleName, photoUrl, helperText, options) {
     return item;
 }
 
-function buildParticipantsPanel(ticket) {
+function construirPanelParticipantes(ticket) {
     const baseUserId = Number(ticket.usuario_id || 0);
     const baseTechId = Number(ticket.tecnico_id || 0);
-    const canManageParticipants = isAdminUser() || (isTechUser() && baseTechId === currentUserId());
-    const extras = participantsForTicket(ticket.id).filter(function (participant) {
+    const canManageParticipants = esUsuarioAdmin() || (esUsuarioTecnico() && baseTechId === idUsuarioActual());
+    const extras = participantesPorTicket(ticket.id).filter(function (participant) {
         const id = Number(participant.usuario_id || 0);
         return id > 0 && id !== baseUserId && id !== baseTechId;
     });
@@ -48,11 +48,11 @@ function buildParticipantsPanel(ticket) {
     head.innerHTML = '<strong>Participantes</strong><span>' + String(totalParticipants) + '</span>';
     const list = document.createElement('div');
     list.className = 'participants-list';
-    list.appendChild(buildParticipant(ticket.usuario_nombre || 'Usuario', ticket.usuario_rol_nombre || 'Usuario', resolvePhoto(ticket.usuario_foto), 'Solicitante'));
+    list.appendChild(construirParticipante(ticket.usuario_nombre || 'Usuario', ticket.usuario_rol_nombre || 'Usuario', resolverFoto(ticket.usuario_foto), 'Solicitante'));
     if (ticket.tecnico_id) {
-        list.appendChild(buildParticipant(ticket.tecnico_nombre || 'Técnico', ticket.tecnico_rol_nombre || 'Técnico', resolvePhoto(ticket.tecnico_foto), 'Responsable actual'));
+        list.appendChild(construirParticipante(ticket.tecnico_nombre || 'Técnico', ticket.tecnico_rol_nombre || 'Técnico', resolverFoto(ticket.tecnico_foto), 'Responsable actual'));
     } else {
-        list.appendChild(buildParticipant('Sin asignar', 'Técnico', '', 'Pendiente de asignación'));
+        list.appendChild(construirParticipante('Sin asignar', 'Técnico', '', 'Pendiente de asignación'));
     }
     const participantMessage = document.createElement('span');
     participantMessage.className = 'message inline-message';
@@ -61,15 +61,15 @@ function buildParticipantsPanel(ticket) {
     participantMessage.setAttribute('aria-hidden', 'true');
 
     extras.forEach(function (participant) {
-        list.appendChild(buildParticipant(
+        list.appendChild(construirParticipante(
             participant.usuario_nombre || 'Participante',
             participant.rol_nombre || 'Usuario',
-            resolvePhoto(participant.usuario_foto),
+            resolverFoto(participant.usuario_foto),
             'Participante adicional',
             canManageParticipants ? {
                 removable: true,
                 onRemove: function (button) {
-                    submitParticipantRemove(ticket, Number(participant.usuario_id || 0), participantMessage, button);
+                    quitarParticipanteEnLinea(ticket, Number(participant.usuario_id || 0), participantMessage, button);
                 },
             } : null
         ));
@@ -94,8 +94,8 @@ function buildParticipantsPanel(ticket) {
         placeholder.value = '';
         placeholder.textContent = 'Selecciona técnico o usuario';
         select.appendChild(placeholder);
-        participantCandidates.forEach(function (candidate) {
-            if (!participantRoleAllowed(candidate.rol_id) || usedIds[String(candidate.id)]) {
+        candidatosParticipantes.forEach(function (candidate) {
+            if (!rolParticipantePermitido(candidate.rol_id) || usedIds[String(candidate.id)]) {
                 return;
             }
             const option = document.createElement('option');
@@ -107,9 +107,9 @@ function buildParticipantsPanel(ticket) {
         const addButton = document.createElement('button');
         addButton.type = 'button';
         addButton.className = 'btn primary';
-        setButtonContent(addButton, 'users', 'Agregar');
+        establecerContenidoBoton(addButton, 'users', 'Agregar');
         addButton.addEventListener('click', function () {
-            submitParticipantAdd(ticket, select, participantMessage, addButton);
+            agregarParticipanteEnLinea(ticket, select, participantMessage, addButton);
         });
         manager.appendChild(managerLabel);
         manager.appendChild(addButton);
@@ -125,9 +125,9 @@ function buildParticipantsPanel(ticket) {
     return panel;
 }
 
-function buildThreadEntry(entry) {
+function construirEntradaHilo(entry) {
     const item = document.createElement('div');
-    item.className = 'thread-entry role-' + roleClassName(entry.roleName) + (entry.variant ? ' ' + entry.variant : '');
+    item.className = 'thread-entry role-' + nombreClaseRol(entry.roleName) + (entry.variant ? ' ' + entry.variant : '');
     const body = document.createElement('div');
     body.className = 'thread-body';
     const head = document.createElement('div');
@@ -137,12 +137,12 @@ function buildThreadEntry(entry) {
     const strong = document.createElement('strong');
     strong.textContent = entry.name;
     author.appendChild(strong);
-    author.appendChild(buildRoleBadge(entry.roleName));
+    author.appendChild(construirInsigniaRol(entry.roleName));
     const meta = document.createElement('div');
     meta.className = 'thread-meta';
     const date = document.createElement('span');
     date.className = 'thread-date';
-    date.textContent = formatTicketDate(entry.dateText);
+    date.textContent = formatearFechaTicket(entry.dateText);
     meta.appendChild(date);
     if (entry.tag) {
         const tag = document.createElement('span');
@@ -157,12 +157,12 @@ function buildThreadEntry(entry) {
     head.appendChild(meta);
     body.appendChild(head);
     body.appendChild(text);
-    item.appendChild(createAvatar(entry.name, entry.photoUrl, 'thread-avatar'));
+    item.appendChild(crearAvatar(entry.name, entry.photoUrl, 'thread-avatar'));
     item.appendChild(body);
     return item;
 }
 
-function buildAttachmentEntry(attachment) {
+function construirEntradaAdjunto(attachment) {
     const item = document.createElement('div');
     item.className = 'thread-entry is-attachment';
     const body = document.createElement('div');
@@ -175,14 +175,14 @@ function buildAttachmentEntry(attachment) {
     strong.textContent = attachment.usuario_nombre ? 'Evidencia de ' + attachment.usuario_nombre : 'Evidencia adjunta';
     author.appendChild(strong);
     if (attachment.rol_nombre) {
-        author.appendChild(buildRoleBadge(attachment.rol_nombre));
+        author.appendChild(construirInsigniaRol(attachment.rol_nombre));
     }
 
     const meta = document.createElement('div');
     meta.className = 'thread-meta';
     const date = document.createElement('span');
     date.className = 'thread-date';
-    date.textContent = formatTicketDate(attachment.creado_en);
+    date.textContent = formatearFechaTicket(attachment.creado_en);
     const tag = document.createElement('span');
     tag.className = 'thread-tag';
     tag.textContent = 'Evidencia';
@@ -193,14 +193,14 @@ function buildAttachmentEntry(attachment) {
     wrap.className = 'attachment-wrap';
     const link = document.createElement('a');
     link.className = 'attachment-link';
-    link.href = resolveAttachment(attachment.archivo);
+    link.href = resolverAdjunto(attachment.archivo);
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
 
-    if (isImageAttachment(attachment.nombre_original)) {
+    if (esAdjuntoImagen(attachment.nombre_original)) {
         const image = document.createElement('img');
         image.className = 'attachment-image';
-        image.src = resolveAttachment(attachment.archivo);
+        image.src = resolverAdjunto(attachment.archivo);
         image.alt = attachment.nombre_original || 'Adjunto del ticket';
         link.appendChild(image);
     } else {
@@ -223,23 +223,23 @@ function buildAttachmentEntry(attachment) {
     head.appendChild(meta);
     body.appendChild(head);
     body.appendChild(wrap);
-    item.appendChild(createAvatar(attachment.usuario_nombre || 'Evidencia', resolvePhoto(attachment.usuario_foto), 'thread-avatar attachment-avatar'));
+    item.appendChild(crearAvatar(attachment.usuario_nombre || 'Evidencia', resolverFoto(attachment.usuario_foto), 'thread-avatar attachment-avatar'));
     item.appendChild(body);
     return item;
 }
 
-function buildTicketThread(ticket) {
+function construirHiloTicket(ticket) {
     const wrapper = document.createElement('div');
     wrapper.className = 'ticket-thread';
-    const attachments = attachmentsForTicket(ticket.id);
-    const comments = allComments
+    const attachments = adjuntosPorTicket(ticket.id);
+    const comments = todosComentarios
         .filter(function (comment) { return String(comment.ticket_id) === String(ticket.id); })
         .slice()
         .reverse();
-    wrapper.appendChild(buildThreadEntry({
+    wrapper.appendChild(construirEntradaHilo({
         name: ticket.usuario_nombre || 'Usuario',
         roleName: ticket.usuario_rol_nombre || 'Usuario',
-        photoUrl: resolvePhoto(ticket.usuario_foto),
+        photoUrl: resolverFoto(ticket.usuario_foto),
         dateText: ticket.fecha_creacion,
         bodyText: String(ticket.descripcion || '').trim() || 'Sin descripción.',
         tag: 'Descripción',
@@ -247,17 +247,17 @@ function buildTicketThread(ticket) {
     }));
 
     attachments.forEach(function (attachment) {
-        wrapper.appendChild(buildAttachmentEntry(attachment));
+        wrapper.appendChild(construirEntradaAdjunto(attachment));
     });
     comments.forEach(function (comment) {
         const commentText = String(comment.comentario || '').trim();
-        const normalizedCommentText = normalizeStatusName(commentText);
+        const normalizedCommentText = normalizarNombreEstado(commentText);
         const isClosureAccepted = normalizedCommentText.includes('acepto la solucion')
             && normalizedCommentText.includes('confirmo el cierre');
-        wrapper.appendChild(buildThreadEntry({
+        wrapper.appendChild(construirEntradaHilo({
             name: comment.usuario_nombre || 'Usuario',
             roleName: comment.rol_nombre || 'Usuario',
-            photoUrl: resolvePhoto(comment.usuario_foto),
+            photoUrl: resolverFoto(comment.usuario_foto),
             dateText: comment.fecha,
             bodyText: commentText,
             variant: isClosureAccepted ? 'is-closure-accepted' : 'is-comment',
@@ -266,50 +266,50 @@ function buildTicketThread(ticket) {
     return wrapper;
 }
 
-function buildNotificationTitle(ticket) {
-    const state = normalizeStatusName(ticket.estado_nombre);
-    if (isAdminUser() && state === 'abierto') {
+function construirTituloNotificacion(ticket) {
+    const state = normalizarNombreEstado(ticket.estado_nombre);
+    if (esUsuarioAdmin() && state === 'abierto') {
         return 'Ticket abierto pendiente';
     }
-    if (isTechUser()) {
+    if (esUsuarioTecnico()) {
         return 'Seguimiento asignado';
     }
     return 'Pendiente de confirmación';
 }
 
-function renderNotificationsPanel() {
-    if (!dom.noticePanel || !dom.noticeCount) { return; }
-    dom.noticeCount.textContent = String(notificationTotal);
-    dom.noticeCount.classList.toggle('hidden', notificationTotal === 0);
-    dom.noticeCount.setAttribute('aria-hidden', notificationTotal === 0 ? 'true' : 'false');
-    dom.noticePanel.innerHTML = '';
+function renderizarPanelNotificaciones() {
+    if (!domElementos.noticePanel || !domElementos.noticeCount) { return; }
+    domElementos.noticeCount.textContent = String(totalNotificaciones);
+    domElementos.noticeCount.classList.toggle('hidden', totalNotificaciones === 0);
+    domElementos.noticeCount.setAttribute('aria-hidden', totalNotificaciones === 0 ? 'true' : 'false');
+    domElementos.noticePanel.innerHTML = '';
     const header = document.createElement('div');
     header.className = 'notice-header';
     const heading = document.createElement('strong');
     heading.textContent = 'Notificaciones';
     header.appendChild(heading);
-    if (notificationTotal > 0) {
+    if (totalNotificaciones > 0) {
         const markAllButton = document.createElement('button');
         markAllButton.type = 'button';
         markAllButton.className = 'notice-action';
         markAllButton.textContent = 'Marcar todas';
         markAllButton.addEventListener('click', async function () {
-            const data = await postJSON('api.php?c=notificacion&m=readAll', {});
+            const data = await enviarJson('api.php?c=notificacion&m=readAll', {});
             if (data.status) {
-                await loadNotifications();
+                await cargarNotificaciones();
             }
         });
         header.appendChild(markAllButton);
     }
-    dom.noticePanel.appendChild(header);
-    if (notificationItems.length === 0) {
+    domElementos.noticePanel.appendChild(header);
+    if (itemsNotificaciones.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'notice-empty';
         empty.textContent = 'No hay notificaciones pendientes.';
-        dom.noticePanel.appendChild(empty);
+        domElementos.noticePanel.appendChild(empty);
         return;
     }
-    notificationItems.forEach(function (notification) {
+    itemsNotificaciones.forEach(function (notification) {
         const item = document.createElement('div');
         item.className = 'notice-item';
         item.classList.toggle('is-read', Number(notification.leida || 0) === 1);
@@ -319,7 +319,7 @@ function renderNotificationsPanel() {
         text.textContent = notification.mensaje || '';
         const meta = document.createElement('small');
         const code = notification.ticket_codigo ? String(notification.ticket_codigo) + ' · ' : '';
-        meta.textContent = code + formatTicketDate(notification.creada_en);
+        meta.textContent = code + formatearFechaTicket(notification.creada_en);
         item.appendChild(title);
         item.appendChild(text);
         item.appendChild(meta);
@@ -329,40 +329,40 @@ function renderNotificationsPanel() {
             action.className = 'notice-action';
             action.textContent = 'Marcar como leída';
             action.addEventListener('click', async function () {
-                const data = await postJSON('api.php?c=notificacion&m=read', { id: notification.id });
+                const data = await enviarJson('api.php?c=notificacion&m=read', { id: notification.id });
                 if (data.status) {
-                    await loadNotifications();
+                    await cargarNotificaciones();
                 }
             });
             item.appendChild(action);
         }
-        dom.noticePanel.appendChild(item);
+        domElementos.noticePanel.appendChild(item);
     });
 }
 
-function buildInlineReply(ticket, messageNode, toggleButton) {
+function construirRespuestaEnLinea(ticket, messageNode, toggleButton) {
     const box = document.createElement('div');
     box.className = 'inline-reply';
     box.id = 'ticket-reply-' + ticket.id;
     const composer = document.createElement('div');
     composer.className = 'reply-composer';
-    composer.appendChild(createAvatar(bodyData('userName'), bodyData('userPhoto'), 'reply-avatar'));
+    composer.appendChild(crearAvatar(datoBody('userName'), datoBody('userPhoto'), 'reply-avatar'));
     const body = document.createElement('div');
     body.className = 'reply-body';
     const identity = document.createElement('div');
     identity.className = 'reply-identity';
     const strong = document.createElement('strong');
-    strong.textContent = bodyData('userName');
+    strong.textContent = datoBody('userName');
     identity.appendChild(strong);
-    identity.appendChild(buildRoleBadge(bodyData('roleName')));
+    identity.appendChild(construirInsigniaRol(datoBody('roleName')));
     body.appendChild(identity);
     let stateSelect = null;
-    if (isTechUser()) {
+    if (esUsuarioTecnico()) {
         const stateLabel = document.createElement('label');
         stateLabel.className = 'reply-state';
         stateLabel.textContent = 'Estado';
         stateSelect = document.createElement('select');
-        availableStatuses.filter(function (status) {
+        estadosDisponibles.filter(function (status) {
             return String(status.nombre).toLowerCase() !== 'cerrado';
         }).forEach(function (status) {
             const option = document.createElement('option');
@@ -392,24 +392,24 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
     cancelButton.className = 'btn ghost';
-    setButtonContent(cancelButton, 'close', 'Cancelar');
+    establecerContenidoBoton(cancelButton, 'close', 'Cancelar');
     cancelButton.addEventListener('click', function () {
-        preserveTicketPosition(ticket.id, function () {
-            openReplyTicketId = null;
+        preservarPosicionTicket(ticket.id, function () {
+            idTicketRespuestaAbierta = null;
             textarea.value = '';
             attachmentInput.value = '';
             box.classList.remove('is-open');
             toggleButton.setAttribute('aria-expanded', 'false');
-            setButtonContent(toggleButton, 'reply', 'Responder');
-            setInlineMessage(messageNode, '', '');
+            establecerContenidoBoton(toggleButton, 'reply', 'Responder');
+            establecerMensajeEnLinea(messageNode, '', '');
         });
     });
     const sendButton = document.createElement('button');
     sendButton.type = 'button';
     sendButton.className = 'btn primary';
-    setButtonContent(sendButton, 'reply', 'Responder');
+    establecerContenidoBoton(sendButton, 'reply', 'Responder');
     sendButton.addEventListener('click', function () {
-        submitInlineReply(ticket, textarea, stateSelect, attachmentInput, messageNode, box, toggleButton, sendButton);
+        enviarRespuestaEnLinea(ticket, textarea, stateSelect, attachmentInput, messageNode, box, toggleButton, sendButton);
     });
     actions.appendChild(cancelButton);
     actions.appendChild(sendButton);
@@ -420,7 +420,7 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     return { box: box, textarea: textarea };
 }
 
-function buildInlineAssignment(ticket) {
+function construirAsignacionEnLinea(ticket) {
     const panel = document.createElement('div');
     panel.className = 'inline-assign';
 
@@ -439,7 +439,7 @@ function buildInlineAssignment(ticket) {
     emptyOption.value = '';
     emptyOption.textContent = 'Sin asignar';
     techSelect.appendChild(emptyOption);
-    availableTechnicians.forEach(function (tecnico) {
+    tecnicosDisponibles.forEach(function (tecnico) {
         const option = document.createElement('option');
         option.value = tecnico.id;
         option.textContent = tecnico.nombre + ' (' + tecnico.email + ')';
@@ -454,7 +454,7 @@ function buildInlineAssignment(ticket) {
     stateLabel.className = 'inline-assign-field';
     stateLabel.textContent = 'Estado';
     const stateSelect = document.createElement('select');
-    availableStatuses.forEach(function (status) {
+    estadosDisponibles.forEach(function (status) {
         const option = document.createElement('option');
         option.value = status.id;
         option.textContent = status.nombre;
@@ -478,9 +478,9 @@ function buildInlineAssignment(ticket) {
     const assignButton = document.createElement('button');
     assignButton.type = 'button';
     assignButton.className = 'btn primary';
-    setButtonContent(assignButton, 'refresh', 'Guardar asignación');
+    establecerContenidoBoton(assignButton, 'refresh', 'Guardar asignación');
     assignButton.addEventListener('click', function () {
-        submitInlineAssignment(ticket, techSelect, stateSelect, messageNode, assignButton);
+        guardarAsignacionEnLinea(ticket, techSelect, stateSelect, messageNode, assignButton);
     });
     footer.appendChild(assignButton);
     footer.appendChild(messageNode);
@@ -491,11 +491,11 @@ function buildInlineAssignment(ticket) {
     return panel;
 }
 
-function buildInlineActions(ticket) {
+function construirAccionesEnLinea(ticket) {
     const wrapper = document.createElement('div');
     wrapper.className = 'inline-tools';
-    if (isAdminUser()) {
-        wrapper.appendChild(buildInlineAssignment(ticket));
+    if (esUsuarioAdmin()) {
+        wrapper.appendChild(construirAsignacionEnLinea(ticket));
     }
     const actions = document.createElement('div');
     actions.className = 'inline-actions';
@@ -508,19 +508,19 @@ function buildInlineActions(ticket) {
     replyButton.type = 'button';
     replyButton.className = 'btn ghost';
     replyButton.setAttribute('aria-expanded', 'false');
-    setButtonContent(replyButton, 'reply', 'Responder');
-    const reply = buildInlineReply(ticket, messageNode, replyButton);
-    if (String(openReplyTicketId || '') === String(ticket.id)) {
+    establecerContenidoBoton(replyButton, 'reply', 'Responder');
+    const reply = construirRespuestaEnLinea(ticket, messageNode, replyButton);
+    if (String(idTicketRespuestaAbierta || '') === String(ticket.id)) {
         reply.box.classList.add('is-open');
         replyButton.setAttribute('aria-expanded', 'true');
-        setButtonContent(replyButton, 'reply', 'Ocultar respuesta');
+        establecerContenidoBoton(replyButton, 'reply', 'Ocultar respuesta');
     }
     replyButton.setAttribute('aria-controls', reply.box.id);
     replyButton.addEventListener('click', function () {
         const scrollTop = window.scrollY;
         const isOpen = reply.box.classList.toggle('is-open');
-        openReplyTicketId = isOpen ? String(ticket.id) : null;
-        setButtonContent(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
+        idTicketRespuestaAbierta = isOpen ? String(ticket.id) : null;
+        establecerContenidoBoton(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
         replyButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         window.requestAnimationFrame(function () {
             window.scrollTo(0, scrollTop);
@@ -536,13 +536,13 @@ function buildInlineActions(ticket) {
         });
     });
     actions.appendChild(replyButton);
-    if (isEndUser() && String(ticket.estado_nombre).toLowerCase() === 'resuelto') {
+    if (esUsuarioFinal() && String(ticket.estado_nombre).toLowerCase() === 'resuelto') {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'btn primary';
-        setButtonContent(closeButton, 'close', 'Confirmar cierre');
+        establecerContenidoBoton(closeButton, 'close', 'Confirmar cierre');
         closeButton.addEventListener('click', function () {
-            closeInlineTicket(ticket.id, messageNode, closeButton);
+            cerrarTicketEnLinea(ticket.id, messageNode, closeButton);
         });
         actions.appendChild(closeButton);
     }
@@ -551,8 +551,8 @@ function buildInlineActions(ticket) {
     return wrapper;
 }
 
-function buildTicketSummary(ticket, isExpanded) {
-    const query = normalizedSearchQuery();
+function construirResumenTicket(ticket, isExpanded) {
+    const query = consultaBusquedaNormalizada();
     const summary = document.createElement('button');
     summary.type = 'button';
     summary.className = 'ticket-summary';
@@ -567,30 +567,30 @@ function buildTicketSummary(ticket, isExpanded) {
     head.className = 'ticket-head';
     const info = document.createElement('div');
     info.className = 'ticket-head-main';
-    const code = buildHighlightedTextElement('strong', '', ticket.codigo, query);
-    const title = buildHighlightedTextElement('h3', '', ticket.titulo, query);
+    const code = construirElementoTextoResaltado('strong', '', ticket.codigo, query);
+    const title = construirElementoTextoResaltado('h3', '', ticket.titulo, query);
     info.appendChild(code);
     info.appendChild(title);
     const status = document.createElement('span');
     status.className = 'status';
-    status.classList.add('status-' + statusClassSuffix(ticket.estado_nombre || ''));
-    appendHighlightedText(status, ticket.estado_nombre ? ticket.estado_nombre : 'Sin estado', query);
+    status.classList.add('status-' + sufijoClaseEstado(ticket.estado_nombre || ''));
+    agregarTextoResaltado(status, ticket.estado_nombre ? ticket.estado_nombre : 'Sin estado', query);
     head.appendChild(info);
     head.appendChild(status);
 
     const metaGrid = document.createElement('div');
     metaGrid.className = 'meta-grid';
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta ticket-meta-user', 'Usuario: ' + (ticket.usuario_nombre || 'N/A'), query));
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta ticket-meta-tech', 'Técnico: ' + (ticket.tecnico_nombre || 'Sin asignar'), query));
-    metaGrid.appendChild(buildHighlightedTextElement('p', 'ticket-meta ticket-meta-category', 'Categoría: ' + (ticket.categoria_nombre || 'N/A'), query));
-    const priorityMeta = buildHighlightedTextElement('p', 'ticket-meta ticket-meta-priority', 'Prioridad: ' + (ticket.prioridad_nombre || 'N/A'), query);
-    priorityMeta.classList.add('ticket-meta-priority-' + normalizeStatusName(ticket.prioridad_nombre || ''));
+    metaGrid.appendChild(construirElementoTextoResaltado('p', 'ticket-meta ticket-meta-user', 'Usuario: ' + (ticket.usuario_nombre || 'N/A'), query));
+    metaGrid.appendChild(construirElementoTextoResaltado('p', 'ticket-meta ticket-meta-tech', 'Técnico: ' + (ticket.tecnico_nombre || 'Sin asignar'), query));
+    metaGrid.appendChild(construirElementoTextoResaltado('p', 'ticket-meta ticket-meta-category', 'Categoría: ' + (ticket.categoria_nombre || 'N/A'), query));
+    const priorityMeta = construirElementoTextoResaltado('p', 'ticket-meta ticket-meta-priority', 'Prioridad: ' + (ticket.prioridad_nombre || 'N/A'), query);
+    priorityMeta.classList.add('ticket-meta-priority-' + normalizarNombreEstado(ticket.prioridad_nombre || ''));
     metaGrid.appendChild(priorityMeta);
 
     const footer = document.createElement('div');
     footer.className = 'ticket-summary-footer';
-    footer.appendChild(buildMeta('Fecha: ' + formatTicketDate(ticket.fecha_creacion)));
-    footer.appendChild(buildMeta('Mensajes: ' + countCommentsForTicket(ticket.id)));
+    footer.appendChild(construirMeta('Fecha: ' + formatearFechaTicket(ticket.fecha_creacion)));
+    footer.appendChild(construirMeta('Mensajes: ' + contarComentariosPorTicket(ticket.id)));
 
     const toggle = document.createElement('span');
     toggle.className = 'ticket-toggle';
@@ -605,31 +605,31 @@ function buildTicketSummary(ticket, isExpanded) {
     return summary;
 }
 
-function buildTicketDetails(ticket) {
+function construirDetalleTicket(ticket) {
     const details = document.createElement('div');
     details.className = 'ticket-details';
     details.id = 'ticket-details-' + ticket.id;
-    details.appendChild(buildParticipantsPanel(ticket));
-    details.appendChild(buildTicketThread(ticket));
-    details.appendChild(buildInlineActions(ticket));
+    details.appendChild(construirPanelParticipantes(ticket));
+    details.appendChild(construirHiloTicket(ticket));
+    details.appendChild(construirAccionesEnLinea(ticket));
     return details;
 }
 
-function getTicketNode(ticketId) {
+function obtenerNodoTicket(ticketId) {
     return document.querySelector('[data-ticket-id="' + ticketId + '"]');
 }
 
-function restoreTicketPosition(ticketId, previousTop) {
+function restaurarPosicionTicket(ticketId, previousTop) {
     if (previousTop === null) { return; }
     window.requestAnimationFrame(function () {
-        const nextNode = getTicketNode(ticketId);
+        const nextNode = obtenerNodoTicket(ticketId);
         if (!nextNode) { return; }
         const nextTop = nextNode.getBoundingClientRect().top;
         window.scrollBy(0, nextTop - previousTop);
     });
 }
 
-function restoreElementPosition(element, previousTop) {
+function restaurarPosicionElemento(element, previousTop) {
     if (!element || previousTop === null) { return; }
     window.requestAnimationFrame(function () {
         const nextTop = element.getBoundingClientRect().top;
@@ -637,115 +637,115 @@ function restoreElementPosition(element, previousTop) {
     });
 }
 
-function preserveElementPosition(element, work) {
+function preservarPosicionElemento(element, work) {
     const previousTop = element ? element.getBoundingClientRect().top : null;
     const result = typeof work === 'function' ? work() : null;
 
     if (result && typeof result.then === 'function') {
         return result.finally(function () {
-            restoreElementPosition(element, previousTop);
+            restaurarPosicionElemento(element, previousTop);
         });
     }
 
-    restoreElementPosition(element, previousTop);
+    restaurarPosicionElemento(element, previousTop);
     return Promise.resolve();
 }
 
-function preserveTicketPosition(ticketId, work) {
-    const currentNode = getTicketNode(ticketId);
+function preservarPosicionTicket(ticketId, work) {
+    const currentNode = obtenerNodoTicket(ticketId);
     const previousTop = currentNode ? currentNode.getBoundingClientRect().top : null;
     const result = typeof work === 'function' ? work() : null;
 
     if (result && typeof result.then === 'function') {
         return result.finally(function () {
             // Al re-renderizar el listado, restauramos la posición del ticket activo para evitar saltos molestos.
-            restoreTicketPosition(ticketId, previousTop);
+            restaurarPosicionTicket(ticketId, previousTop);
         });
     }
 
-    restoreTicketPosition(ticketId, previousTop);
+    restaurarPosicionTicket(ticketId, previousTop);
     return Promise.resolve();
 }
 
-function renderTickets(tickets) {
-    if (!dom.ticketsList) { return; }
-    dom.ticketsList.innerHTML = '';
-    updateResultsInfo();
-    updateTicketsPager();
+function renderizarTickets(tickets) {
+    if (!domElementos.ticketsList) { return; }
+    domElementos.ticketsList.innerHTML = '';
+    actualizarInfoResultados();
+    actualizarPaginadorTickets();
     if (tickets.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'empty';
-        empty.textContent = normalizedSearchQuery() === '' ? 'No hay tickets registrados.' : 'No se encontraron tickets con ese criterio de búsqueda.';
-        dom.ticketsList.appendChild(empty);
+        empty.textContent = consultaBusquedaNormalizada() === '' ? 'No hay tickets registrados.' : 'No se encontraron tickets con ese criterio de búsqueda.';
+        domElementos.ticketsList.appendChild(empty);
         return;
     }
-    if (expandedTicketId !== null && !pageTickets.some(function (ticket) { return String(ticket.id) === String(expandedTicketId); })) {
-        expandedTicketId = null;
+    if (idTicketExpandido !== null && !ticketsPagina.some(function (ticket) { return String(ticket.id) === String(idTicketExpandido); })) {
+        idTicketExpandido = null;
     }
     const list = document.createElement('div');
     list.className = 'ticket-list';
     // El listado se dibuja de nuevo en cada filtro o actualizacion para mantener resumen y detalle sincronizados.
-    pageTickets.forEach(function (ticket) {
+    ticketsPagina.forEach(function (ticket) {
         const item = document.createElement('article');
         item.className = 'ticket-item';
         item.dataset.ticketId = String(ticket.id);
-        const isExpanded = String(ticket.id) === String(expandedTicketId);
+        const isExpanded = String(ticket.id) === String(idTicketExpandido);
         item.classList.toggle('is-open', isExpanded);
-        const summary = buildTicketSummary(ticket, isExpanded);
+        const summary = construirResumenTicket(ticket, isExpanded);
         summary.addEventListener('click', function () {
-            preserveTicketPosition(ticket.id, async function () {
+            preservarPosicionTicket(ticket.id, async function () {
                 if (isExpanded) {
-                    openReplyTicketId = null;
+                    idTicketRespuestaAbierta = null;
                 }
-                expandedTicketId = isExpanded ? null : ticket.id;
-                await loadExpandedTicketData(expandedTicketId);
-                renderTickets(pageTickets);
+                idTicketExpandido = isExpanded ? null : ticket.id;
+                await cargarDatosTicketExpandido(idTicketExpandido);
+                renderizarTickets(ticketsPagina);
             });
         });
         item.appendChild(summary);
         if (isExpanded) {
-            item.appendChild(buildTicketDetails(ticket));
+            item.appendChild(construirDetalleTicket(ticket));
         }
         list.appendChild(item);
     });
-    dom.ticketsList.appendChild(list);
+    domElementos.ticketsList.appendChild(list);
 }
 
-function refreshTicketSelects() {
-    if (dom.closeTicket) {
-        fillSelect(dom.closeTicket, closableTickets, function (ticket) {
+function refrescarSelectsTicket() {
+    if (domElementos.closeTicket) {
+        llenarSelect(domElementos.closeTicket, ticketsCerrables, function (ticket) {
             return ticket.codigo + ' - ' + ticket.titulo;
         }, 'id');
     }
 }
 
-function updateResultsInfo() {
-    if (!dom.resultsInfo) { return; }
-    const query = normalizedSearchQuery();
-    const statusLabel = dom.statusFilterSelect && dom.statusFilterSelect.selectedOptions[0]
-        ? dom.statusFilterSelect.selectedOptions[0].textContent
-        : (activeStatusFilter === 'todos' ? 'Todos los estados' : activeStatusFilter);
-    const assignmentLabel = isTechUser()
+function actualizarInfoResultados() {
+    if (!domElementos.resultsInfo) { return; }
+    const query = consultaBusquedaNormalizada();
+    const statusLabel = domElementos.statusFilterSelect && domElementos.statusFilterSelect.selectedOptions[0]
+        ? domElementos.statusFilterSelect.selectedOptions[0].textContent
+        : (filtroEstadoActivo === 'todos' ? 'Todos los estados' : filtroEstadoActivo);
+    const assignmentLabel = esUsuarioTecnico()
         ? 'Asignados'
-        : (dom.assignmentFilterSelect && dom.assignmentFilterSelect.selectedOptions[0]
-        ? dom.assignmentFilterSelect.selectedOptions[0].textContent
-        : (activeAssignmentFilter === 'todos' ? 'Todos' : activeAssignmentFilter));
+        : (domElementos.assignmentFilterSelect && domElementos.assignmentFilterSelect.selectedOptions[0]
+        ? domElementos.assignmentFilterSelect.selectedOptions[0].textContent
+        : (filtroAsignacionActivo === 'todos' ? 'Todos' : filtroAsignacionActivo));
     if (query === '') {
-        dom.resultsInfo.textContent = 'Mostrando ' + currentTicketMeta.total + ' ticket(s) · Estado: ' + statusLabel + ' · Asignación: ' + assignmentLabel + '.';
+        domElementos.resultsInfo.textContent = 'Mostrando ' + metaTicketActual.total + ' ticket(s) · Estado: ' + statusLabel + ' · Asignación: ' + assignmentLabel + '.';
         return;
     }
-    dom.resultsInfo.textContent = 'Resultados para "' + query + '" · Estado: ' + statusLabel + ' · Asignación: ' + assignmentLabel + ' · ' + currentTicketMeta.total + ' ticket(s).';
+    domElementos.resultsInfo.textContent = 'Resultados para "' + query + '" · Estado: ' + statusLabel + ' · Asignación: ' + assignmentLabel + ' · ' + metaTicketActual.total + ' ticket(s).';
 }
 
-function updateTicketsPager() {
-    if (!dom.ticketsPager || !dom.ticketsPrev || !dom.ticketsNext || !dom.ticketsPageInfo) { return; }
-    const hasItems = currentTicketMeta.total > 0;
-    dom.ticketsPager.classList.toggle('hidden', !hasItems);
+function actualizarPaginadorTickets() {
+    if (!domElementos.ticketsPager || !domElementos.ticketsPrev || !domElementos.ticketsNext || !domElementos.ticketsPageInfo) { return; }
+    const hasItems = metaTicketActual.total > 0;
+    domElementos.ticketsPager.classList.toggle('hidden', !hasItems);
     if (!hasItems) {
-        dom.ticketsPageInfo.textContent = '';
+        domElementos.ticketsPageInfo.textContent = '';
         return;
     }
-    dom.ticketsPageInfo.textContent = 'Página ' + currentTicketMeta.page + ' de ' + currentTicketMeta.total_pages + ' - ' + currentTicketMeta.total + ' ticket(s)';
-    dom.ticketsPrev.disabled = currentTicketMeta.page <= 1;
-    dom.ticketsNext.disabled = currentTicketMeta.page >= currentTicketMeta.total_pages;
+    domElementos.ticketsPageInfo.textContent = 'Página ' + metaTicketActual.page + ' de ' + metaTicketActual.total_pages + ' - ' + metaTicketActual.total + ' ticket(s)';
+    domElementos.ticketsPrev.disabled = metaTicketActual.page <= 1;
+    domElementos.ticketsNext.disabled = metaTicketActual.page >= metaTicketActual.total_pages;
 }

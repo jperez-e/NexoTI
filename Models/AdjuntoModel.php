@@ -9,10 +9,10 @@ class AdjuntoModel
 
     public function __construct()
     {
-        $this->db = Conexion::get();
+        $this->db = Conexion::obtener();
     }
 
-    public function insert(
+    public function insertar(
         int $ticketId,
         string $archivo,
         string $nombreOriginal,
@@ -32,7 +32,7 @@ class AdjuntoModel
         ]);
     }
 
-    public function getAll(): array
+    public function obtenerTodos(): array
     {
         $sql = "SELECT a.id, a.ticket_id, a.comentario_id, a.usuario_id, a.archivo, a.nombre_original, a.creado_en,
                        u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre
@@ -44,7 +44,7 @@ class AdjuntoModel
         return $this->db->query($sql)->fetchAll();
     }
 
-    public function getByUsuario(int $usuarioId): array
+    public function obtenerPorUsuario(int $usuarioId): array
     {
         $sql = "SELECT a.id, a.ticket_id, a.comentario_id, a.usuario_id, a.archivo, a.nombre_original, a.creado_en,
                        u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre
@@ -59,7 +59,7 @@ class AdjuntoModel
         return $stmt->fetchAll();
     }
 
-    public function getByTecnico(int $tecnicoId): array
+    public function obtenerPorTecnico(int $tecnicoId): array
     {
         $sql = "SELECT a.id, a.ticket_id, a.comentario_id, a.usuario_id, a.archivo, a.nombre_original, a.creado_en,
                        u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre
@@ -74,7 +74,7 @@ class AdjuntoModel
         return $stmt->fetchAll();
     }
 
-    public function getByTicket(int $ticketId): array
+    public function obtenerPorTicket(int $ticketId): array
     {
         $sql = "SELECT a.id, a.ticket_id, a.comentario_id, a.usuario_id, a.archivo, a.nombre_original, a.creado_en,
                        u.nombre AS usuario_nombre, u.foto AS usuario_foto, r.nombre AS rol_nombre

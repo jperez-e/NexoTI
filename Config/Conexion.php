@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 class Conexion
 {
-    private static ?PDO $instance = null;
-    private static bool $envLoaded = false;
+    private static ?PDO $instancia = null;
+    private static bool $entornoCargado = false;
 
-    private static function loadEnvFile(): void
+    private static function cargarArchivoEntorno(): void
     {
-        if (self::$envLoaded) {
+        if (self::$entornoCargado) {
             return;
         }
 
@@ -43,12 +43,12 @@ class Conexion
             putenv($key . '=' . $value);
         }
 
-        self::$envLoaded = true;
+        self::$entornoCargado = true;
     }
 
-    private static function env(string $key, bool $allowEmpty = false): string
+    private static function entorno(string $key, bool $allowEmpty = false): string
     {
-        self::loadEnvFile();
+        self::cargarArchivoEntorno();
 
         $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
         if ($value === false || $value === null || (!$allowEmpty && $value === '')) {
@@ -58,27 +58,27 @@ class Conexion
         return (string) $value;
     }
 
-    public static function get(): PDO
+    public static function obtener(): PDO
     {
-        if (self::$instance !== null) {
-            return self::$instance;
+        if (self::$instancia !== null) {
+            return self::$instancia;
         }
 
-        $host = self::env('NEXOTI_DB_HOST');
-        $port = self::env('NEXOTI_DB_PORT');
-        $dbName = self::env('NEXOTI_DB_NAME');
-        $user = self::env('NEXOTI_DB_USER');
-        $pass = self::env('NEXOTI_DB_PASS', true);
-        $charset = self::env('NEXOTI_DB_CHARSET');
+        $host = self::entorno('NEXOTI_DB_HOST');
+        $port = self::entorno('NEXOTI_DB_PORT');
+        $dbName = self::entorno('NEXOTI_DB_NAME');
+        $user = self::entorno('NEXOTI_DB_USER');
+        $pass = self::entorno('NEXOTI_DB_PASS', true);
+        $charset = self::entorno('NEXOTI_DB_CHARSET');
 
         $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset={$charset}";
 
-        self::$instance = new PDO($dsn, $user, $pass, [
+        self::$instancia = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
 
-        return self::$instance;
+        return self::$instancia;
     }
 }

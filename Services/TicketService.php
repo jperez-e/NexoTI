@@ -7,96 +7,96 @@ require_once __DIR__ . '/NotificationService.php';
 class TicketService
 {
     private TicketModel $tickets;
-    private NotificationService $notifications;
+    private NotificationService $notificaciones;
 
     public function __construct()
     {
         $this->tickets = new TicketModel();
-        $this->notifications = new NotificationService();
+        $this->notificaciones = new NotificationService();
     }
 
-    public function listTickets(array $filters, int $page, int $perPage, int $roleId, int $userId): array
+    public function listarTickets(array $filtros, int $pagina, int $porPagina, int $idRol, int $idUsuario): array
     {
-        $page = max(1, $page);
-        $perPage = max(1, min(20, $perPage));
-        $normalizedFilters = $this->normalizeFilters($filters);
+        $pagina = max(1, $pagina);
+        $porPagina = max(1, min(20, $porPagina));
+        $filtrosNormalizados = $this->normalizarFiltros($filtros);
 
-        $total = $this->tickets->countSearch($normalizedFilters, $roleId, $userId);
-        $totalPages = max(1, (int) ceil($total / $perPage));
-        if ($page > $totalPages) {
-            $page = $totalPages;
+        $total = $this->tickets->contarBusqueda($filtrosNormalizados, $idRol, $idUsuario);
+        $totalPaginas = max(1, (int) ceil($total / $porPagina));
+        if ($pagina > $totalPaginas) {
+            $pagina = $totalPaginas;
         }
 
         return [
-            'items' => $this->tickets->search($normalizedFilters, $page, $perPage, $roleId, $userId),
+            'items' => $this->tickets->buscar($filtrosNormalizados, $pagina, $porPagina, $idRol, $idUsuario),
             'meta' => [
-                'page' => $page,
-                'per_page' => $perPage,
+                'page' => $pagina,
+                'per_page' => $porPagina,
                 'total' => $total,
-                'total_pages' => $totalPages,
-                'query' => $normalizedFilters['query'],
-                'estado' => $normalizedFilters['estado'],
-                'asignacion' => $normalizedFilters['asignacion'],
+                'total_pages' => $totalPaginas,
+                'query' => $filtrosNormalizados['query'],
+                'estado' => $filtrosNormalizados['estado'],
+                'asignacion' => $filtrosNormalizados['asignacion'],
             ],
-            'assignable' => $roleId === 1 ? $this->tickets->getOpenTicketsForAssignment() : [],
-            'closable' => $roleId === 3 ? $this->tickets->getResolvedTicketsByUsuario($userId) : [],
-            'notifications' => $this->notifications->getPanelData($userId, 8),
+            'assignable' => $idRol === 1 ? $this->tickets->obtenerAbiertosParaAsignacion() : [],
+            'closable' => $idRol === 3 ? $this->tickets->obtenerResueltosPorUsuario($idUsuario) : [],
+            'notifications' => $this->notificaciones->obtenerDatosPanel($idUsuario, 8),
         ];
     }
 
-    public function generateTicketCode(): string
+    public function generarCodigoTicket(): string
     {
         do {
-            $code = 'TCK-' . (string) random_int(1000000000000, 9999999999999);
-        } while ($this->tickets->existsCodigo($code));
+            $codigo = 'TCK-' . (string) random_int(1000000000000, 9999999999999);
+        } while ($this->tickets->existeCodigo($codigo));
 
-        return $code;
+        return $codigo;
     }
 
-    private function normalizeFilters(array $filters): array
+    private function normalizarFiltros(array $filtros): array
     {
-        $query = trim((string) ($filters['query'] ?? ''));
-        $estado = $this->normalizeStatusFilter((string) ($filters['estado'] ?? 'todos'));
+        $query = trim((string) ($filtros['query'] ?? ''));
+        $estado = $this->normalizarFiltroEstado((string) ($filtros['estado'] ?? 'todos'));
 
         return [
             'query' => $query,
             'estado' => $estado,
-            'asignacion' => $this->normalizeAssignmentFilter((string) ($filters['asignacion'] ?? 'todos')),
+            'asignacion' => $this->normalizarFiltroAsignacion((string) ($filtros['asignacion'] ?? 'todos')),
         ];
     }
 
-    private function normalizeStatusFilter(string $value): ?string
+    private function normalizarFiltroEstado(string $valor): ?string
     {
-        $normalized = $this->normalizeLabel($value);
-        if ($normalized === '' || $normalized === 'todos') {
+        $normalizado = $this->normalizarEtiqueta($valor);
+        if ($normalizado === '' || $normalizado === 'todos') {
             return null;
         }
-        if ($normalized === 'en progreso') {
+        if ($normalizado === 'en progreso') {
             return 'En proceso';
         }
 
-        return ucfirst($normalized);
+        return ucfirst($normalizado);
     }
 
-    private function normalizeAssignmentFilter(string $value): ?string
+    private function normalizarFiltroAsignacion(string $valor): ?string
     {
-        $normalized = $this->normalizeLabel($value);
-        if ($normalized === '' || $normalized === 'todos') {
+        $normalizado = $this->normalizarEtiqueta($valor);
+        if ($normalizado === '' || $normalizado === 'todos') {
             return null;
         }
-        if ($normalized === 'asignados') {
+        if ($normalizado === 'asignados') {
             return 'asignados';
         }
-        if ($normalized === 'no asignados' || $normalized === 'no_asignados' || $normalized === 'sin asignar' || $normalized === 'sin_asignar') {
+        if ($normalizado === 'no asignados' || $normalizado === 'no_asignados' || $normalizado === 'sin asignar' || $normalizado === 'sin_asignar') {
             return 'sin_asignar';
         }
         return null;
     }
 
-    private function normalizeLabel(string $value): string
+    private function normalizarEtiqueta(string $valor): string
     {
-        $normalized = mb_strtolower(trim($value));
-        $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $normalized) ?: $normalized;
-        return preg_replace('/\s+/', ' ', $normalized) ?? $normalized;
+        $normalizado = mb_strtolower(trim($valor));
+        $normalizado = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $normalizado) ?: $normalizado;
+        return preg_replace('/\s+/', ' ', $normalizado) ?? $normalizado;
     }
 }

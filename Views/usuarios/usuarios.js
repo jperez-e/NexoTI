@@ -1,12 +1,12 @@
-let editingId = 0;  
-let usuariosCache = [];  
+let idEdicion = 0;  
+let cacheUsuarios = [];  
   
-async function fetchJSON(url, options = {}) {  
+async function obtenerJson(url, options = {}) {  
     const response = await fetch(url, options);  
     return response.json();  
 }  
 
-function setButtonLoading(button, loading, loadingText) {
+function establecerBotonCargando(button, loading, loadingText) {
     if (!button) {
         return;
     }
@@ -24,23 +24,23 @@ function setButtonLoading(button, loading, loadingText) {
     button.classList.remove('is-loading');
 }
 
-function getCsrfToken() {
-    const node = getNode('csrf-token');
+function obtenerTokenCsrf() {
+    const node = obtenerNodo('csrf-token');
     return node ? node.value : '';
 }
   
-function getNode(id) {  
+function obtenerNodo(id) {  
     return document.getElementById(id);  
 }  
 
-function setButtonContent(button, iconName, label) {
+function establecerContenidoBoton(button, iconName, label) {
     if (!button) {
         return;
     }
     button.innerHTML = window.UiIcons ? window.UiIcons.buttonContent(iconName, label) : label;
 }
 
-function ensureToastStack() {
+function asegurarPilaToasts() {
     let stack = document.querySelector('.toast-stack');
     if (stack) {
         return stack;
@@ -52,8 +52,8 @@ function ensureToastStack() {
     return stack;
 }
 
-function showToast(title, text, type) {
-    const stack = ensureToastStack();
+function mostrarToast(title, text, type) {
+    const stack = asegurarPilaToasts();
     const toast = document.createElement('div');
     toast.className = 'toast' + (type ? ' ' + type : '');
     toast.innerHTML = '<strong>' + title + '</strong><span>' + text + '</span>';
@@ -63,7 +63,7 @@ function showToast(title, text, type) {
     }, 3600);
 }
 
-function clearMessageLater(node, delay) {
+function limpiarMensajeLuego(node, delay) {
     if (!node) {
         return;
     }
@@ -78,33 +78,33 @@ function clearMessageLater(node, delay) {
     }, delay);
 }
   
-function showMessage(text, type, allowToast = true) {  
-    const node = getNode('form-message');  
+function mostrarMensaje(text, type, allowToast = true) {  
+    const node = obtenerNodo('form-message');  
     if (!node) { return; }  
     node.textContent = text;  
     node.className = type ? 'message ' + type : 'message';  
     if (allowToast && text !== '' && type) {
-        clearMessageLater(node, 4000);
+        limpiarMensajeLuego(node, 4000);
     }
 }  
   
-function ensureFormTools() {  
-    const form = getNode('usuario-form');  
+function asegurarHerramientasFormulario() {  
+    const form = obtenerNodo('usuario-form');  
     if (!form) { return; }  
     const actions = form.querySelector('.actions');  
     const title = form.closest('.card').querySelector('h2');  
     if (title) { title.id = 'form-title'; }  
     const password = form.querySelector('input[name=\"password\"]');  
     if (password) { password.required = false; } 
-    if (!getNode('cancel-btn') && actions) {  
+    if (!obtenerNodo('cancel-btn') && actions) {  
         const cancel = document.createElement('button');  
         cancel.type = 'button';  
         cancel.id = 'cancel-btn';  
         cancel.className = 'btn ghost hidden';  
-        setButtonContent(cancel, 'close', 'Cancelar edición');
-        actions.insertBefore(cancel, getNode('form-message'));  
+        establecerContenidoBoton(cancel, 'close', 'Cancelar edición');
+        actions.insertBefore(cancel, obtenerNodo('form-message'));  
     }  
-    if (!getNode('usuario-id')) {  
+    if (!obtenerNodo('usuario-id')) {  
         const hidden = document.createElement('input');  
         hidden.type = 'hidden';  
         hidden.id = 'usuario-id';  
@@ -113,8 +113,8 @@ function ensureFormTools() {
     }  
 } 
   
-function fillRoles(roles) {  
-    const select = getNode('rol-select');  
+function llenarRoles(roles) {  
+    const select = obtenerNodo('rol-select');  
     if (!select) { return; }  
     select.innerHTML = '';  
     const first = document.createElement('option');  
@@ -129,33 +129,33 @@ function fillRoles(roles) {
     });  
 }  
   
-function resetForm() {  
-    editingId = 0;  
-    const form = getNode('usuario-form');  
+function reiniciarFormulario() {  
+    idEdicion = 0;  
+    const form = obtenerNodo('usuario-form');  
     form.reset();  
-    getNode('usuario-id').value = '';  
-    getNode('submit-btn') ? setButtonContent(getNode('submit-btn'), 'save', 'Crear usuario') : null;  
-    getNode('form-title') ? getNode('form-title').textContent = 'Registrar usuario' : null;  
-    getNode('cancel-btn') ? getNode('cancel-btn').classList.add('hidden') : null;  
-    showMessage('', '');  
+    obtenerNodo('usuario-id').value = '';  
+    obtenerNodo('submit-btn') ? establecerContenidoBoton(obtenerNodo('submit-btn'), 'save', 'Crear usuario') : null;  
+    obtenerNodo('form-title') ? obtenerNodo('form-title').textContent = 'Registrar usuario' : null;  
+    obtenerNodo('cancel-btn') ? obtenerNodo('cancel-btn').classList.add('hidden') : null;  
+    mostrarMensaje('', '');  
 } 
   
-function startEdit(user) {  
-    editingId = Number(user.id);  
-    getNode('usuario-id').value = user.id;  
-    getNode('nombre') ? getNode('nombre').value = user.nombre : null;  
-    getNode('email') ? getNode('email').value = user.email : null;  
-    getNode('password') ? getNode('password').value = '' : null;  
-    getNode('rol-select') ? getNode('rol-select').value = user.rol_id : null;  
-    getNode('submit-btn') ? setButtonContent(getNode('submit-btn'), 'save', 'Actualizar usuario') : null;  
-    getNode('form-title') ? getNode('form-title').textContent = 'Editar usuario' : null;  
-    getNode('cancel-btn') ? getNode('cancel-btn').classList.remove('hidden') : null;  
-    showMessage('', '');  
+function iniciarEdicion(user) {  
+    idEdicion = Number(user.id);  
+    obtenerNodo('usuario-id').value = user.id;  
+    obtenerNodo('nombre') ? obtenerNodo('nombre').value = user.nombre : null;  
+    obtenerNodo('email') ? obtenerNodo('email').value = user.email : null;  
+    obtenerNodo('password') ? obtenerNodo('password').value = '' : null;  
+    obtenerNodo('rol-select') ? obtenerNodo('rol-select').value = user.rol_id : null;  
+    obtenerNodo('submit-btn') ? establecerContenidoBoton(obtenerNodo('submit-btn'), 'save', 'Actualizar usuario') : null;  
+    obtenerNodo('form-title') ? obtenerNodo('form-title').textContent = 'Editar usuario' : null;  
+    obtenerNodo('cancel-btn') ? obtenerNodo('cancel-btn').classList.remove('hidden') : null;  
+    mostrarMensaje('', '');  
     window.scrollTo({ top: 0, behavior: 'smooth' });  
 }  
   
-function renderUsuarios(list) {  
-    const container = getNode('usuarios-list');  
+function renderizarUsuarios(list) {  
+    const container = obtenerNodo('usuarios-list');  
     if (!container) { return; }  
     container.innerHTML = '';  
     if (list.length === 0) {  
@@ -174,31 +174,31 @@ function renderUsuarios(list) {
         const editBtn = document.createElement('button');  
         editBtn.type = 'button';  
         editBtn.className = 'btn ghost';  
-        setButtonContent(editBtn, 'edit', 'Editar');
+        establecerContenidoBoton(editBtn, 'edit', 'Editar');
         editBtn.addEventListener('click', function () {  
-            startEdit(row);  
+            iniciarEdicion(row);  
         });  
         const deleteBtn = document.createElement('button');  
         deleteBtn.type = 'button';  
         deleteBtn.className = 'btn danger';  
-        setButtonContent(deleteBtn, 'delete', 'Eliminar');
+        establecerContenidoBoton(deleteBtn, 'delete', 'Eliminar');
         deleteBtn.addEventListener('click', async function () {  
             const ok = window.confirm('Se eliminará el usuario ' + row.nombre + '. ¿Deseas continuar?');  
             if (!ok) { return; }  
-            setButtonLoading(deleteBtn, true, 'Eliminando...');
+            establecerBotonCargando(deleteBtn, true, 'Eliminando...');
             try {
-                const data = await fetchJSON('api.php?c=usuario&m=delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() }, body: JSON.stringify({ id: row.id }) });  
+                const data = await obtenerJson('api.php?c=usuario&m=eliminar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': obtenerTokenCsrf() }, body: JSON.stringify({ id: row.id }) });  
                 if (!data.status) {
-                    showMessage(data.message ? data.message : 'No se pudo eliminar el usuario.', 'error', false);
+                    mostrarMensaje(data.message ? data.message : 'No se pudo eliminar el usuario.', 'error', false);
                 } else {
-                    showMessage('', '', false);
+                    mostrarMensaje('', '', false);
                 }
                 if (data.status) {  
-                    if (editingId === Number(row.id)) { resetForm(); }  
-                    await loadUsuarios();  
+                    if (idEdicion === Number(row.id)) { reiniciarFormulario(); }  
+                    await cargarUsuarios();  
                 }
             } finally {
-                setButtonLoading(deleteBtn, false);
+                establecerBotonCargando(deleteBtn, false);
             }
         }); 
         actions.appendChild(editBtn);  
@@ -210,56 +210,56 @@ function renderUsuarios(list) {
     });  
 }  
   
-async function loadRoles() {  
-    const data = await fetchJSON('api.php?c=rol&m=list');  
-    fillRoles(data.data ? data.data : []);  
+async function cargarRoles() {  
+    const data = await obtenerJson('api.php?c=rol&m=listar');  
+    llenarRoles(data.data ? data.data : []);  
 }  
   
-async function loadUsuarios() {  
-    const data = await fetchJSON('api.php?c=usuario&m=list');  
-    usuariosCache = data.data ? data.data : [];  
-    renderUsuarios(usuariosCache);  
+async function cargarUsuarios() {  
+    const data = await obtenerJson('api.php?c=usuario&m=listar');  
+    cacheUsuarios = data.data ? data.data : [];  
+    renderizarUsuarios(cacheUsuarios);  
 }  
   
 document.addEventListener('DOMContentLoaded', async function () {  
-    ensureFormTools();  
-    resetForm();  
-    await loadRoles();  
-    await loadUsuarios();  
-    getNode('refresh-btn').addEventListener('click', async function () {
+    asegurarHerramientasFormulario();  
+    reiniciarFormulario();  
+    await cargarRoles();  
+    await cargarUsuarios();  
+    obtenerNodo('refresh-btn').addEventListener('click', async function () {
         const button = this;
-        setButtonLoading(button, true, 'Actualizando...');
+        establecerBotonCargando(button, true, 'Actualizando...');
         try {
-            await loadUsuarios();
+            await cargarUsuarios();
         } finally {
-            setButtonLoading(button, false);
+            establecerBotonCargando(button, false);
         }
     });  
-    getNode('cancel-btn').addEventListener('click', resetForm);  
-    getNode('usuario-form').addEventListener('submit', async function (event) {  
+    obtenerNodo('cancel-btn').addEventListener('click', reiniciarFormulario);  
+    obtenerNodo('usuario-form').addEventListener('submit', async function (event) {  
         event.preventDefault();  
-        const formData = new FormData(getNode('usuario-form'));  
-        const submitButton = getNode('submit-btn');
-        formData.set('_token', getCsrfToken());
-        const url = editingId > 0 ? 'api.php?c=usuario&m=update' : 'api.php?c=usuario&m=create';  
-        if (editingId > 0) { formData.set('id', String(editingId)); } 
-        setButtonLoading(submitButton, true, editingId > 0 ? 'Actualizando...' : 'Guardando...');
+        const formData = new FormData(obtenerNodo('usuario-form'));  
+        const submitButton = obtenerNodo('submit-btn');
+        formData.set('_token', obtenerTokenCsrf());
+        const url = idEdicion > 0 ? 'api.php?c=usuario&m=actualizar' : 'api.php?c=usuario&m=crear';  
+        if (idEdicion > 0) { formData.set('id', String(idEdicion)); } 
+        establecerBotonCargando(submitButton, true, idEdicion > 0 ? 'Actualizando...' : 'Guardando...');
         try {
-            const data = await fetchJSON(url, { method: 'POST', body: formData });  
+            const data = await obtenerJson(url, { method: 'POST', body: formData });  
             if (data.status) {  
-                showMessage('', '');
-                showToast(
-                    editingId > 0 ? 'Usuario actualizado' : 'Usuario registrado',
+                mostrarMensaje('', '');
+                mostrarToast(
+                    idEdicion > 0 ? 'Usuario actualizado' : 'Usuario registrado',
                     data.message ? data.message : 'Proceso completado.',
                     'success'
                 );
-                resetForm();  
-                await loadUsuarios();  
+                reiniciarFormulario();  
+                await cargarUsuarios();  
             } else {
-                showMessage(data.message ? data.message : 'No se pudo completar la operación.', 'error');
+                mostrarMensaje(data.message ? data.message : 'No se pudo completar la operación.', 'error');
             }
         } finally {
-            setButtonLoading(submitButton, false);
+            establecerBotonCargando(submitButton, false);
         }
     });  
 }); 

@@ -9,10 +9,10 @@ class NotificacionModel
 
     public function __construct()
     {
-        $this->db = Conexion::get();
+        $this->db = Conexion::obtener();
     }
 
-    public function insert(
+    public function insertar(
         int $usuarioId,
         ?int $ticketId,
         ?int $actorId,
@@ -26,7 +26,7 @@ class NotificacionModel
         return $stmt->execute([$usuarioId, $ticketId, $actorId, $tipo, $titulo, $mensaje]);
     }
 
-    public function getByUsuario(int $usuarioId, int $limit = 8): array
+    public function obtenerPorUsuario(int $usuarioId, int $limit = 8): array
     {
         $sql = 'SELECT n.id, n.usuario_id, n.ticket_id, n.actor_id, n.tipo, n.titulo, n.mensaje, n.leida, '
             . 'n.creada_en, n.leida_en, t.codigo AS ticket_codigo, t.titulo AS ticket_titulo '
@@ -42,14 +42,14 @@ class NotificacionModel
         return $stmt->fetchAll();
     }
 
-    public function countUnreadByUsuario(int $usuarioId): int
+    public function contarNoLeidasPorUsuario(int $usuarioId): int
     {
         $stmt = $this->db->prepare('SELECT COUNT(*) AS total FROM notificaciones WHERE usuario_id = ? AND leida = 0');
         $stmt->execute([$usuarioId]);
         return (int) ($stmt->fetch()['total'] ?? 0);
     }
 
-    public function markAsRead(int $id, int $usuarioId): bool
+    public function marcarComoLeida(int $id, int $usuarioId): bool
     {
         $sql = 'UPDATE notificaciones SET leida = 1, leida_en = NOW() '
             . 'WHERE id = ? AND usuario_id = ? AND leida = 0';
@@ -57,7 +57,7 @@ class NotificacionModel
         return $stmt->execute([$id, $usuarioId]);
     }
 
-    public function markAllAsRead(int $usuarioId): bool
+    public function marcarTodasComoLeidas(int $usuarioId): bool
     {
         $sql = 'UPDATE notificaciones SET leida = 1, leida_en = NOW() '
             . 'WHERE usuario_id = ? AND leida = 0';

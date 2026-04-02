@@ -8,36 +8,36 @@ class CategoriaController extends CatalogController
 {
     public function __construct()
     {
-        $this->model = new CategoriaModel();
+        $this->modelo = new CategoriaModel();
     }
 
-    protected function listMessage(): string { return 'Categorias cargadas'; }
-    protected function createMessage(): string { return 'Categoria creada'; }
-    protected function updateMessage(): string { return 'Categoria actualizada'; }
-    protected function deleteMessage(): string { return 'Categoria eliminada'; }
-    protected function invalidDataMessage(): string { return 'Datos invalidos'; }
-    protected function invalidEntityMessage(): string { return 'Categoria invalida'; }
+    protected function mensajeListado(): string { return 'Categorias cargadas'; }
+    protected function mensajeCreacion(): string { return 'Categoria creada'; }
+    protected function mensajeActualizacion(): string { return 'Categoria actualizada'; }
+    protected function mensajeEliminacion(): string { return 'Categoria eliminada'; }
+    protected function mensajeDatosInvalidos(): string { return 'Datos invalidos'; }
+    protected function mensajeEntidadInvalida(): string { return 'Categoria invalida'; }
 
-    protected function buildCreatePayload(array $payload): array
+    protected function construirCargaCrear(array $payload): array
     {
         return [
-            'nombre' => $this->sanitizeText($payload, 'nombre'),
-            'descripcion' => $this->sanitizeText($payload, 'descripcion'),
+            'nombre' => $this->sanearTexto($payload, 'nombre'),
+            'descripcion' => $this->sanearTexto($payload, 'descripcion'),
         ];
     }
 
-    protected function buildUpdatePayload(array $payload): array
+    protected function construirCargaActualizar(array $payload): array
     {
-        return $this->buildCreatePayload($payload);
+        return $this->construirCargaCrear($payload);
     }
 
-    protected function isCreatePayloadValid(array $payload): bool
+    protected function esValidaCargaCrear(array $payload): bool
     {
         return $payload['nombre'] !== '';
     }
 
-    protected function isUpdatePayloadValid(int $id, array $payload): bool
+    protected function esValidaCargaActualizar(int $id, array $payload): bool
     {
-        return $id > 0 && $this->isCreatePayloadValid($payload);
+        return $id > 0 && $this->esValidaCargaCrear($payload);
     }
 }

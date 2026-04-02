@@ -8,40 +8,40 @@ class RolController extends CatalogController
 {
     public function __construct()
     {
-        $this->model = new RolModel();
+        $this->modelo = new RolModel();
     }
 
-    public function list(): void
+    public function listar(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->jsonOk($this->listMessage(), $this->model->getAll());
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->responderOkJson($this->mensajeListado(), $this->modelo->obtenerTodos());
     }
 
-    protected function listMessage(): string { return 'Roles cargados'; }
-    protected function createMessage(): string { return 'Rol creado'; }
-    protected function updateMessage(): string { return 'Rol actualizado'; }
-    protected function deleteMessage(): string { return 'Rol eliminado'; }
-    protected function invalidDataMessage(): string { return 'Datos invalidos'; }
-    protected function invalidEntityMessage(): string { return 'Rol invalido'; }
+    protected function mensajeListado(): string { return 'Roles cargados'; }
+    protected function mensajeCreacion(): string { return 'Rol creado'; }
+    protected function mensajeActualizacion(): string { return 'Rol actualizado'; }
+    protected function mensajeEliminacion(): string { return 'Rol eliminado'; }
+    protected function mensajeDatosInvalidos(): string { return 'Datos invalidos'; }
+    protected function mensajeEntidadInvalida(): string { return 'Rol invalido'; }
 
-    protected function buildCreatePayload(array $payload): array
+    protected function construirCargaCrear(array $payload): array
     {
-        return ['nombre' => $this->sanitizeText($payload, 'nombre')];
+        return ['nombre' => $this->sanearTexto($payload, 'nombre')];
     }
 
-    protected function buildUpdatePayload(array $payload): array
+    protected function construirCargaActualizar(array $payload): array
     {
-        return $this->buildCreatePayload($payload);
+        return $this->construirCargaCrear($payload);
     }
 
-    protected function isCreatePayloadValid(array $payload): bool
+    protected function esValidaCargaCrear(array $payload): bool
     {
         return $payload['nombre'] !== '';
     }
 
-    protected function isUpdatePayloadValid(int $id, array $payload): bool
+    protected function esValidaCargaActualizar(int $id, array $payload): bool
     {
-        return $id > 0 && $this->isCreatePayloadValid($payload);
+        return $id > 0 && $this->esValidaCargaCrear($payload);
     }
 }

@@ -6,21 +6,21 @@ require_once __DIR__ . '/../Models/UsuarioModel.php';
 
 class NotificationService
 {
-    private NotificacionModel $notifications;
-    private UsuarioModel $users;
+    private NotificacionModel $notificaciones;
+    private UsuarioModel $usuarios;
 
     public function __construct()
     {
-        $this->notifications = new NotificacionModel();
-        $this->users = new UsuarioModel();
+        $this->notificaciones = new NotificacionModel();
+        $this->usuarios = new UsuarioModel();
     }
 
-    public function getPanelData(int $userId, int $limit = 8): array
+    public function obtenerDatosPanel(int $idUsuario, int $limite = 8): array
     {
         try {
             return [
-                'count' => $this->notifications->countUnreadByUsuario($userId),
-                'items' => $this->notifications->getByUsuario($userId, $limit),
+                'count' => $this->notificaciones->contarNoLeidasPorUsuario($idUsuario),
+                'items' => $this->notificaciones->obtenerPorUsuario($idUsuario, $limite),
             ];
         } catch (Throwable $exception) {
             return [
@@ -30,127 +30,134 @@ class NotificationService
         }
     }
 
-    public function markAsRead(int $notificationId, int $userId): bool
+    public function marcarComoLeida(int $idNotificacion, int $idUsuario): bool
     {
         try {
-            return $this->notifications->markAsRead($notificationId, $userId);
+            return $this->notificaciones->marcarComoLeida($idNotificacion, $idUsuario);
         } catch (Throwable $exception) {
             return false;
         }
     }
 
-    public function markAllAsRead(int $userId): bool
+    public function marcarTodasComoLeidas(int $idUsuario): bool
     {
         try {
-            return $this->notifications->markAllAsRead($userId);
+            return $this->notificaciones->marcarTodasComoLeidas($idUsuario);
         } catch (Throwable $exception) {
             return false;
         }
     }
 
-    public function notifyAssignment(array $ticket, ?int $tecnicoId, int $actorId): void
+    public function notificarAsignacion(array $ticket, ?int $idTecnico, int $idActor): void
     {
-        if ($tecnicoId === null || $tecnicoId <= 0 || $tecnicoId === $actorId) {
+        if ($idTecnico === null || $idTecnico <= 0 || $idTecnico === $idActor) {
             return;
         }
 
-        $this->notifyUsers(
-            [$tecnicoId],
+        $this->notificarUsuarios(
+            [$idTecnico],
             (int) ($ticket['id'] ?? 0),
-            $actorId,
+            $idActor,
             'asignacion',
             'Nuevo ticket asignado',
-            $this->buildTicketSummary($ticket) . ' fue asignado a ti.'
+            $this->construirResumenTicket($ticket) . ' fue asignado a ti.'
         );
     }
 
-    public function notifyCreated(array $ticket, int $actorId): void
+    public function notificarCreacion(array $ticket, int $idActor): void
     {
-        $recipients = [];
-        foreach ($this->users->getAdminIds() as $adminId) {
-            if ($adminId !== $actorId) {
-                $recipients[] = $adminId;
+        $destinatarios = [];
+        foreach ($this->usuarios->obtenerIdsAdmin() as $idAdmin) {
+            if ($idAdmin !== $idActor) {
+                $destinatarios[] = $idAdmin;
             }
         }
 
-        if ($recipients === []) {
+        if ($destinatarios === []) {
             return;
         }
 
-        $this->notifyUsers(
-            $recipients,
+        $this->notificarUsuarios(
+            $destinatarios,
             (int) ($ticket['id'] ?? 0),
-            $actorId,
+            $idActor,
             'creacion',
             'Nuevo ticket creado',
-            $this->buildTicketSummary($ticket) . ' fue creado y requiere revision.'
+            $this->construirResumenTicket($ticket) . ' fue creado y requiere revision.'
         );
     }
 
-    public function notifyReply(array $ticket, int $actorId, string $comment): void
+    public function notificarRespuesta(array $ticket, int $idActor, string $comentario): void
     {
-        $recipients = $this->collectTicketParticipants($ticket, $actorId);
-        if ($recipients === []) {
+        $destinatarios = $this->recolectarParticipantesTicket($ticket, $idActor);
+        if ($destinatarios === []) {
             return;
         }
 
-        $excerpt = trim($comment);
-        if (mb_strlen($excerpt) > 90) {
-            $excerpt = mb_substr($excerpt, 0, 87) . '...';
+        $extracto = trim($comentario);
+        if (mb_strlen($extracto) > 90) {
+            $extracto = mb_substr($extracto, 0, 87) . '...';
         }
 
-        $this->notifyUsers(
-            $recipients,
+        $this->notificarUsuarios(
+            $destinatarios,
             (int) ($ticket['id'] ?? 0),
-            $actorId,
+            $idActor,
             'respuesta',
             'Nueva respuesta en ticket',
-            $this->buildTicketSummary($ticket) . ': ' . $excerpt
+            $this->construirResumenTicket($ticket) . ': ' . $extracto
         );
     }
 
-    public function notifyClosed(array $ticket, int $actorId): void
+    public function notificarCierre(array $ticket, int $idActor): void
     {
-        $recipients = $this->collectTicketParticipants($ticket, $actorId);
-        foreach ($this->users->getAdminIds() as $adminId) {
-            if ($adminId !== $actorId) {
-                $recipients[] = $adminId;
+        $destinatarios = $this->recolectarParticipantesTicket($ticket, $idActor);
+        foreach ($this->usuarios->obtenerIdsAdmin() as $idAdmin) {
+            if ($idAdmin !== $idActor) {
+                $destinatarios[] = $idAdmin;
             }
         }
-        $recipients = array_values(array_unique(array_filter($recipients)));
+        $destinatarios = array_values(array_unique(array_filter($destinatarios)));
 
-        if ($recipients === []) {
+        if ($destinatarios === []) {
             return;
         }
 
-        $this->notifyUsers(
-            $recipients,
+        $this->notificarUsuarios(
+            $destinatarios,
             (int) ($ticket['id'] ?? 0),
-            $actorId,
+            $idActor,
             'cierre',
             'Ticket cerrado',
-            $this->buildTicketSummary($ticket) . ' fue cerrado por el usuario.'
+            $this->construirResumenTicket($ticket) . ' fue cerrado por el usuario.'
         );
     }
 
     /**
-     * @param int[] $recipientIds
+     * @param int[] $idsDestinatarios
      */
-    private function notifyUsers(
-        array $recipientIds,
-        int $ticketId,
-        int $actorId,
-        string $type,
-        string $title,
-        string $message
+    private function notificarUsuarios(
+        array $idsDestinatarios,
+        int $idTicket,
+        int $idActor,
+        string $tipo,
+        string $titulo,
+        string $mensaje
     ): void {
-        foreach (array_values(array_unique(array_filter($recipientIds))) as $recipientId) {
-            if ($recipientId === $actorId) {
+        foreach (array_values(array_unique(array_filter($idsDestinatarios))) as $idDestinatario) {
+            if ($idDestinatario === $idActor) {
                 continue;
             }
 
             try {
-                $this->notifications->insert($recipientId, $ticketId > 0 ? $ticketId : null, $actorId, $type, $title, $message);
+                $this->notificaciones->insertar(
+                    $idDestinatario,
+                    $idTicket > 0 ? $idTicket : null,
+                    $idActor,
+                    $tipo,
+                    $titulo,
+                    $mensaje
+                );
             } catch (Throwable $exception) {
                 // Si la migracion aun no corre, el flujo principal del ticket no debe romperse.
             }
@@ -160,26 +167,26 @@ class NotificationService
     /**
      * @return int[]
      */
-    private function collectTicketParticipants(array $ticket, int $actorId): array
+    private function recolectarParticipantesTicket(array $ticket, int $idActor): array
     {
-        $recipients = [];
-        $usuarioId = (int) ($ticket['usuario_id'] ?? 0);
-        $tecnicoId = (int) ($ticket['tecnico_id'] ?? 0);
+        $destinatarios = [];
+        $idUsuario = (int) ($ticket['usuario_id'] ?? 0);
+        $idTecnico = (int) ($ticket['tecnico_id'] ?? 0);
 
-        if ($usuarioId > 0 && $usuarioId !== $actorId) {
-            $recipients[] = $usuarioId;
+        if ($idUsuario > 0 && $idUsuario !== $idActor) {
+            $destinatarios[] = $idUsuario;
         }
-        if ($tecnicoId > 0 && $tecnicoId !== $actorId) {
-            $recipients[] = $tecnicoId;
+        if ($idTecnico > 0 && $idTecnico !== $idActor) {
+            $destinatarios[] = $idTecnico;
         }
 
-        return $recipients;
+        return $destinatarios;
     }
 
-    private function buildTicketSummary(array $ticket): string
+    private function construirResumenTicket(array $ticket): string
     {
-        $code = trim((string) ($ticket['codigo'] ?? 'Ticket'));
-        $title = trim((string) ($ticket['titulo'] ?? ''));
-        return $title === '' ? $code : $code . ' - ' . $title;
+        $codigo = trim((string) ($ticket['codigo'] ?? 'Ticket'));
+        $titulo = trim((string) ($ticket['titulo'] ?? ''));
+        return $titulo === '' ? $codigo : $codigo . ' - ' . $titulo;
     }
 }

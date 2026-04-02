@@ -10,33 +10,33 @@ use Dompdf\Options;
 
 class ReporteController extends BaseController
 {
-    private ReporteModel $model;
+    private ReporteModel $modelo;
 
     public function __construct()
     {
-        $this->model = new ReporteModel();
+        $this->modelo = new ReporteModel();
     }
 
     public function resumen(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->jsonOk('Resumen cargado', $this->model->getResumen());
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->responderOkJson('Resumen cargado', $this->modelo->obtenerResumen());
     }
 
-    public function preview(): void
+    public function vistaPrevia(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
+        $this->requerirSesion();
+        $this->requerirRol([1]);
         // El historial se pagina en el navegador para que el admin avance por bloques sin perder contexto.
-        $this->jsonOk('Vista previa cargada', $this->model->getTicketsReporte());
+        $this->responderOkJson('Vista previa cargada', $this->modelo->obtenerTicketsReporte());
     }
 
-    public function ticketsCsv(): void
+    public function exportarTicketsCsv(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $rows = $this->model->getTicketsReporte();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $rows = $this->modelo->obtenerTicketsReporte();
         // El BOM y la linea sep=, ayudan a que Excel abra el archivo con acentos y columnas correctas.
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=reporte_tickets.csv');
@@ -51,11 +51,11 @@ class ReporteController extends BaseController
         exit;
     }
 
-    public function ticketsExcel(): void
+    public function exportarTicketsExcel(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $rows = $this->model->getTicketsReporte();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $rows = $this->modelo->obtenerTicketsReporte();
 
         header('Content-Type: application/vnd.ms-excel; charset=utf-8');
         header('Content-Disposition: attachment; filename=reporte_tickets.xls');
@@ -79,17 +79,17 @@ class ReporteController extends BaseController
         exit;
     }
 
-    public function ticketsPdf(): void
+    public function exportarTicketsPdf(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $rows = $this->model->getTicketsReporte();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $rows = $this->modelo->obtenerTicketsReporte();
         // DOMPDF permite reutilizar una plantilla HTML parecida a la vista web en lugar de construir el PDF manualmente.
         $options = new Options();
         $options->set('isRemoteEnabled', true);
         $dompdf = new Dompdf($options);
 
-        $html = $this->renderPdfHtml($rows);
+        $html = $this->renderizarHtmlPdf($rows);
         $dompdf->loadHtml($html, 'UTF-8');
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
@@ -100,7 +100,7 @@ class ReporteController extends BaseController
         exit;
     }
 
-    private function renderPdfHtml(array $rows): string
+    private function renderizarHtmlPdf(array $rows): string
     {
         ob_start();
         require __DIR__ . '/../Views/reportes/pdf.php';

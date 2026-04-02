@@ -6,94 +6,120 @@ session_start();
 require_once __DIR__ . '/Config/Csrf.php';
 
 // La API comparte el mismo token CSRF del sistema web para proteger peticiones fetch().
-Csrf::token();
+Csrf::obtenerToken();
 
-function respondJsonError(string $message, int $statusCode): void
+function responderErrorJson(string $mensaje, int $codigoEstado): void
 {
-    http_response_code($statusCode);
+    http_response_code($codigoEstado);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['status' => false, 'message' => $message]);
+    echo json_encode(['status' => false, 'message' => $mensaje]);
     exit;
 }
 
-$controller = strtolower(trim((string) ($_GET['c'] ?? '')));
-$method = trim((string) ($_GET['m'] ?? ''));
+$controlador = strtolower(trim((string) ($_GET['c'] ?? '')));
+$metodoSolicitado = trim((string) ($_GET['m'] ?? ''));
+
+// Alias para conservar compatibilidad con endpoints anteriores.
+$aliasMetodos = [
+    'list' => 'listar',
+    'create' => 'crear',
+    'update' => 'actualizar',
+    'delete' => 'eliminar',
+    'tecnicos' => 'listarTecnicos',
+    'assign' => 'asignar',
+    'updateStatus' => 'actualizarEstado',
+    'closeTicket' => 'cerrarTicket',
+    'listAdjuntos' => 'listarAdjuntos',
+    'uploadAdjuntos' => 'subirAdjuntos',
+    'listParticipantes' => 'listarParticipantes',
+    'participantesCandidatos' => 'listarCandidatosParticipantes',
+    'addParticipante' => 'agregarParticipante',
+    'removeParticipante' => 'quitarParticipante',
+    'read' => 'marcarLeida',
+    'readAll' => 'marcarTodasLeidas',
+    'ticketsCsv' => 'exportarTicketsCsv',
+    'ticketsExcel' => 'exportarTicketsExcel',
+    'ticketsPdf' => 'exportarTicketsPdf',
+    'preview' => 'vistaPrevia',
+    'index' => 'vistaPrevia',
+];
+$metodo = $aliasMetodos[$metodoSolicitado] ?? $metodoSolicitado;
 
 // Este mapa define que controladores y metodos pueden exponerse publicamente por la API.
-$map = [
+$mapaApi = [
     'categoria' => [
         'class' => 'CategoriaController',
-        'methods' => ['list', 'create', 'update', 'delete'],
+        'methods' => ['listar', 'crear', 'actualizar', 'eliminar'],
     ],
     'prioridad' => [
         'class' => 'PrioridadController',
-        'methods' => ['list', 'create', 'update', 'delete'],
+        'methods' => ['listar', 'crear', 'actualizar', 'eliminar'],
     ],
     'estado' => [
         'class' => 'EstadoTicketController',
-        'methods' => ['list', 'create', 'update', 'delete'],
+        'methods' => ['listar', 'crear', 'actualizar', 'eliminar'],
     ],
     'rol' => [
         'class' => 'RolController',
-        'methods' => ['list', 'create', 'update', 'delete'],
+        'methods' => ['listar', 'crear', 'actualizar', 'eliminar'],
     ],
     'usuario' => [
         'class' => 'UsuarioController',
-        'methods' => ['list', 'create', 'update', 'delete', 'tecnicos'],
+        'methods' => ['listar', 'crear', 'actualizar', 'eliminar', 'listarTecnicos'],
     ],
     'ticket' => [
         'class' => 'TicketController',
         'methods' => [
-            'list',
-            'create',
-            'assign',
-            'updateStatus',
-            'closeTicket',
-            'listAdjuntos',
-            'uploadAdjuntos',
-            'listParticipantes',
-            'participantesCandidatos',
-            'addParticipante',
-            'removeParticipante',
+            'listar',
+            'crear',
+            'asignar',
+            'actualizarEstado',
+            'cerrarTicket',
+            'listarAdjuntos',
+            'subirAdjuntos',
+            'listarParticipantes',
+            'listarCandidatosParticipantes',
+            'agregarParticipante',
+            'quitarParticipante',
         ],
     ],
     'comentario' => [
         'class' => 'ComentarioController',
-        'methods' => ['list', 'create'],
+        'methods' => ['listar', 'crear'],
     ],
     'notificacion' => [
         'class' => 'NotificacionController',
-        'methods' => ['list', 'read', 'readAll'],
+        'methods' => ['listar', 'marcarLeida', 'marcarTodasLeidas'],
     ],
     'reporte' => [
         'class' => 'ReporteController',
-        'methods' => ['index', 'ticketsCsv', 'ticketsExcel', 'ticketsPdf', 'resumen', 'preview'],
+        'methods' => ['resumen', 'vistaPrevia', 'exportarTicketsCsv', 'exportarTicketsExcel', 'exportarTicketsPdf'],
     ],
 ];
 
-if (!isset($map[$controller])) {
-    respondJsonError('Controlador no encontrado', 404);
+if (!isset($mapaApi[$controlador])) {
+    responderErrorJson('Controlador no encontrado', 404);
 }
 
-$class = $map[$controller]['class'];
-$allowedMethods = $map[$controller]['methods'];
-$file = __DIR__ . '/Controllers/' . $class . '.php';
-if (!file_exists($file)) {
-    respondJsonError('Archivo de controlador no encontrado', 500);
+$clase = $mapaApi[$controlador]['class'];
+$metodosPermitidos = $mapaApi[$controlador]['methods'];
+$archivo = __DIR__ . '/Controllers/' . $clase . '.php';
+if (!file_exists($archivo)) {
+    responderErrorJson('Archivo de controlador no encontrado', 500);
 }
 
-require_once $file;
+require_once $archivo;
 
-if (!class_exists($class)) {
-    respondJsonError('Clase no encontrada', 500);
+if (!class_exists($clase)) {
+    responderErrorJson('Clase no encontrada', 500);
 }
 
-$instance = new $class();
+$instancia = new $clase();
 
 // Aunque el metodo exista en la clase, solo se permite si tambien esta en la lista blanca del mapa.
-if (!in_array($method, $allowedMethods, true) || !method_exists($instance, $method)) {
-    respondJsonError('Metodo no encontrado', 404);
+if (!in_array($metodo, $metodosPermitidos, true) || !method_exists($instancia, $metodo)) {
+    responderErrorJson('Metodo no encontrado', 404);
 }
 
 header('Content-Type: application/json; charset=utf-8');
-$instance->{$method}();
+$instancia->{$metodo}();

@@ -14,27 +14,27 @@ class AuthController
         $this->usuarios = new UsuarioModel();  
     }  
   
-    private function requireAdmin(): bool  
+    private function requerirAdmin(): bool  
     {  
         // El registro abierto se cerro: solo el administrador puede crear nuevos usuarios desde la interfaz.
         return isset($_SESSION['rol_id']) && (int) $_SESSION['rol_id'] === 1;  
     }  
   
-    public function showLogin(?string $error = null): void  
+    public function mostrarLogin(?string $error = null): void  
     {  
         $error = $error ?? null;  
         require __DIR__ . '/../Views/auth/login/login.php';  
     }  
   
-    public function login(): void  
+    public function iniciarSesion(): void  
     {  
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {  
-            $this->showLogin();  
+            $this->mostrarLogin();  
             return;  
         }  
 
         // Si el token falla, se redirige al login para regenerar el formulario y evitar un POST invalido.
-        if (!Csrf::isValidRequest()) {
+        if (!Csrf::esSolicitudValida()) {
             $_SESSION['flash_error'] = 'La sesion del formulario expiro. Intenta de nuevo.';
             header('Location: index.php?r=login');
             exit;
@@ -49,7 +49,7 @@ class AuthController
             exit;  
         }  
   
-        $user = $this->usuarios->findByLogin($login);  
+        $user = $this->usuarios->buscarPorLogin($login);  
         if (!$user or (int) $user['activo'] !== 1) {  
             $_SESSION['flash_error'] = 'Credenciales invalidas.';  
             header('Location: index.php?r=login');  
@@ -73,9 +73,9 @@ class AuthController
         exit;  
     }  
  
-    public function showRegister(?string $error = null): void  
+    public function mostrarRegistro(?string $error = null): void  
     {  
-        if (!$this->requireAdmin()) {  
+        if (!$this->requerirAdmin()) {  
             http_response_code(403);  
             echo 'Registro solo disponible para administradores.';  
             return;  
@@ -83,20 +83,20 @@ class AuthController
         require __DIR__ . '/../Views/auth/register/register.php';  
     }  
   
-    public function register(): void  
+    public function registrar(): void  
     {  
-        if (!$this->requireAdmin()) {  
+        if (!$this->requerirAdmin()) {  
             http_response_code(403);  
             echo 'Registro solo disponible para administradores.';  
             return;  
         }  
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {  
-            $this->showRegister();  
+            $this->mostrarRegistro();  
             return;  
         }  
 
-        if (!Csrf::isValidRequest()) {
-            $this->showRegister('La sesion del formulario expiro. Intenta de nuevo.');
+        if (!Csrf::esSolicitudValida()) {
+            $this->mostrarRegistro('La sesion del formulario expiro. Intenta de nuevo.');
             return;
         }
   
@@ -105,20 +105,20 @@ class AuthController
         $password = (string) ($_POST['password'] ?? '');  
   
         if ($nombre === '' or $email === '' or $password === '') {  
-            $this->showRegister('Debes completar los campos.');  
+            $this->mostrarRegistro('Debes completar los campos.');  
             return;  
         }  
   
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {  
-            $this->showRegister('Correo invalido.');  
+            $this->mostrarRegistro('Correo invalido.');  
             return;  
         }  
   
         $hash = password_hash($password, PASSWORD_BCRYPT);  
         // El rol 3 corresponde al usuario final, que es el rol base para nuevos registros creados por el admin.
-        $ok = $this->usuarios->insert($nombre, $email, $hash, 3, 1);  
+        $ok = $this->usuarios->insertar($nombre, $email, $hash, 3, 1);  
         if (!$ok) {  
-            $this->showRegister('No se pudo registrar el usuario.');  
+            $this->mostrarRegistro('No se pudo registrar el usuario.');  
             return;  
         }  
   
@@ -126,7 +126,7 @@ class AuthController
         exit;  
     }  
   
-    public function logout(): void  
+    public function cerrarSesion(): void  
     {  
         session_unset();  
         session_destroy();  
@@ -136,7 +136,7 @@ class AuthController
         exit;  
     }  
   
-    public function home(): void  
+    public function inicio(): void  
     {  
         if (!isset($_SESSION['user_id'], $_SESSION['rol_id'])) {  
             header('Location: index.php?r=login');  
@@ -145,7 +145,7 @@ class AuthController
   
         // El dashboard se calcula segun el rol para que cada usuario vea solo lo que le corresponde.
         $ticketModel = new TicketModel();  
-        $dashboard = $ticketModel->getDashboardCounts(  
+        $dashboard = $ticketModel->obtenerConteosTablero(  
             (int) $_SESSION['rol_id'],  
             (int) $_SESSION['user_id']  
         );  

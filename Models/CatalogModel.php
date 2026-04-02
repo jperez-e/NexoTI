@@ -6,72 +6,72 @@ require_once __DIR__ . '/../Config/Conexion.php';
 class CatalogModel
 {
     private PDO $db;
-    private string $table;
+    private string $tabla;
     /** @var string[] */
-    private array $fields;
-    private string $orderBy;
+    private array $campos;
+    private string $orden;
 
     /**
      * @param string[] $fields
      */
-    public function __construct(string $table, array $fields, string $orderBy = 'id DESC')
+    public function __construct(string $tabla, array $campos, string $orden = 'id DESC')
     {
-        $this->db = Conexion::get();
-        $this->table = $table;
-        $this->fields = $fields;
-        $this->orderBy = $orderBy;
+        $this->db = Conexion::obtener();
+        $this->tabla = $tabla;
+        $this->campos = $campos;
+        $this->orden = $orden;
     }
 
-    public function getAll(): array
+    public function obtenerTodos(): array
     {
-        $columns = implode(', ', array_merge(['id'], $this->fields));
-        $sql = "SELECT {$columns} FROM {$this->table} ORDER BY {$this->orderBy}";
+        $columns = implode(', ', array_merge(['id'], $this->campos));
+        $sql = "SELECT {$columns} FROM {$this->tabla} ORDER BY {$this->orden}";
         return $this->db->query($sql)->fetchAll();
     }
 
-    public function insert(array $data): bool
+    public function insertar(array $data): bool
     {
-        $payload = $this->filterPayload($data);
+        $payload = $this->filtrarCarga($data);
         $columns = array_keys($payload);
         $placeholders = array_map(static fn (string $field): string => ':' . $field, $columns);
         $sql = sprintf(
             'INSERT INTO %s (%s) VALUES (%s)',
-            $this->table,
+            $this->tabla,
             implode(', ', $columns),
             implode(', ', $placeholders)
         );
 
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute($this->bindPayload($payload));
+        return $stmt->execute($this->vincularCarga($payload));
     }
 
-    public function update(int $id, array $data): bool
+    public function actualizar(int $id, array $data): bool
     {
-        $payload = $this->filterPayload($data);
+        $payload = $this->filtrarCarga($data);
         $assignments = array_map(static fn (string $field): string => $field . ' = :' . $field, array_keys($payload));
         $sql = sprintf(
             'UPDATE %s SET %s WHERE id = :id',
-            $this->table,
+            $this->tabla,
             implode(', ', $assignments)
         );
 
         $stmt = $this->db->prepare($sql);
-        $bindings = $this->bindPayload($payload);
+        $bindings = $this->vincularCarga($payload);
         $bindings[':id'] = $id;
         return $stmt->execute($bindings);
     }
 
-    public function delete(int $id): bool
+    public function eliminar(int $id): bool
     {
-        $sql = "DELETE FROM {$this->table} WHERE id = :id";
+        $sql = "DELETE FROM {$this->tabla} WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([':id' => $id]);
     }
 
-    private function filterPayload(array $data): array
+    private function filtrarCarga(array $data): array
     {
         $payload = [];
-        foreach ($this->fields as $field) {
+        foreach ($this->campos as $field) {
             if (array_key_exists($field, $data)) {
                 $payload[$field] = $data[$field];
             }
@@ -80,7 +80,7 @@ class CatalogModel
         return $payload;
     }
 
-    private function bindPayload(array $payload): array
+    private function vincularCarga(array $payload): array
     {
         $bindings = [];
         foreach ($payload as $field => $value) {

@@ -1,323 +1,323 @@
-async function applySearch() {
-    currentTicketPage = 1;
-    await loadTickets();
+async function aplicarBusqueda() {
+    paginaTicketActual = 1;
+    await cargarTickets();
 }
 
-const NOTIFICATION_POLL_VISIBLE_MS = 10000;
-const NOTIFICATION_POLL_HIDDEN_MS = 30000;
-let notificationPollTimer = null;
-let notificationPollInFlight = false;
+const INTERVALO_NOTIFICACION_VISIBLE_MS = 10000;
+const INTERVALO_NOTIFICACION_OCULTO_MS = 30000;
+let temporizadorConsultaNotificaciones = null;
+let consultaNotificacionesEnCurso = false;
 
-async function applyStatusFilter(filterValue) {
-    activeStatusFilter = filterValue || 'todos';
-    currentTicketPage = 1;
-    await loadTickets();
+async function aplicarFiltroEstado(filterValue) {
+    filtroEstadoActivo = filterValue || 'todos';
+    paginaTicketActual = 1;
+    await cargarTickets();
 }
 
-async function applyAssignmentFilter(filterValue) {
-    activeAssignmentFilter = filterValue || 'todos';
-    currentTicketPage = 1;
-    await loadTickets();
+async function aplicarFiltroAsignacion(filterValue) {
+    filtroAsignacionActivo = filterValue || 'todos';
+    paginaTicketActual = 1;
+    await cargarTickets();
 }
 
-function toggleNoticePanel(forceState) {
-    if (!dom.noticePanel) { return; }
-    const wasOpen = dom.noticePanel.classList.contains('is-open');
-    const nextState = typeof forceState === 'boolean' ? forceState : !dom.noticePanel.classList.contains('is-open');
+function alternarPanelNotificaciones(forceState) {
+    if (!domElementos.noticePanel) { return; }
+    const wasOpen = domElementos.noticePanel.classList.contains('is-open');
+    const nextState = typeof forceState === 'boolean' ? forceState : !domElementos.noticePanel.classList.contains('is-open');
     if (nextState === wasOpen) {
-        dom.noticePanel.setAttribute('aria-hidden', nextState ? 'false' : 'true');
-        if (dom.noticeButton) {
-            dom.noticeButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+        domElementos.noticePanel.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+        if (domElementos.noticeButton) {
+            domElementos.noticeButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
         }
         return;
     }
-    dom.noticePanel.classList.toggle('is-open', nextState);
-    dom.noticePanel.setAttribute('aria-hidden', nextState ? 'false' : 'true');
-    if (dom.noticeButton) {
-        dom.noticeButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+    domElementos.noticePanel.classList.toggle('is-open', nextState);
+    domElementos.noticePanel.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+    if (domElementos.noticeButton) {
+        domElementos.noticeButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
         if (!nextState && wasOpen) {
-            dom.noticeButton.focus();
+            domElementos.noticeButton.focus();
         }
     }
     if (nextState) {
-        dom.noticePanel.focus();
+        domElementos.noticePanel.focus();
     }
 }
 
-function toggleAvatarMenu(forceState) {
-    if (!dom.avatarMenu) { return; }
-    const wasOpen = dom.avatarMenu.classList.contains('is-open');
-    const nextState = typeof forceState === 'boolean' ? forceState : !dom.avatarMenu.classList.contains('is-open');
+function alternarMenuAvatar(forceState) {
+    if (!domElementos.avatarMenu) { return; }
+    const wasOpen = domElementos.avatarMenu.classList.contains('is-open');
+    const nextState = typeof forceState === 'boolean' ? forceState : !domElementos.avatarMenu.classList.contains('is-open');
     if (nextState === wasOpen) {
-        dom.avatarMenu.setAttribute('aria-hidden', nextState ? 'false' : 'true');
-        if (dom.avatarButton) {
-            dom.avatarButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+        domElementos.avatarMenu.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+        if (domElementos.avatarButton) {
+            domElementos.avatarButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
         }
         return;
     }
-    dom.avatarMenu.classList.toggle('is-open', nextState);
-    dom.avatarMenu.setAttribute('aria-hidden', nextState ? 'false' : 'true');
-    if (dom.avatarButton) {
-        dom.avatarButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+    domElementos.avatarMenu.classList.toggle('is-open', nextState);
+    domElementos.avatarMenu.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+    if (domElementos.avatarButton) {
+        domElementos.avatarButton.setAttribute('aria-expanded', nextState ? 'true' : 'false');
         if (!nextState && wasOpen) {
-            dom.avatarButton.focus();
+            domElementos.avatarButton.focus();
         }
     }
     if (nextState) {
-        const firstItem = dom.avatarMenu.querySelector('a');
+        const firstItem = domElementos.avatarMenu.querySelector('a');
         if (firstItem) { firstItem.focus(); }
     }
 }
 
-function setupAvatarMenu() {
-    if (dom.avatarButton && dom.avatarMenu) {
-        dom.avatarButton.addEventListener('click', function (event) {
+function configurarMenuAvatar() {
+    if (domElementos.avatarButton && domElementos.avatarMenu) {
+        domElementos.avatarButton.addEventListener('click', function (event) {
             event.stopPropagation();
-            toggleAvatarMenu();
+            alternarMenuAvatar();
         });
-        dom.avatarButton.addEventListener('keydown', function (event) {
+        domElementos.avatarButton.addEventListener('keydown', function (event) {
             if (event.key === 'ArrowDown') {
                 event.preventDefault();
-                toggleAvatarMenu(true);
+                alternarMenuAvatar(true);
             }
         });
     }
-    if (dom.noticeButton) {
-        dom.noticeButton.addEventListener('click', function (event) {
+    if (domElementos.noticeButton) {
+        domElementos.noticeButton.addEventListener('click', function (event) {
             event.stopPropagation();
-            toggleNoticePanel();
+            alternarPanelNotificaciones();
         });
     }
-    if (dom.avatarMenu) {
-        dom.avatarMenu.addEventListener('keydown', function (event) {
+    if (domElementos.avatarMenu) {
+        domElementos.avatarMenu.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 event.preventDefault();
-                toggleAvatarMenu(false);
+                alternarMenuAvatar(false);
             }
         });
     }
-    if (dom.noticePanel) {
-        dom.noticePanel.addEventListener('keydown', function (event) {
+    if (domElementos.noticePanel) {
+        domElementos.noticePanel.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 event.preventDefault();
-                toggleNoticePanel(false);
+                alternarPanelNotificaciones(false);
             }
         });
     }
     document.addEventListener('click', function (event) {
-        if (dom.avatarMenu && dom.avatarButton && !dom.avatarMenu.contains(event.target) && !dom.avatarButton.contains(event.target)) {
-            toggleAvatarMenu(false);
+        if (domElementos.avatarMenu && domElementos.avatarButton && !domElementos.avatarMenu.contains(event.target) && !domElementos.avatarButton.contains(event.target)) {
+            alternarMenuAvatar(false);
         }
-        if (dom.noticePanel && dom.noticeButton && !dom.noticePanel.contains(event.target) && !dom.noticeButton.contains(event.target)) {
-            toggleNoticePanel(false);
+        if (domElementos.noticePanel && domElementos.noticeButton && !domElementos.noticePanel.contains(event.target) && !domElementos.noticeButton.contains(event.target)) {
+            alternarPanelNotificaciones(false);
         }
     });
     document.addEventListener('keydown', function (event) {
         if (event.key !== 'Escape') { return; }
-        if (dom.avatarMenu && dom.avatarMenu.classList.contains('is-open')) {
-            toggleAvatarMenu(false);
+        if (domElementos.avatarMenu && domElementos.avatarMenu.classList.contains('is-open')) {
+            alternarMenuAvatar(false);
         }
-        if (dom.noticePanel && dom.noticePanel.classList.contains('is-open')) {
-            toggleNoticePanel(false);
+        if (domElementos.noticePanel && domElementos.noticePanel.classList.contains('is-open')) {
+            alternarPanelNotificaciones(false);
         }
     });
 }
 
-function setDefaultOccurrence() {
-    if (!dom.occurrenceInput) { return; }
+function establecerOcurrenciaPorDefecto() {
+    if (!domElementos.occurrenceInput) { return; }
     const now = new Date();
     const offset = now.getTimezoneOffset();
-    dom.occurrenceInput.value = new Date(now.getTime() - offset * 60000).toISOString().slice(0, 16);
+    domElementos.occurrenceInput.value = new Date(now.getTime() - offset * 60000).toISOString().slice(0, 16);
 }
 
-function setupCreateForm() {
-    if (!dom.ticketForm) { return; }
-    setDefaultOccurrence();
-    dom.ticketForm.addEventListener('submit', async function (event) {
+function configurarFormularioCrear() {
+    if (!domElementos.ticketForm) { return; }
+    establecerOcurrenciaPorDefecto();
+    domElementos.ticketForm.addEventListener('submit', async function (event) {
         event.preventDefault();
-        const formData = new FormData(dom.ticketForm);
-        const submitButton = dom.ticketForm.querySelector('button[type="submit"]');
-        formData.set('_token', getCsrfToken());
-        setButtonLoading(submitButton, true, 'Creando...');
+        const formData = new FormData(domElementos.ticketForm);
+        const submitButton = domElementos.ticketForm.querySelector('button[type="submit"]');
+        formData.set('_token', obtenerTokenCsrf());
+        establecerBotonCargando(submitButton, true, 'Creando...');
         try {
             const response = await fetch('api.php?c=ticket&m=create', { method: 'POST', body: formData });
             const data = await response.json();
             if (data.status) {
-                setMessage(dom.formMessage, '', '');
-                showToast('Creación de ticket', data.message ? data.message : 'Proceso completado.', 'success');
+                establecerMensaje(domElementos.formMessage, '', '');
+                mostrarToast('Creación de ticket', data.message ? data.message : 'Proceso completado.', 'success');
             } else {
-                setMessage(dom.formMessage, data.message ? data.message : 'Proceso completado.', 'error', 'Creación de ticket');
+                establecerMensaje(domElementos.formMessage, data.message ? data.message : 'Proceso completado.', 'error', 'Creación de ticket');
             }
             if (data.status) {
-                dom.ticketForm.reset();
-                setDefaultOccurrence();
-                if (expandedTicketId !== null) {
-                    await preserveTicketPosition(expandedTicketId, async function () {
-                        await refreshTicketsView();
+                domElementos.ticketForm.reset();
+                establecerOcurrenciaPorDefecto();
+                if (idTicketExpandido !== null) {
+                    await preservarPosicionTicket(idTicketExpandido, async function () {
+                        await refrescarVistaTickets();
                     });
                 } else {
-                    await refreshTicketsView();
+                    await refrescarVistaTickets();
                 }
             }
         } finally {
-            setButtonLoading(submitButton, false);
+            establecerBotonCargando(submitButton, false);
         }
     });
 }
 
-function setupCloseForm() {
-    if (!dom.closeForm) { return; }
-    const closeCard = dom.closeForm.closest('.card');
+function configurarFormularioCerrar() {
+    if (!domElementos.closeForm) { return; }
+    const closeCard = domElementos.closeForm.closest('.card');
     if (closeCard) { closeCard.style.display = 'none'; }
 }
 
-function setupListFilters() {
-    if (isTechUser()) {
-        activeAssignmentFilter = 'asignados';
-        if (dom.assignmentFilterSelect) {
-            dom.assignmentFilterSelect.value = 'asignados';
-            dom.assignmentFilterSelect.disabled = true;
-            const field = dom.assignmentFilterSelect.closest('.filter-field');
+function configurarFiltrosListado() {
+    if (esUsuarioTecnico()) {
+        filtroAsignacionActivo = 'asignados';
+        if (domElementos.assignmentFilterSelect) {
+            domElementos.assignmentFilterSelect.value = 'asignados';
+            domElementos.assignmentFilterSelect.disabled = true;
+            const field = domElementos.assignmentFilterSelect.closest('.filter-field');
             if (field) {
                 field.style.display = 'none';
             }
         }
     }
 
-    if (dom.statusFilterSelect) {
-        dom.statusFilterSelect.value = activeStatusFilter;
-        dom.statusFilterSelect.addEventListener('change', async function () {
-            await applyStatusFilter(dom.statusFilterSelect.value || 'todos');
+    if (domElementos.statusFilterSelect) {
+        domElementos.statusFilterSelect.value = filtroEstadoActivo;
+        domElementos.statusFilterSelect.addEventListener('change', async function () {
+            await aplicarFiltroEstado(domElementos.statusFilterSelect.value || 'todos');
         });
     }
-    if (dom.assignmentFilterSelect) {
-        dom.assignmentFilterSelect.value = activeAssignmentFilter;
-        dom.assignmentFilterSelect.addEventListener('change', async function () {
-            await applyAssignmentFilter(dom.assignmentFilterSelect.value || 'todos');
+    if (domElementos.assignmentFilterSelect) {
+        domElementos.assignmentFilterSelect.value = filtroAsignacionActivo;
+        domElementos.assignmentFilterSelect.addEventListener('change', async function () {
+            await aplicarFiltroAsignacion(domElementos.assignmentFilterSelect.value || 'todos');
         });
     }
 }
 
-async function pollNotifications() {
-    if (notificationPollInFlight) { return; }
-    notificationPollInFlight = true;
+async function consultarNotificaciones() {
+    if (consultaNotificacionesEnCurso) { return; }
+    consultaNotificacionesEnCurso = true;
     try {
-        await loadNotifications();
+        await cargarNotificaciones();
     } finally {
-        notificationPollInFlight = false;
+        consultaNotificacionesEnCurso = false;
     }
 }
 
-function restartNotificationPolling() {
-    if (notificationPollTimer) {
-        clearInterval(notificationPollTimer);
-        notificationPollTimer = null;
+function reiniciarConsultaNotificaciones() {
+    if (temporizadorConsultaNotificaciones) {
+        clearInterval(temporizadorConsultaNotificaciones);
+        temporizadorConsultaNotificaciones = null;
     }
 
     const interval = document.visibilityState === 'visible'
-        ? NOTIFICATION_POLL_VISIBLE_MS
-        : NOTIFICATION_POLL_HIDDEN_MS;
+        ? INTERVALO_NOTIFICACION_VISIBLE_MS
+        : INTERVALO_NOTIFICACION_OCULTO_MS;
 
-    notificationPollTimer = window.setInterval(function () {
-        pollNotifications();
+    temporizadorConsultaNotificaciones = window.setInterval(function () {
+        consultarNotificaciones();
     }, interval);
 }
 
-function setupNotificationPolling() {
-    restartNotificationPolling();
+function configurarConsultaNotificaciones() {
+    reiniciarConsultaNotificaciones();
     document.addEventListener('visibilitychange', function () {
-        restartNotificationPolling();
+        reiniciarConsultaNotificaciones();
         if (document.visibilityState === 'visible') {
-            pollNotifications();
+            consultarNotificaciones();
         }
     });
     window.addEventListener('beforeunload', function () {
-        if (notificationPollTimer) {
-            clearInterval(notificationPollTimer);
-            notificationPollTimer = null;
+        if (temporizadorConsultaNotificaciones) {
+            clearInterval(temporizadorConsultaNotificaciones);
+            temporizadorConsultaNotificaciones = null;
         }
     });
 }
 
-function cacheDom() {
-    dom.search = byId('ticket-search');
-    dom.refreshButton = byId('refresh-btn');
-    dom.noticeButton = byId('notice-btn');
-    dom.noticePanel = byId('notice-panel');
-    dom.noticeCount = byId('notice-count');
-    dom.avatarButton = byId('avatar-btn');
-    dom.avatarMenu = byId('avatar-menu');
-    dom.ticketsList = byId('tickets-list');
-    dom.resultsInfo = byId('results-info');
-    dom.statusFilterSelect = byId('status-filter-select');
-    dom.assignmentFilterSelect = byId('assignment-filter-select');
-    dom.ticketsPager = byId('tickets-pager');
-    dom.ticketsPrev = byId('tickets-prev');
-    dom.ticketsNext = byId('tickets-next');
-    dom.ticketsPageInfo = byId('tickets-page-info');
-    dom.ticketForm = byId('ticket-form');
-    dom.formMessage = byId('form-message');
-    dom.categoria = byId('categoria_id');
-    dom.prioridad = byId('prioridad_id');
-    dom.estado = byId('estado_id');
-    dom.occurrenceInput = dom.ticketForm ? dom.ticketForm.querySelector('input[name="fecha_ocurrencia"]') : null;
-    dom.closeForm = byId('close-form');
-    dom.closeTicket = byId('close_ticket_id');
-    dom.closeMessage = byId('close-message');
+function cachearDom() {
+    domElementos.search = porId('ticket-search');
+    domElementos.refreshButton = porId('refresh-btn');
+    domElementos.noticeButton = porId('notice-btn');
+    domElementos.noticePanel = porId('notice-panel');
+    domElementos.noticeCount = porId('notice-count');
+    domElementos.avatarButton = porId('avatar-btn');
+    domElementos.avatarMenu = porId('avatar-menu');
+    domElementos.ticketsList = porId('tickets-list');
+    domElementos.resultsInfo = porId('results-info');
+    domElementos.statusFilterSelect = porId('status-filter-select');
+    domElementos.assignmentFilterSelect = porId('assignment-filter-select');
+    domElementos.ticketsPager = porId('tickets-pager');
+    domElementos.ticketsPrev = porId('tickets-prev');
+    domElementos.ticketsNext = porId('tickets-next');
+    domElementos.ticketsPageInfo = porId('tickets-page-info');
+    domElementos.ticketForm = porId('ticket-form');
+    domElementos.formMessage = porId('form-message');
+    domElementos.categoria = porId('categoria_id');
+    domElementos.prioridad = porId('prioridad_id');
+    domElementos.estado = porId('estado_id');
+    domElementos.occurrenceInput = domElementos.ticketForm ? domElementos.ticketForm.querySelector('input[name="fecha_ocurrencia"]') : null;
+    domElementos.closeForm = porId('close-form');
+    domElementos.closeTicket = porId('close_ticket_id');
+    domElementos.closeMessage = porId('close-message');
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    cacheDom();
-    setupAvatarMenu();
-    setupCreateForm();
-    setupCloseForm();
-    setupListFilters();
-    setupNotificationPolling();
-    if (dom.search) {
-        dom.search.addEventListener('input', function () {
-            if (searchTimer) {
-                clearTimeout(searchTimer);
+    cachearDom();
+    configurarMenuAvatar();
+    configurarFormularioCrear();
+    configurarFormularioCerrar();
+    configurarFiltrosListado();
+    configurarConsultaNotificaciones();
+    if (domElementos.search) {
+        domElementos.search.addEventListener('input', function () {
+            if (temporizadorBusqueda) {
+                clearTimeout(temporizadorBusqueda);
             }
-            searchTimer = window.setTimeout(function () {
-                applySearch();
+            temporizadorBusqueda = window.setTimeout(function () {
+                aplicarBusqueda();
             }, 250);
         });
     }
-    if (dom.ticketsPrev) {
-        dom.ticketsPrev.addEventListener('click', async function () {
-            if (currentTicketMeta.page <= 1) { return; }
-            await preserveElementPosition(dom.ticketsPager, async function () {
-                currentTicketPage -= 1;
-                await loadTickets();
+    if (domElementos.ticketsPrev) {
+        domElementos.ticketsPrev.addEventListener('click', async function () {
+            if (metaTicketActual.page <= 1) { return; }
+            await preservarPosicionElemento(domElementos.ticketsPager, async function () {
+                paginaTicketActual -= 1;
+                await cargarTickets();
             });
         });
     }
-    if (dom.ticketsNext) {
-        dom.ticketsNext.addEventListener('click', async function () {
-            if (currentTicketMeta.page >= currentTicketMeta.total_pages) { return; }
-            await preserveElementPosition(dom.ticketsPager, async function () {
-                currentTicketPage += 1;
-                await loadTickets();
+    if (domElementos.ticketsNext) {
+        domElementos.ticketsNext.addEventListener('click', async function () {
+            if (metaTicketActual.page >= metaTicketActual.total_pages) { return; }
+            await preservarPosicionElemento(domElementos.ticketsPager, async function () {
+                paginaTicketActual += 1;
+                await cargarTickets();
             });
         });
     }
-    if (dom.refreshButton) {
-        dom.refreshButton.addEventListener('click', async function () {
+    if (domElementos.refreshButton) {
+        domElementos.refreshButton.addEventListener('click', async function () {
             const button = this;
-            setButtonLoading(button, true, 'Actualizando...');
+            establecerBotonCargando(button, true, 'Actualizando...');
             try {
-                if (expandedTicketId !== null) {
-                    await preserveTicketPosition(expandedTicketId, async function () {
-                        await refreshTicketsView();
+                if (idTicketExpandido !== null) {
+                    await preservarPosicionTicket(idTicketExpandido, async function () {
+                        await refrescarVistaTickets();
                     });
                 } else {
-                    await refreshTicketsView();
+                    await refrescarVistaTickets();
                 }
-            } finally { setButtonLoading(button, false); }
+            } finally { establecerBotonCargando(button, false); }
         });
     }
-    await loadCombos();
-    await loadTecnicos();
-    await loadParticipantCandidates();
-    await Promise.all([loadTickets(), loadNotifications()]);
+    await cargarCombos();
+    await cargarTecnicos();
+    await cargarCandidatosParticipantes();
+    await Promise.all([cargarTickets(), cargarNotificaciones()]);
 });

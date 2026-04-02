@@ -1,11 +1,11 @@
+const botonAlternar = document.getElementById('toggle-password');
+const campoContrasena = document.getElementById('password');
 
-        const toggle = document.getElementById('toggle-password');  
-        const passwordInput = document.getElementById('password');  
-        if (toggle) {  
-            toggle.addEventListener('click', function () {  
-                if (!passwordInput) { return; }  
-                const isPassword = passwordInput.type === 'password';  
-                passwordInput.type = isPassword ? 'text' : 'password';  
-                toggle.classList.toggle('is-visible', isPassword);  
-            });  
-        }  
+if (botonAlternar) {
+    botonAlternar.addEventListener('click', function () {
+        if (!campoContrasena) { return; }
+        const esContrasena = campoContrasena.type === 'password';
+        campoContrasena.type = esContrasena ? 'text' : 'password';
+        botonAlternar.classList.toggle('is-visible', esContrasena);
+    });
+}

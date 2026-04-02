@@ -1,28 +1,28 @@
-let editingId = 0;
-let categoriasCache = [];
+let idEdicion = 0;
+let cacheCategorias = [];
 
-function getNode(id) {
+function obtenerNodo(id) {
     return document.getElementById(id);
 }
 
-function setButtonContent(button, iconName, label) {
+function establecerContenidoBoton(button, iconName, label) {
     if (!button) {
         return;
     }
     button.innerHTML = window.UiIcons ? window.UiIcons.buttonContent(iconName, label) : label;
 }
 
-async function fetchJSON(url, options = {}) {
+async function obtenerJson(url, options = {}) {
     const response = await fetch(url, options);
     return response.json();
 }
 
-function getCsrfToken() {
-    const node = getNode('csrf-token');
+function obtenerTokenCsrf() {
+    const node = obtenerNodo('csrf-token');
     return node ? node.value : '';
 }
 
-function setButtonLoading(button, loading, loadingText) {
+function establecerBotonCargando(button, loading, loadingText) {
     if (!button) {
         return;
     }
@@ -40,7 +40,7 @@ function setButtonLoading(button, loading, loadingText) {
     button.classList.remove('is-loading');
 }
 
-function ensureToastStack() {
+function asegurarPilaToasts() {
     let stack = document.querySelector('.toast-stack');
     if (stack) {
         return stack;
@@ -52,8 +52,8 @@ function ensureToastStack() {
     return stack;
 }
 
-function showToast(title, text, type) {
-    const stack = ensureToastStack();
+function mostrarToast(title, text, type) {
+    const stack = asegurarPilaToasts();
     const toast = document.createElement('div');
     toast.className = 'toast' + (type ? ' ' + type : '');
     toast.innerHTML = '<strong>' + title + '</strong><span>' + text + '</span>';
@@ -64,7 +64,7 @@ function showToast(title, text, type) {
     }, 3600);
 }
 
-function clearMessageLater(node, delay) {
+function limpiarMensajeLuego(node, delay) {
     if (!node) {
         return;
     }
@@ -79,8 +79,8 @@ function clearMessageLater(node, delay) {
     }, delay);
 }
 
-function showMessage(text, type, allowToast = true) {
-    const node = getNode('form-message');
+function mostrarMensaje(text, type, allowToast = true) {
+    const node = obtenerNodo('form-message');
     if (!node) {
         return;
     }
@@ -89,13 +89,13 @@ function showMessage(text, type, allowToast = true) {
     node.className = type ? 'message ' + type : 'message';
 
     if (allowToast && text !== '' && type) {
-        clearMessageLater(node, 4000);
-        showToast(type === 'success' ? 'Operación completada' : 'Atención', text, type);
+        limpiarMensajeLuego(node, 4000);
+        mostrarToast(type === 'success' ? 'Operación completada' : 'Atención', text, type);
     }
 }
 
-function ensureFormTools() {
-    const form = getNode('categoria-form');
+function asegurarHerramientasFormulario() {
+    const form = obtenerNodo('categoria-form');
     if (!form) {
         return;
     }
@@ -106,7 +106,7 @@ function ensureFormTools() {
         title.id = 'form-title';
     }
 
-    if (!getNode('categoria-id')) {
+    if (!obtenerNodo('categoria-id')) {
         const hidden = document.createElement('input');
         hidden.type = 'hidden';
         hidden.id = 'categoria-id';
@@ -114,41 +114,41 @@ function ensureFormTools() {
         form.prepend(hidden);
     }
 
-    if (!getNode('cancel-btn') && actions) {
+    if (!obtenerNodo('cancel-btn') && actions) {
         const cancel = document.createElement('button');
         cancel.type = 'button';
         cancel.id = 'cancel-btn';
         cancel.className = 'btn ghost hidden';
-        setButtonContent(cancel, 'close', 'Cancelar edición');
-        actions.insertBefore(cancel, getNode('form-message'));
+        establecerContenidoBoton(cancel, 'close', 'Cancelar edición');
+        actions.insertBefore(cancel, obtenerNodo('form-message'));
     }
 }
 
-function resetForm() {
-    editingId = 0;
-    const form = getNode('categoria-form');
+function reiniciarFormulario() {
+    idEdicion = 0;
+    const form = obtenerNodo('categoria-form');
     form.reset();
-    getNode('categoria-id').value = '';
-    getNode('form-title').textContent = 'Nueva categoría';
-    setButtonContent(getNode('submit-btn'), 'save', 'Guardar categoría');
-    getNode('cancel-btn').classList.add('hidden');
-    showMessage('', '');
+    obtenerNodo('categoria-id').value = '';
+    obtenerNodo('form-title').textContent = 'Nueva categoría';
+    establecerContenidoBoton(obtenerNodo('submit-btn'), 'save', 'Guardar categoría');
+    obtenerNodo('cancel-btn').classList.add('hidden');
+    mostrarMensaje('', '');
 }
 
-function startEdit(row) {
-    editingId = Number(row.id);
-    getNode('categoria-id').value = row.id;
-    getNode('nombre').value = row.nombre;
-    getNode('descripcion').value = row.descripcion ? row.descripcion : '';
-    getNode('form-title').textContent = 'Editar categoría';
-    setButtonContent(getNode('submit-btn'), 'save', 'Actualizar categoría');
-    getNode('cancel-btn').classList.remove('hidden');
-    showMessage('', '');
+function iniciarEdicion(row) {
+    idEdicion = Number(row.id);
+    obtenerNodo('categoria-id').value = row.id;
+    obtenerNodo('nombre').value = row.nombre;
+    obtenerNodo('descripcion').value = row.descripcion ? row.descripcion : '';
+    obtenerNodo('form-title').textContent = 'Editar categoría';
+    establecerContenidoBoton(obtenerNodo('submit-btn'), 'save', 'Actualizar categoría');
+    obtenerNodo('cancel-btn').classList.remove('hidden');
+    mostrarMensaje('', '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function renderCategorias(list) {
-    const container = getNode('categorias-list');
+function renderizarCategorias(list) {
+    const container = obtenerNodo('categorias-list');
     container.innerHTML = '';
 
     if (list.length === 0) {
@@ -172,44 +172,44 @@ function renderCategorias(list) {
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
         editBtn.className = 'btn ghost';
-        setButtonContent(editBtn, 'edit', 'Editar');
+        establecerContenidoBoton(editBtn, 'edit', 'Editar');
         editBtn.addEventListener('click', function () {
-            startEdit(row);
+            iniciarEdicion(row);
         });
 
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn danger';
-        setButtonContent(deleteBtn, 'delete', 'Eliminar');
+        establecerContenidoBoton(deleteBtn, 'delete', 'Eliminar');
         deleteBtn.addEventListener('click', async function () {
             const ok = window.confirm('Se eliminará la categoría ' + row.nombre + '. ¿Deseas continuar?');
             if (!ok) {
                 return;
             }
 
-            setButtonLoading(deleteBtn, true, 'Eliminando...');
+            establecerBotonCargando(deleteBtn, true, 'Eliminando...');
             try {
-                const data = await fetchJSON('api.php?c=categoria&m=delete', {
+                const data = await obtenerJson('api.php?c=categoria&m=eliminar', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-Token': getCsrfToken(),
+                        'X-CSRF-Token': obtenerTokenCsrf(),
                     },
                     body: JSON.stringify({ id: row.id }),
                 });
                 if (!data.status) {
-                    showMessage(data.message ? data.message : 'No se pudo eliminar la categoría.', 'error', false);
+                    mostrarMensaje(data.message ? data.message : 'No se pudo eliminar la categoría.', 'error', false);
                 } else {
-                    showMessage('', '', false);
+                    mostrarMensaje('', '', false);
                 }
                 if (data.status) {
-                    if (editingId === Number(row.id)) {
-                        resetForm();
+                    if (idEdicion === Number(row.id)) {
+                        reiniciarFormulario();
                     }
-                    await loadCategorias();
+                    await cargarCategorias();
                 }
             } finally {
-                setButtonLoading(deleteBtn, false);
+                establecerBotonCargando(deleteBtn, false);
             }
         });
 
@@ -222,62 +222,62 @@ function renderCategorias(list) {
     });
 }
 
-async function loadCategorias() {
-    const data = await fetchJSON('api.php?c=categoria&m=list');
-    categoriasCache = data.data ? data.data : [];
-    renderCategorias(categoriasCache);
+async function cargarCategorias() {
+    const data = await obtenerJson('api.php?c=categoria&m=listar');
+    cacheCategorias = data.data ? data.data : [];
+    renderizarCategorias(cacheCategorias);
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    ensureFormTools();
-    resetForm();
-    await loadCategorias();
+    asegurarHerramientasFormulario();
+    reiniciarFormulario();
+    await cargarCategorias();
 
-    getNode('refresh-btn').addEventListener('click', async function () {
+    obtenerNodo('refresh-btn').addEventListener('click', async function () {
         const button = this;
-        setButtonLoading(button, true, 'Actualizando...');
+        establecerBotonCargando(button, true, 'Actualizando...');
         try {
-            await loadCategorias();
+            await cargarCategorias();
         } finally {
-            setButtonLoading(button, false);
+            establecerBotonCargando(button, false);
         }
     });
 
-    getNode('cancel-btn').addEventListener('click', resetForm);
+    obtenerNodo('cancel-btn').addEventListener('click', reiniciarFormulario);
 
-    getNode('categoria-form').addEventListener('submit', async function (event) {
+    obtenerNodo('categoria-form').addEventListener('submit', async function (event) {
         event.preventDefault();
 
         const form = event.target;
-        const submitButton = getNode('submit-btn');
+        const submitButton = obtenerNodo('submit-btn');
         const formData = new FormData(form);
-        formData.set('_token', getCsrfToken());
+        formData.set('_token', obtenerTokenCsrf());
 
-        const url = editingId > 0 ? 'api.php?c=categoria&m=update' : 'api.php?c=categoria&m=create';
-        if (editingId > 0) {
-            formData.set('id', String(editingId));
+        const url = idEdicion > 0 ? 'api.php?c=categoria&m=actualizar' : 'api.php?c=categoria&m=crear';
+        if (idEdicion > 0) {
+            formData.set('id', String(idEdicion));
         }
 
-        setButtonLoading(submitButton, true, editingId > 0 ? 'Actualizando...' : 'Guardando...');
+        establecerBotonCargando(submitButton, true, idEdicion > 0 ? 'Actualizando...' : 'Guardando...');
         try {
-            const data = await fetchJSON(url, {
+            const data = await obtenerJson(url, {
                 method: 'POST',
                 body: formData,
             });
             if (data.status) {
-                showMessage('', '');
-                showToast(
-                    editingId > 0 ? 'Categoría actualizada' : 'Categoría registrada',
+                mostrarMensaje('', '');
+                mostrarToast(
+                    idEdicion > 0 ? 'Categoría actualizada' : 'Categoría registrada',
                     data.message ? data.message : 'Proceso completado.',
                     'success'
                 );
-                resetForm();
-                await loadCategorias();
+                reiniciarFormulario();
+                await cargarCategorias();
             } else {
-                showMessage(data.message ? data.message : 'No se pudo completar la operación.', 'error');
+                mostrarMensaje(data.message ? data.message : 'No se pudo completar la operación.', 'error');
             }
         } finally {
-            setButtonLoading(submitButton, false);
+            establecerBotonCargando(submitButton, false);
         }
     });
 });

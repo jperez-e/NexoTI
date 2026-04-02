@@ -6,40 +6,40 @@ require_once __DIR__ . '/../Services/NotificationService.php';
 
 class NotificacionController extends BaseController
 {
-    private NotificationService $service;
+    private NotificationService $servicio;
 
     public function __construct()
     {
-        $this->service = new NotificationService();
+        $this->servicio = new NotificationService();
     }
 
-    public function list(): void
+    public function listar(): void
     {
-        $this->requireLogin();
-        $this->jsonOk('Notificaciones cargadas', $this->service->getPanelData($this->currentUserId()));
+        $this->requerirSesion();
+        $this->responderOkJson('Notificaciones cargadas', $this->servicio->obtenerDatosPanel($this->obtenerIdUsuarioActual()));
     }
 
-    public function read(): void
+    public function marcarLeida(): void
     {
-        $this->requireLogin();
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirPost();
 
-        $payload = $this->requestData();
+        $payload = $this->obtenerDatosSolicitud();
         $id = (int) ($payload['id'] ?? 0);
         if ($id <= 0) {
-            $this->jsonError('Notificacion invalida');
+            $this->responderErrorJson('Notificacion invalida');
         }
 
-        $ok = $this->service->markAsRead($id, $this->currentUserId());
-        $ok ? $this->jsonOk('Notificacion marcada como leida') : $this->jsonError('No se pudo actualizar');
+        $ok = $this->servicio->marcarComoLeida($id, $this->obtenerIdUsuarioActual());
+        $ok ? $this->responderOkJson('Notificacion marcada como leida') : $this->responderErrorJson('No se pudo actualizar');
     }
 
-    public function readAll(): void
+    public function marcarTodasLeidas(): void
     {
-        $this->requireLogin();
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirPost();
 
-        $ok = $this->service->markAllAsRead($this->currentUserId());
-        $ok ? $this->jsonOk('Notificaciones marcadas como leidas') : $this->jsonError('No se pudo actualizar');
+        $ok = $this->servicio->marcarTodasComoLeidas($this->obtenerIdUsuarioActual());
+        $ok ? $this->responderOkJson('Notificaciones marcadas como leidas') : $this->responderErrorJson('No se pudo actualizar');
     }
 }

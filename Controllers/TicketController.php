@@ -31,30 +31,30 @@ class TicketController extends BaseController
         $this->notifications = new NotificationService();
     }
 
-    public function list(): void
+    public function listar(): void
     {
-        $this->requireLogin();
+        $this->requerirSesion();
         $page = (int) ($_GET['page'] ?? 1);
         $perPage = (int) ($_GET['per_page'] ?? 5);
         $query = trim((string) ($_GET['query'] ?? ''));
         $estado = trim((string) ($_GET['estado'] ?? 'todos'));
         $asignacion = trim((string) ($_GET['asignacion'] ?? 'todos'));
 
-        $payload = $this->service->listTickets(
+        $payload = $this->service->listarTickets(
             ['query' => $query, 'estado' => $estado, 'asignacion' => $asignacion],
             $page,
             $perPage,
-            $this->currentRoleId(),
-            $this->currentUserId()
+            $this->obtenerIdRolActual(),
+            $this->obtenerIdUsuarioActual()
         );
 
-        $this->jsonOk('Tickets cargados', $payload);
+        $this->responderOkJson('Tickets cargados', $payload);
     }
 
-    public function create(): void
+    public function crear(): void
     {
-        $this->requireLogin();
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirPost();
 
         $titulo = trim(strip_tags((string) ($_POST['titulo'] ?? '')));
         $descripcion = trim(strip_tags((string) ($_POST['descripcion'] ?? '')));
@@ -63,33 +63,33 @@ class TicketController extends BaseController
         $estadoId = (int) ($_POST['estado_id'] ?? 0);
         $fechaOcurrenciaRaw = trim((string) ($_POST['fecha_ocurrencia'] ?? ''));
 
-        $codigo = $this->service->generateTicketCode();
+        $codigo = $this->service->generarCodigoTicket();
 
-        $sessionUserId = $this->currentUserId();
-        $rolId = $this->currentRoleId();
+        $sessionUserId = $this->obtenerIdUsuarioActual();
+        $rolId = $this->obtenerIdRolActual();
         $usuarioId = (int) ($_POST['usuario_id'] ?? $sessionUserId);
         $fechaCreacion = null;
         if ($fechaOcurrenciaRaw !== '') {
             $date = \DateTime::createFromFormat('Y-m-d\TH:i', $fechaOcurrenciaRaw);
             if ($date === false) {
-                $this->jsonError('Fecha de ocurrencia invalida.');
+                $this->responderErrorJson('Fecha de ocurrencia invalida.');
             }
             $fechaCreacion = $date->format('Y-m-d H:i:s');
         }
         if ($rolId === 3) {
             // Regla de negocio: los tickets creados por el usuario final siempre nacen abiertos.
             $usuarioId = $sessionUserId;
-            $estadoInicialId = $this->model->getEstadoIdByNombre('Abierto');
+            $estadoInicialId = $this->model->obtenerIdEstadoPorNombre('Abierto');
             if ($estadoInicialId !== null) {
                 $estadoId = $estadoInicialId;
             }
         }
 
         if ($titulo === '' || $descripcion === '' || $categoriaId <= 0 || $prioridadId <= 0 || $estadoId <= 0) {
-            $this->jsonError('Completa todos los campos.');
+            $this->responderErrorJson('Completa todos los campos.');
         }
 
-        $ok = $this->model->insert(
+        $ok = $this->model->insertar(
             $codigo,
             $titulo,
             $descripcion,
@@ -102,33 +102,33 @@ class TicketController extends BaseController
             null
         );
         if (!$ok) {
-            $this->jsonError('No se pudo guardar el ticket.');
+            $this->responderErrorJson('No se pudo guardar el ticket.');
         }
 
-        $ticketId = $this->model->getLastInsertId();
-        $this->handleAdjuntos($ticketId);
-        $createdTicket = $this->model->getById($ticketId);
+        $ticketId = $this->model->obtenerUltimoIdInsertado();
+        $this->procesarAdjuntos($ticketId);
+        $createdTicket = $this->model->obtenerPorId($ticketId);
         if ($createdTicket !== null) {
-            $this->notifications->notifyCreated($createdTicket, $this->currentUserId());
+            $this->notifications->notificarCreacion($createdTicket, $this->obtenerIdUsuarioActual());
         }
 
-        $this->jsonOk('Ticket creado', ['id' => $ticketId]);
+        $this->responderOkJson('Ticket creado', ['id' => $ticketId]);
     }
 
-    public function listAdjuntos(): void
+    public function listarAdjuntos(): void
     {
-        $this->requireLogin();
+        $this->requerirSesion();
 
-        $rolId = $this->currentRoleId();
-        $userId = $this->currentUserId();
+        $rolId = $this->obtenerIdRolActual();
+        $userId = $this->obtenerIdUsuarioActual();
         $ticketIds = array_values(array_filter(array_map('intval', explode(',', (string) ($_GET['ticket_ids'] ?? '')))));
 
         if ($rolId === 3) {
-            $rows = $this->adjuntos->getByUsuario($userId);
+            $rows = $this->adjuntos->obtenerPorUsuario($userId);
         } elseif ($rolId === 2) {
-            $rows = $this->adjuntos->getByTecnico($userId);
+            $rows = $this->adjuntos->obtenerPorTecnico($userId);
         } else {
-            $rows = $this->adjuntos->getAll();
+            $rows = $this->adjuntos->obtenerTodos();
         }
 
         if ($ticketIds !== []) {
@@ -138,55 +138,55 @@ class TicketController extends BaseController
             }));
         }
 
-        $this->jsonOk('Adjuntos cargados', $rows);
+        $this->responderOkJson('Adjuntos cargados', $rows);
     }
 
-    public function uploadAdjuntos(): void
+    public function subirAdjuntos(): void
     {
-        $this->requireLogin();
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirPost();
 
         $ticketId = (int) ($_POST['ticket_id'] ?? 0);
         $comentarioId = (int) ($_POST['comentario_id'] ?? 0);
         if ($ticketId <= 0) {
-            $this->jsonError('Selecciona un ticket.');
+            $this->responderErrorJson('Selecciona un ticket.');
         }
 
-        $ticket = $this->model->getById($ticketId);
+        $ticket = $this->model->obtenerPorId($ticketId);
         if (!$ticket) {
-            $this->jsonError('Ticket no encontrado.', 404);
+            $this->responderErrorJson('Ticket no encontrado.', 404);
         }
 
-        if (!$this->canAccessTicket($ticket)) {
-            $this->jsonError('No puedes adjuntar archivos en este ticket.', 403);
+        if (!$this->puedeAccederTicket($ticket)) {
+            $this->responderErrorJson('No puedes adjuntar archivos en este ticket.', 403);
         }
 
-        $uploadedCount = $this->handleAdjuntos($ticketId, $comentarioId > 0 ? $comentarioId : null);
+        $uploadedCount = $this->procesarAdjuntos($ticketId, $comentarioId > 0 ? $comentarioId : null);
         if ($uploadedCount <= 0) {
-            $this->jsonError('No se pudo cargar ningun archivo.');
+            $this->responderErrorJson('No se pudo cargar ningun archivo.');
         }
 
-        $this->jsonOk('Evidencia cargada', ['count' => $uploadedCount]);
+        $this->responderOkJson('Evidencia cargada', ['count' => $uploadedCount]);
     }
 
-    public function listParticipantes(): void
+    public function listarParticipantes(): void
     {
-        $this->requireLogin();
+        $this->requerirSesion();
 
         $ticketIds = array_values(array_filter(array_map('intval', explode(',', (string) ($_GET['ticket_ids'] ?? '')))));
         if ($ticketIds === []) {
-            $this->jsonOk('Participantes cargados', []);
+            $this->responderOkJson('Participantes cargados', []);
         }
 
-        $rows = $this->participantes->getByTicketIds($ticketIds);
-        if ($this->currentRoleId() === 1) {
-            $this->jsonOk('Participantes cargados', $rows);
+        $rows = $this->participantes->obtenerPorIdsTicket($ticketIds);
+        if ($this->obtenerIdRolActual() === 1) {
+            $this->responderOkJson('Participantes cargados', $rows);
         }
 
         $allowedTicketIds = [];
         foreach ($ticketIds as $ticketId) {
-            $ticket = $this->model->getById($ticketId);
-            if ($ticket && $this->canAccessTicket($ticket)) {
+            $ticket = $this->model->obtenerPorId($ticketId);
+            if ($ticket && $this->puedeAccederTicket($ticket)) {
                 $allowedTicketIds[$ticketId] = true;
             }
         }
@@ -195,17 +195,17 @@ class TicketController extends BaseController
             return isset($allowedTicketIds[(int) ($row['ticket_id'] ?? 0)]);
         }));
 
-        $this->jsonOk('Participantes cargados', $filtered);
+        $this->responderOkJson('Participantes cargados', $filtered);
     }
 
-    public function participantesCandidatos(): void
+    public function listarCandidatosParticipantes(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1, 2]);
+        $this->requerirSesion();
+        $this->requerirRol([1, 2]);
 
-        $rows = $this->usuarios->getParticipantCandidates();
-        $currentUserId = $this->currentUserId();
-        $rolId = $this->currentRoleId();
+        $rows = $this->usuarios->obtenerCandidatosParticipantes();
+        $currentUserId = $this->obtenerIdUsuarioActual();
+        $rolId = $this->obtenerIdRolActual();
         $rows = array_values(array_filter($rows, static function (array $row) use ($currentUserId): bool {
             return (int) ($row['id'] ?? 0) !== $currentUserId;
         }));
@@ -215,91 +215,91 @@ class TicketController extends BaseController
             }));
         }
 
-        $this->jsonOk('Candidatos cargados', $rows);
+        $this->responderOkJson('Candidatos cargados', $rows);
     }
 
-    public function addParticipante(): void
+    public function agregarParticipante(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1, 2]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1, 2]);
+        $this->requerirPost();
 
-        $payload = $this->requestData();
+        $payload = $this->obtenerDatosSolicitud();
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         $usuarioId = (int) ($payload['usuario_id'] ?? 0);
 
         if ($ticketId <= 0 || $usuarioId <= 0) {
-            $this->jsonError('Datos incompletos.');
+            $this->responderErrorJson('Datos incompletos.');
         }
 
-        $ticket = $this->model->getById($ticketId);
+        $ticket = $this->model->obtenerPorId($ticketId);
         if (!$ticket) {
-            $this->jsonError('Ticket no encontrado.', 404);
+            $this->responderErrorJson('Ticket no encontrado.', 404);
         }
-        if (!$this->canManageParticipants($ticket)) {
-            $this->jsonError('No tienes permisos para gestionar participantes en este ticket.', 403);
+        if (!$this->puedeGestionarParticipantes($ticket)) {
+            $this->responderErrorJson('No tienes permisos para gestionar participantes en este ticket.', 403);
         }
 
-        $usuario = $this->usuarios->getById($usuarioId);
+        $usuario = $this->usuarios->obtenerPorId($usuarioId);
         if (!$usuario || (int) ($usuario['activo'] ?? 0) !== 1) {
-            $this->jsonError('Usuario no disponible.');
+            $this->responderErrorJson('Usuario no disponible.');
         }
-        if ($this->currentRoleId() === 2 && !in_array((int) ($usuario['rol_id'] ?? 0), [2, 3], true)) {
-            $this->jsonError('Solo puedes agregar técnicos o usuarios.');
+        if ($this->obtenerIdRolActual() === 2 && !in_array((int) ($usuario['rol_id'] ?? 0), [2, 3], true)) {
+            $this->responderErrorJson('Solo puedes agregar técnicos o usuarios.');
         }
         if ((int) $ticket['usuario_id'] === $usuarioId || (int) ($ticket['tecnico_id'] ?? 0) === $usuarioId) {
-            $this->jsonError('Ese usuario ya participa en el ticket.');
+            $this->responderErrorJson('Ese usuario ya participa en el ticket.');
         }
-        if ($this->participantes->isParticipant($ticketId, $usuarioId)) {
-            $this->jsonError('Ese usuario ya fue agregado.');
+        if ($this->participantes->esParticipante($ticketId, $usuarioId)) {
+            $this->responderErrorJson('Ese usuario ya fue agregado.');
         }
-        if (!$this->participantes->add($ticketId, $usuarioId)) {
-            $this->jsonError('No se pudo agregar el participante.');
+        if (!$this->participantes->agregar($ticketId, $usuarioId)) {
+            $this->responderErrorJson('No se pudo agregar el participante.');
         }
 
-        $this->jsonOk('Participante agregado');
+        $this->responderOkJson('Participante agregado');
     }
 
-    public function removeParticipante(): void
+    public function quitarParticipante(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1, 2]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1, 2]);
+        $this->requerirPost();
 
-        $payload = $this->requestData();
+        $payload = $this->obtenerDatosSolicitud();
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         $usuarioId = (int) ($payload['usuario_id'] ?? 0);
 
         if ($ticketId <= 0 || $usuarioId <= 0) {
-            $this->jsonError('Datos incompletos.');
+            $this->responderErrorJson('Datos incompletos.');
         }
 
-        $ticket = $this->model->getById($ticketId);
+        $ticket = $this->model->obtenerPorId($ticketId);
         if (!$ticket) {
-            $this->jsonError('Ticket no encontrado.', 404);
+            $this->responderErrorJson('Ticket no encontrado.', 404);
         }
-        if (!$this->canManageParticipants($ticket)) {
-            $this->jsonError('No tienes permisos para gestionar participantes en este ticket.', 403);
+        if (!$this->puedeGestionarParticipantes($ticket)) {
+            $this->responderErrorJson('No tienes permisos para gestionar participantes en este ticket.', 403);
         }
         if ((int) $ticket['usuario_id'] === $usuarioId || (int) ($ticket['tecnico_id'] ?? 0) === $usuarioId) {
-            $this->jsonError('No puedes remover al solicitante o al técnico responsable.');
+            $this->responderErrorJson('No puedes remover al solicitante o al técnico responsable.');
         }
-        if (!$this->participantes->isParticipant($ticketId, $usuarioId)) {
-            $this->jsonError('Ese usuario no está como participante.');
+        if (!$this->participantes->esParticipante($ticketId, $usuarioId)) {
+            $this->responderErrorJson('Ese usuario no está como participante.');
         }
-        if (!$this->participantes->remove($ticketId, $usuarioId)) {
-            $this->jsonError('No se pudo remover el participante.');
+        if (!$this->participantes->quitar($ticketId, $usuarioId)) {
+            $this->responderErrorJson('No se pudo remover el participante.');
         }
 
-        $this->jsonOk('Participante removido');
+        $this->responderOkJson('Participante removido');
     }
 
-    private function canAccessTicket(array $ticket): bool
+    private function puedeAccederTicket(array $ticket): bool
     {
-        $rolId = $this->currentRoleId();
-        $userId = $this->currentUserId();
+        $rolId = $this->obtenerIdRolActual();
+        $userId = $this->obtenerIdUsuarioActual();
 
-        if ($this->participantes->isParticipant((int) ($ticket['id'] ?? 0), $userId)) {
+        if ($this->participantes->esParticipante((int) ($ticket['id'] ?? 0), $userId)) {
             return true;
         }
 
@@ -313,9 +313,9 @@ class TicketController extends BaseController
         return (int) ($ticket['usuario_id'] ?? 0) === $userId;
     }
 
-    private function canManageParticipants(array $ticket): bool
+    private function puedeGestionarParticipantes(array $ticket): bool
     {
-        $rolId = $this->currentRoleId();
+        $rolId = $this->obtenerIdRolActual();
         if ($rolId === 1) {
             return true;
         }
@@ -324,10 +324,10 @@ class TicketController extends BaseController
             return false;
         }
 
-        return (int) ($ticket['tecnico_id'] ?? 0) === $this->currentUserId();
+        return (int) ($ticket['tecnico_id'] ?? 0) === $this->obtenerIdUsuarioActual();
     }
 
-    private function normalizeAdjuntos(): array
+    private function normalizarAdjuntos(): array
     {
         if (isset($_FILES['adjuntos'])) {
             $files = $_FILES['adjuntos'];
@@ -354,7 +354,7 @@ class TicketController extends BaseController
         return [];
     }
 
-    private function handleAdjuntos(int $ticketId, ?int $comentarioId = null): int
+    private function procesarAdjuntos(int $ticketId, ?int $comentarioId = null): int
     {
         $baseDir = dirname(__DIR__);
         $dir = $baseDir . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'tickets';
@@ -365,7 +365,7 @@ class TicketController extends BaseController
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'];
         $uploaded = 0;
 
-        foreach ($this->normalizeAdjuntos() as $index => $file) {
+        foreach ($this->normalizarAdjuntos() as $index => $file) {
             if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
                 continue;
             }
@@ -386,7 +386,7 @@ class TicketController extends BaseController
 
             if (move_uploaded_file($tmp, $dest)) {
                 $relative = 'uploads/tickets/' . $filename;
-                if ($this->adjuntos->insert($ticketId, $relative, $name, $this->currentUserId(), $comentarioId)) {
+                if ($this->adjuntos->insertar($ticketId, $relative, $name, $this->obtenerIdUsuarioActual(), $comentarioId)) {
                     $uploaded++;
                 }
             }
@@ -395,13 +395,13 @@ class TicketController extends BaseController
         return $uploaded;
     }
 
-    public function assign(): void
+    public function asignar(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->requerirPost();
 
-        $payload = $this->requestData();
+        $payload = $this->obtenerDatosSolicitud();
 
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         $estadoId = (int) ($payload['estado_id'] ?? 0);
@@ -409,99 +409,99 @@ class TicketController extends BaseController
         $tecnicoId = $tecnicoRaw === null || $tecnicoRaw === '' ? null : (int) $tecnicoRaw;
 
         if ($ticketId <= 0 || $estadoId <= 0) {
-            $this->jsonError('Datos incompletos.');
+            $this->responderErrorJson('Datos incompletos.');
         }
 
-        if (!$this->model->assign($ticketId, $tecnicoId, $estadoId)) {
-            $this->jsonError('No se pudo actualizar.');
+        if (!$this->model->asignar($ticketId, $tecnicoId, $estadoId)) {
+            $this->responderErrorJson('No se pudo actualizar.');
         }
 
-        $ticket = $this->model->getById($ticketId);
+        $ticket = $this->model->obtenerPorId($ticketId);
         if ($ticket !== null) {
-            $this->notifications->notifyAssignment($ticket, $tecnicoId, $this->currentUserId());
+            $this->notifications->notificarAsignacion($ticket, $tecnicoId, $this->obtenerIdUsuarioActual());
         }
 
-        $this->jsonOk('Asignacion actualizada');
+        $this->responderOkJson('Asignacion actualizada');
     }
 
-    public function updateStatus(): void
+    public function actualizarEstado(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1, 2]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1, 2]);
+        $this->requerirPost();
 
-        $payload = $this->requestData();
+        $payload = $this->obtenerDatosSolicitud();
 
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         $estadoId = (int) ($payload['estado_id'] ?? 0);
 
         if ($ticketId <= 0 || $estadoId <= 0) {
-            $this->jsonError('Datos incompletos.');
+            $this->responderErrorJson('Datos incompletos.');
         }
 
-        $ticket = $this->model->getById($ticketId);
+        $ticket = $this->model->obtenerPorId($ticketId);
         if (!$ticket) {
-            $this->jsonError('Ticket no encontrado.');
+            $this->responderErrorJson('Ticket no encontrado.');
         }
 
-        $rolId = $this->currentRoleId();
-        $userId = $this->currentUserId();
+        $rolId = $this->obtenerIdRolActual();
+        $userId = $this->obtenerIdUsuarioActual();
         if ($rolId === 2 && (int) $ticket['tecnico_id'] !== $userId) {
-            $this->jsonError('No puedes actualizar este ticket.', 403);
+            $this->responderErrorJson('No puedes actualizar este ticket.', 403);
         }
 
-        $cerradoId = $this->model->getEstadoIdByNombre('Cerrado');
+        $cerradoId = $this->model->obtenerIdEstadoPorNombre('Cerrado');
         $fechaCierre = null;
         if ($cerradoId !== null && $estadoId === $cerradoId) {
             $fechaCierre = date('Y-m-d H:i:s');
         }
 
-        if (!$this->model->updateEstado($ticketId, $estadoId, $fechaCierre)) {
-            $this->jsonError('No se pudo actualizar el estado.');
+        if (!$this->model->actualizarEstado($ticketId, $estadoId, $fechaCierre)) {
+            $this->responderErrorJson('No se pudo actualizar el estado.');
         }
 
-        $this->jsonOk('Estado actualizado');
+        $this->responderOkJson('Estado actualizado');
     }
 
-    public function closeTicket(): void
+    public function cerrarTicket(): void
     {
-        $this->requireLogin();
-        $this->requireRole([3]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([3]);
+        $this->requerirPost();
 
-        $payload = $this->requestData();
+        $payload = $this->obtenerDatosSolicitud();
 
         $ticketId = (int) ($payload['ticket_id'] ?? 0);
         if ($ticketId <= 0) {
-            $this->jsonError('Selecciona un ticket.');
+            $this->responderErrorJson('Selecciona un ticket.');
         }
 
-        $ticket = $this->model->getById($ticketId);
+        $ticket = $this->model->obtenerPorId($ticketId);
         if (!$ticket) {
-            $this->jsonError('Ticket no encontrado.', 404);
+            $this->responderErrorJson('Ticket no encontrado.', 404);
         }
 
-        $userId = $this->currentUserId();
+        $userId = $this->obtenerIdUsuarioActual();
         if ((int) $ticket['usuario_id'] !== $userId) {
-            $this->jsonError('No puedes cerrar este ticket.', 403);
+            $this->responderErrorJson('No puedes cerrar este ticket.', 403);
         }
 
         // El cierre definitivo lo confirma quien reporto el incidente, no el tecnico que lo resolvio.
-        $cerradoId = $this->model->getEstadoIdByNombre('Cerrado');
+        $cerradoId = $this->model->obtenerIdEstadoPorNombre('Cerrado');
         if ($cerradoId === null) {
-            $this->jsonError('No existe el estado Cerrado.');
+            $this->responderErrorJson('No existe el estado Cerrado.');
         }
 
         $fechaCierre = date('Y-m-d H:i:s');
-        if (!$this->model->updateEstado($ticketId, $cerradoId, $fechaCierre)) {
-            $this->jsonError('No se pudo cerrar el ticket.');
+        if (!$this->model->actualizarEstado($ticketId, $cerradoId, $fechaCierre)) {
+            $this->responderErrorJson('No se pudo cerrar el ticket.');
         }
 
         // Dejamos trazabilidad funcional en el hilo: el usuario final confirma que acepta la solucion.
-        $this->comentarios->insert($ticketId, $userId, 'El usuario aceptó la solución y confirmó el cierre del ticket.');
+        $this->comentarios->insertar($ticketId, $userId, 'El usuario aceptó la solución y confirmó el cierre del ticket.');
 
-        $this->notifications->notifyClosed($ticket, $userId);
+        $this->notifications->notificarCierre($ticket, $userId);
 
-        $this->jsonOk('Ticket cerrado');
+        $this->responderOkJson('Ticket cerrado');
     }
 }

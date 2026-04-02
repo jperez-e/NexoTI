@@ -1,31 +1,31 @@
-let allReportRows = [];
-let currentReportPage = 1;
-const reportRowsPerPage = 5;
+let filasReporte = [];
+let paginaReporteActual = 1;
+const filasPorPaginaReporte = 5;
 
-async function fetchJSON(url) {
+async function obtenerJson(url) {
     const res = await fetch(url);
     const payload = await res.json();
     if (!payload || payload.status === false) { return []; }
     return payload.data || [];
 }
 
-function byId(id) {
+function porId(id) {
     return document.getElementById(id);
 }
 
-function appendCell(row, text) { 
+function agregarCelda(row, text) { 
     const td = document.createElement('td'); 
     td.textContent = text; 
     row.appendChild(td); 
 } 
-function normalizeReportStatusClass(value) { 
+function normalizarClaseEstadoReporte(value) { 
     const raw = String(value || '').toLowerCase(); 
     if (raw.includes('progreso') || raw.includes('proceso')) { return 'progreso'; } 
     if (raw.includes('resuelto')) { return 'resuelto'; } 
     if (raw.includes('cerrado')) { return 'cerrado'; } 
     return 'abierto'; 
 } 
-function appendCodeCell(row, text) { 
+function agregarCeldaCodigo(row, text) { 
     const td = document.createElement('td'); 
     const badge = document.createElement('span'); 
     badge.className = 'report-code'; 
@@ -33,22 +33,22 @@ function appendCodeCell(row, text) {
     td.appendChild(badge); 
     row.appendChild(td); 
 } 
-function appendStatusCell(row, text) { 
+function agregarCeldaEstado(row, text) { 
     const td = document.createElement('td'); 
     const badge = document.createElement('span'); 
-    badge.className = 'report-status report-status-' + normalizeReportStatusClass(text); 
+    badge.className = 'report-status report-status-' + normalizarClaseEstadoReporte(text); 
     badge.textContent = text || 'Sin estado'; 
     td.appendChild(badge); 
     row.appendChild(td); 
 } 
-function appendUserCell(row, text, fallback) { 
+function agregarCeldaUsuario(row, text, fallback) { 
     const td = document.createElement('td'); 
     td.textContent = text || fallback; 
     if (!text) { td.className = 'report-user-muted'; } 
     row.appendChild(td); 
 }
 
-function formatDate(value) {
+function formatearFecha(value) {
     if (!value) {
         return 'Sin fecha';
     }
@@ -57,11 +57,11 @@ function formatDate(value) {
     return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('es-DO');
 }
 
-function updateReportPager(totalItems, totalPages) {
-    const pager = byId('reportes-pager');
-    const prev = byId('reportes-prev');
-    const next = byId('reportes-next');
-    const info = byId('reportes-page-info');
+function actualizarPaginadorReporte(totalItems, totalPages) {
+    const pager = porId('reportes-pager');
+    const prev = porId('reportes-prev');
+    const next = porId('reportes-next');
+    const info = porId('reportes-page-info');
 
     if (!pager || !prev || !next || !info) {
         return;
@@ -75,12 +75,12 @@ function updateReportPager(totalItems, totalPages) {
         return;
     }
 
-    info.textContent = 'Página ' + currentReportPage + ' de ' + totalPages + ' - ' + totalItems + ' ticket(s)';
-    prev.disabled = currentReportPage <= 1;
-    next.disabled = currentReportPage >= totalPages;
+    info.textContent = 'Página ' + paginaReporteActual + ' de ' + totalPages + ' - ' + totalItems + ' ticket(s)';
+    prev.disabled = paginaReporteActual <= 1;
+    next.disabled = paginaReporteActual >= totalPages;
 }
 
-function restoreElementPosition(element, previousTop) {
+function restaurarPosicionElemento(element, previousTop) {
     if (!element || previousTop === null) {
         return;
     }
@@ -91,27 +91,27 @@ function restoreElementPosition(element, previousTop) {
     });
 }
 
-function preserveElementPosition(element, work) {
+function preservarPosicionElemento(element, work) {
     const previousTop = element ? element.getBoundingClientRect().top : null;
     const result = typeof work === 'function' ? work() : null;
 
     if (result && typeof result.then === 'function') {
         return result.finally(function () {
-            restoreElementPosition(element, previousTop);
+            restaurarPosicionElemento(element, previousTop);
         });
     }
 
-    restoreElementPosition(element, previousTop);
+    restaurarPosicionElemento(element, previousTop);
     return Promise.resolve();
 }
 
-function renderPreviewPage() {
-    const tbody = byId('report-preview');
+function renderizarPaginaPrevia() {
+    const tbody = porId('report-preview');
     if (!tbody) { return; }
 
     tbody.innerHTML = '';
 
-    if (!allReportRows.length) {
+    if (!filasReporte.length) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
         td.colSpan = 6;
@@ -119,77 +119,77 @@ function renderPreviewPage() {
         td.textContent = 'No hay tickets para mostrar.';
         tr.appendChild(td);
         tbody.appendChild(tr);
-        updateReportPager(0, 1);
+        actualizarPaginadorReporte(0, 1);
         return;
     }
 
-    const totalPages = Math.max(1, Math.ceil(allReportRows.length / reportRowsPerPage));
-    if (currentReportPage > totalPages) {
-        currentReportPage = totalPages;
+    const totalPages = Math.max(1, Math.ceil(filasReporte.length / filasPorPaginaReporte));
+    if (paginaReporteActual > totalPages) {
+        paginaReporteActual = totalPages;
     }
 
-    const start = (currentReportPage - 1) * reportRowsPerPage;
-    const pageRows = allReportRows.slice(start, start + reportRowsPerPage);
+    const start = (paginaReporteActual - 1) * filasPorPaginaReporte;
+    const pageRows = filasReporte.slice(start, start + filasPorPaginaReporte);
 
     pageRows.forEach(function (item) {
         const tr = document.createElement('tr');
-        appendCodeCell(tr, item.codigo);
-        appendCell(tr, item.titulo);
-        appendUserCell(tr, item.usuario, 'Sin usuario');
-        appendUserCell(tr, item.tecnico, 'Sin asignar');
-        appendStatusCell(tr, item.estado);
-        appendCell(tr, formatDate(item.fecha_creacion));
+        agregarCeldaCodigo(tr, item.codigo);
+        agregarCelda(tr, item.titulo);
+        agregarCeldaUsuario(tr, item.usuario, 'Sin usuario');
+        agregarCeldaUsuario(tr, item.tecnico, 'Sin asignar');
+        agregarCeldaEstado(tr, item.estado);
+        agregarCelda(tr, formatearFecha(item.fecha_creacion));
         tbody.appendChild(tr);
     });
 
-    updateReportPager(allReportRows.length, totalPages);
+    actualizarPaginadorReporte(filasReporte.length, totalPages);
 }
 
-async function loadResumen() {
-    const data = await fetchJSON('/NexoTI/api.php?c=reporte&m=resumen');
-    byId('stat-total').textContent = data.total || 0;
-    byId('stat-abiertos').textContent = data.abiertos || 0;
-    byId('stat-progreso').textContent = data.en_progreso || 0;
-    byId('stat-cerrados').textContent = data.cerrados || 0;
+async function cargarResumen() {
+    const data = await obtenerJson('/NexoTI/api.php?c=reporte&m=resumen');
+    porId('stat-total').textContent = data.total || 0;
+    porId('stat-abiertos').textContent = data.abiertos || 0;
+    porId('stat-progreso').textContent = data.en_progreso || 0;
+    porId('stat-cerrados').textContent = data.cerrados || 0;
 }
 
-async function loadPreview() {
-    allReportRows = await fetchJSON('/NexoTI/api.php?c=reporte&m=preview');
-    currentReportPage = 1;
-    renderPreviewPage();
+async function cargarVistaPrevia() {
+    filasReporte = await obtenerJson('/NexoTI/api.php?c=reporte&m=vistaPrevia');
+    paginaReporteActual = 1;
+    renderizarPaginaPrevia();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    loadResumen();
-    loadPreview();
+    cargarResumen();
+    cargarVistaPrevia();
 
-    const btn = byId('reload-reportes');
+    const btn = porId('reload-reportes');
     if (btn) {
         btn.addEventListener('click', function () {
-            loadResumen();
-            loadPreview();
+            cargarResumen();
+            cargarVistaPrevia();
         });
     }
 
-    const prev = byId('reportes-prev');
+    const prev = porId('reportes-prev');
     if (prev) {
         prev.addEventListener('click', function () {
-            if (currentReportPage <= 1) { return; }
-            preserveElementPosition(byId('reportes-pager'), function () {
-                currentReportPage -= 1;
-                renderPreviewPage();
+            if (paginaReporteActual <= 1) { return; }
+            preservarPosicionElemento(porId('reportes-pager'), function () {
+                paginaReporteActual -= 1;
+                renderizarPaginaPrevia();
             });
         });
     }
 
-    const next = byId('reportes-next');
+    const next = porId('reportes-next');
     if (next) {
         next.addEventListener('click', function () {
-            const totalPages = Math.max(1, Math.ceil(allReportRows.length / reportRowsPerPage));
-            if (currentReportPage >= totalPages) { return; }
-            preserveElementPosition(byId('reportes-pager'), function () {
-                currentReportPage += 1;
-                renderPreviewPage();
+            const totalPages = Math.max(1, Math.ceil(filasReporte.length / filasPorPaginaReporte));
+            if (paginaReporteActual >= totalPages) { return; }
+            preservarPosicionElemento(porId('reportes-pager'), function () {
+                paginaReporteActual += 1;
+                renderizarPaginaPrevia();
             });
         });
     }

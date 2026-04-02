@@ -9,10 +9,10 @@ class TicketModel
   
     public function __construct()  
     {  
-        $this->db = Conexion::get();  
+        $this->db = Conexion::obtener();  
     }  
   
-    public function insert(  
+    public function insertar(  
         string $codigo,  
         string $titulo,  
         string $descripcion,  
@@ -59,19 +59,19 @@ class TicketModel
         ]);  
     }  
   
-    public function getLastInsertId(): int  
+    public function obtenerUltimoIdInsertado(): int  
     {  
         return (int) $this->db->lastInsertId();  
     }  
 
-    public function existsCodigo(string $codigo): bool
+    public function existeCodigo(string $codigo): bool
     {
         $stmt = $this->db->prepare('SELECT COUNT(*) AS total FROM tickets WHERE codigo = ?');
         $stmt->execute([$codigo]);
         return (int) ($stmt->fetch()['total'] ?? 0) > 0;
     }
  
-    private function baseSelect(): string  
+    private function consultaBase(): string  
     {  
         // Esta consulta base centraliza todos los JOIN necesarios para mostrar el ticket completo en la interfaz.
         return 'SELECT t.id, t.codigo, t.titulo, t.descripcion, ' .  
@@ -91,17 +91,17 @@ class TicketModel
             'JOIN estados_ticket e ON t.estado_id = e.id';  
     }  
   
-    public function getAll(): array  
+    public function obtenerTodos(): array  
     {  
-        $sql = $this->baseSelect() . ' ORDER BY t.id DESC';  
+        $sql = $this->consultaBase() . ' ORDER BY t.id DESC';  
         return $this->db->query($sql)->fetchAll();  
     }  
 
-    public function search(array $filters, int $page, int $perPage, int $rolId, int $userId): array
+    public function buscar(array $filters, int $page, int $perPage, int $rolId, int $userId): array
     {
         $params = [];
-        $sql = $this->baseSelect()
-            . $this->buildSearchWhereClause($filters, $rolId, $userId, $params)
+        $sql = $this->consultaBase()
+            . $this->construirClausulaDondeBusqueda($filters, $rolId, $userId, $params)
             . ' ORDER BY t.fecha_creacion DESC, t.id DESC LIMIT ? OFFSET ?';
 
         $stmt = $this->db->prepare($sql);
@@ -116,7 +116,7 @@ class TicketModel
         return $stmt->fetchAll();
     }
 
-    public function countSearch(array $filters, int $rolId, int $userId): int
+    public function contarBusqueda(array $filters, int $rolId, int $userId): int
     {
         $params = [];
         $sql = 'SELECT COUNT(*) AS total FROM tickets t '
@@ -127,48 +127,48 @@ class TicketModel
             . 'JOIN categorias c ON t.categoria_id = c.id '
             . 'JOIN prioridades p ON t.prioridad_id = p.id '
             . 'JOIN estados_ticket e ON t.estado_id = e.id'
-            . $this->buildSearchWhereClause($filters, $rolId, $userId, $params);
+            . $this->construirClausulaDondeBusqueda($filters, $rolId, $userId, $params);
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return (int) ($stmt->fetch()['total'] ?? 0);
     }
   
-    public function getByUsuario(int $usuarioId): array  
+    public function obtenerPorUsuario(int $usuarioId): array  
     {  
-        $sql = $this->baseSelect() . ' WHERE t.usuario_id = ? ORDER BY t.id DESC';  
+        $sql = $this->consultaBase() . ' WHERE t.usuario_id = ? ORDER BY t.id DESC';  
         $stmt = $this->db->prepare($sql);  
         $stmt->execute([$usuarioId]);  
         return $stmt->fetchAll();  
     }  
 
-    public function getResolvedTicketsByUsuario(int $usuarioId): array
+    public function obtenerResueltosPorUsuario(int $usuarioId): array
     {
-        $sql = $this->baseSelect()
+        $sql = $this->consultaBase()
             . ' WHERE t.usuario_id = ? AND LOWER(e.nombre) = ? ORDER BY t.fecha_creacion DESC, t.id DESC';
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$usuarioId, 'resuelto']);
         return $stmt->fetchAll();
     }
   
-    public function getByTecnico(int $tecnicoId): array  
+    public function obtenerPorTecnico(int $tecnicoId): array  
     {  
-        $sql = $this->baseSelect() . ' WHERE t.tecnico_id = ? ORDER BY t.id DESC';  
+        $sql = $this->consultaBase() . ' WHERE t.tecnico_id = ? ORDER BY t.id DESC';  
         $stmt = $this->db->prepare($sql);  
         $stmt->execute([$tecnicoId]);  
         return $stmt->fetchAll();  
     }  
 
-    public function getOpenTicketsForAssignment(): array
+    public function obtenerAbiertosParaAsignacion(): array
     {
-        $sql = $this->baseSelect()
+        $sql = $this->consultaBase()
             . ' WHERE LOWER(e.nombre) = ? ORDER BY t.fecha_creacion DESC, t.id DESC';
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['abierto']);
         return $stmt->fetchAll();
     }
  
-    public function getById(int $ticketId): ?array  
+    public function obtenerPorId(int $ticketId): ?array  
     {  
         $sql = 'SELECT id, codigo, titulo, usuario_id, tecnico_id, estado_id FROM tickets WHERE id = ?';  
         $stmt = $this->db->prepare($sql);  
@@ -177,21 +177,21 @@ class TicketModel
         return $row ?: null;  
     }  
   
-    public function assign(int $ticketId, ?int $tecnicoId, int $estadoId): bool  
+    public function asignar(int $ticketId, ?int $tecnicoId, int $estadoId): bool  
     {  
         $sql = 'UPDATE tickets SET tecnico_id = ?, estado_id = ? WHERE id = ?';  
         $stmt = $this->db->prepare($sql);  
         return $stmt->execute([$tecnicoId, $estadoId, $ticketId]);  
     }  
   
-    public function updateEstado(int $ticketId, int $estadoId, ?string $fechaCierre): bool  
+    public function actualizarEstado(int $ticketId, int $estadoId, ?string $fechaCierre): bool  
     {  
         $sql = 'UPDATE tickets SET estado_id = ?, fecha_cierre = ? WHERE id = ?';  
         $stmt = $this->db->prepare($sql);  
         return $stmt->execute([$estadoId, $fechaCierre, $ticketId]);  
     }  
   
-    public function getEstadoIdByNombre(string $nombre): ?int  
+    public function obtenerIdEstadoPorNombre(string $nombre): ?int  
     {  
         $sql = 'SELECT id FROM estados_ticket WHERE nombre = ? LIMIT 1';  
         $stmt = $this->db->prepare($sql);  
@@ -200,7 +200,7 @@ class TicketModel
         return $row ? (int) $row['id'] : null;  
     }  
  
-    public function getDashboardCounts(int $rolId, int $userId): array
+    public function obtenerConteosTablero(int $rolId, int $userId): array
     {  
         // El dashboard cambia segun el rol: usuario ve sus tickets, tecnico sus asignaciones y admin todo el sistema.
         $joinExtra = '';  
@@ -253,11 +253,11 @@ class TicketModel
         return $counts;  
     }  
 
-    public function getNotifications(int $rolId, int $userId, int $limit = 6): array
+    public function obtenerNotificaciones(int $rolId, int $userId, int $limit = 6): array
     {
         $params = [];
-        $sql = $this->baseSelect()
-            . $this->buildNotificationWhereClause($rolId, $userId, $params)
+        $sql = $this->consultaBase()
+            . $this->construirClausulaDondeNotificacion($rolId, $userId, $params)
             . ' ORDER BY t.fecha_creacion DESC, t.id DESC LIMIT ?';
 
         $stmt = $this->db->prepare($sql);
@@ -271,7 +271,7 @@ class TicketModel
         return $stmt->fetchAll();
     }
 
-    public function countNotifications(int $rolId, int $userId): int
+    public function contarNotificaciones(int $rolId, int $userId): int
     {
         $params = [];
         $sql = 'SELECT COUNT(*) AS total FROM tickets t '
@@ -282,16 +282,16 @@ class TicketModel
             . 'JOIN categorias c ON t.categoria_id = c.id '
             . 'JOIN prioridades p ON t.prioridad_id = p.id '
             . 'JOIN estados_ticket e ON t.estado_id = e.id'
-            . $this->buildNotificationWhereClause($rolId, $userId, $params);
+            . $this->construirClausulaDondeNotificacion($rolId, $userId, $params);
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return (int) ($stmt->fetch()['total'] ?? 0);
     }
 
-    private function buildSearchWhereClause(array $filters, int $rolId, int $userId, array &$params): string
+    private function construirClausulaDondeBusqueda(array $filters, int $rolId, int $userId, array &$params): string
     {
-        $conditions = $this->buildVisibilityConditions($rolId, $userId, $params);
+        $conditions = $this->construirCondicionesVisibilidad($rolId, $userId, $params);
 
         $query = trim((string) ($filters['query'] ?? ''));
         if ($query !== '') {
@@ -320,7 +320,7 @@ class TicketModel
         return $conditions === [] ? '' : ' WHERE ' . implode(' AND ', $conditions);
     }
 
-    private function buildVisibilityConditions(int $rolId, int $userId, array &$params): array
+    private function construirCondicionesVisibilidad(int $rolId, int $userId, array &$params): array
     {
         if ($rolId === 3) {
             $params[] = $userId;
@@ -336,7 +336,7 @@ class TicketModel
         return [];
     }
 
-    private function buildNotificationWhereClause(int $rolId, int $userId, array &$params): string
+    private function construirClausulaDondeNotificacion(int $rolId, int $userId, array &$params): string
     {
         if ($rolId === 1) {
             $params[] = 'abierto';

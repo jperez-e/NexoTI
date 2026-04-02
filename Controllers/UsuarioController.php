@@ -13,19 +13,19 @@ class UsuarioController extends BaseController
         $this->model = new UsuarioModel();
     }
 
-    public function list(): void
+    public function listar(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $rows = $this->model->getAll();
-        $this->jsonOk('Usuarios cargados', $rows);
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $rows = $this->model->obtenerTodos();
+        $this->responderOkJson('Usuarios cargados', $rows);
     }
 
-    public function create(): void
+    public function crear(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->requerirPost();
 
         // Este controlador recibe formularios del admin y delega la persistencia al modelo de usuarios.
         $nombre = trim(strip_tags((string) ($_POST['nombre'] ?? '')));
@@ -34,27 +34,27 @@ class UsuarioController extends BaseController
         $rolId = (int) ($_POST['rol_id'] ?? 0);
 
         if ($nombre === '' || $email === '' || $password === '' || $rolId <= 0) {
-            $this->jsonError('Completa todos los campos obligatorios.');
+            $this->responderErrorJson('Completa todos los campos obligatorios.');
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->jsonError('Correo invalido.');
+            $this->responderErrorJson('Correo invalido.');
         }
 
         try {
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $ok = $this->model->insert($nombre, $email, $hash, $rolId, 1);
-            $ok ? $this->jsonOk('Usuario creado correctamente.') : $this->jsonError('No se pudo crear el usuario.');
+            $ok = $this->model->insertar($nombre, $email, $hash, $rolId, 1);
+            $ok ? $this->responderOkJson('Usuario creado correctamente.') : $this->responderErrorJson('No se pudo crear el usuario.');
         } catch (Throwable $e) {
-            $this->jsonError('No se pudo crear el usuario. Verifica que el correo no exista.', 409);
+            $this->responderErrorJson('No se pudo crear el usuario. Verifica que el correo no exista.', 409);
         }
     }
 
-    public function update(): void
+    public function actualizar(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->requerirPost();
 
         $id = (int) ($_POST['id'] ?? 0);
         $nombre = trim(strip_tags((string) ($_POST['nombre'] ?? '')));
@@ -63,62 +63,62 @@ class UsuarioController extends BaseController
         $rolId = (int) ($_POST['rol_id'] ?? 0);
 
         if ($id <= 0 || $nombre === '' || $email === '' || $rolId <= 0) {
-            $this->jsonError('Datos invalidos para actualizar.');
+            $this->responderErrorJson('Datos invalidos para actualizar.');
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->jsonError('Correo invalido.');
+            $this->responderErrorJson('Correo invalido.');
         }
 
-        $user = $this->model->getById($id);
+        $user = $this->model->obtenerPorId($id);
         if (!$user) {
-            $this->jsonError('Usuario no encontrado.');
+            $this->responderErrorJson('Usuario no encontrado.');
         }
 
         try {
             $hash = $password !== '' ? password_hash($password, PASSWORD_BCRYPT) : null;
-            $ok = $this->model->update($id, $nombre, $email, $rolId, $hash, 1);
-            $ok ? $this->jsonOk('Usuario actualizado correctamente.') : $this->jsonError('No se pudo actualizar el usuario.');
+            $ok = $this->model->actualizar($id, $nombre, $email, $rolId, $hash, 1);
+            $ok ? $this->responderOkJson('Usuario actualizado correctamente.') : $this->responderErrorJson('No se pudo actualizar el usuario.');
         } catch (Throwable $e) {
-            $this->jsonError('No se pudo actualizar el usuario. Verifica el correo y los datos.', 409);
+            $this->responderErrorJson('No se pudo actualizar el usuario. Verifica el correo y los datos.', 409);
         }
     }
 
-    public function delete(): void
+    public function eliminar(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->requerirPost();
 
-        $payload = $this->requestData();
+        $payload = $this->obtenerDatosSolicitud();
 
         $id = (int) ($payload['id'] ?? 0);
         if ($id <= 0) {
-            $this->jsonError('Usuario invalido.');
+            $this->responderErrorJson('Usuario invalido.');
         }
 
-        if ($id === $this->currentUserId()) {
-            $this->jsonError('No puedes eliminar tu propio usuario.');
+        if ($id === $this->obtenerIdUsuarioActual()) {
+            $this->responderErrorJson('No puedes eliminar tu propio usuario.');
         }
 
-        $user = $this->model->getById($id);
+        $user = $this->model->obtenerPorId($id);
         if (!$user) {
-            $this->jsonError('Usuario no encontrado.');
+            $this->responderErrorJson('Usuario no encontrado.');
         }
 
         try {
-            $ok = $this->model->delete($id);
-            $ok ? $this->jsonOk('Usuario eliminado correctamente.') : $this->jsonError('No se pudo eliminar el usuario.');
+            $ok = $this->model->eliminar($id);
+            $ok ? $this->responderOkJson('Usuario eliminado correctamente.') : $this->responderErrorJson('No se pudo eliminar el usuario.');
         } catch (Throwable $e) {
-            $this->jsonError('No se puede eliminar este usuario porque tiene informacion relacionada en el sistema.', 409);
+            $this->responderErrorJson('No se puede eliminar este usuario porque tiene informacion relacionada en el sistema.', 409);
         }
     }
 
-    public function tecnicos(): void
+    public function listarTecnicos(): void
     {
-        $this->requireLogin();
+        $this->requerirSesion();
         // Se usa para llenar el combo de asignacion de tickets con usuarios que tienen rol tecnico.
-        $rows = $this->model->getByRol(2);
-        $this->jsonOk('Tecnicos cargados', $rows);
+        $rows = $this->model->obtenerPorRol(2);
+        $this->responderOkJson('Tecnicos cargados', $rows);
     }
 }

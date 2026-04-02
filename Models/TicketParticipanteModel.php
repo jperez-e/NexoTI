@@ -9,11 +9,11 @@ class TicketParticipanteModel
 
     public function __construct()
     {
-        $this->db = Conexion::get();
-        $this->ensureTable();
+        $this->db = Conexion::obtener();
+        $this->asegurarTabla();
     }
 
-    private function ensureTable(): void
+    private function asegurarTabla(): void
     {
         $sql = 'CREATE TABLE IF NOT EXISTS ticket_participantes (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -28,45 +28,45 @@ class TicketParticipanteModel
         $this->db->exec($sql);
     }
 
-    public function isParticipant(int $ticketId, int $usuarioId): bool
+    public function esParticipante(int $idTicket, int $idUsuario): bool
     {
         $stmt = $this->db->prepare('SELECT 1 FROM ticket_participantes WHERE ticket_id = ? AND usuario_id = ? LIMIT 1');
-        $stmt->execute([$ticketId, $usuarioId]);
+        $stmt->execute([$idTicket, $idUsuario]);
         return (bool) $stmt->fetchColumn();
     }
 
-    public function add(int $ticketId, int $usuarioId): bool
+    public function agregar(int $idTicket, int $idUsuario): bool
     {
         $stmt = $this->db->prepare('INSERT INTO ticket_participantes (ticket_id, usuario_id) VALUES (?, ?)');
-        return $stmt->execute([$ticketId, $usuarioId]);
+        return $stmt->execute([$idTicket, $idUsuario]);
     }
 
-    public function remove(int $ticketId, int $usuarioId): bool
+    public function quitar(int $idTicket, int $idUsuario): bool
     {
         $stmt = $this->db->prepare('DELETE FROM ticket_participantes WHERE ticket_id = ? AND usuario_id = ?');
-        return $stmt->execute([$ticketId, $usuarioId]);
+        return $stmt->execute([$idTicket, $idUsuario]);
     }
 
-    public function getByTicketIds(array $ticketIds): array
+    public function obtenerPorIdsTicket(array $idsTicket): array
     {
-        if ($ticketIds === []) {
+        if ($idsTicket === []) {
             return [];
         }
 
-        $ids = array_values(array_unique(array_map('intval', $ticketIds)));
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $ids = array_values(array_unique(array_map('intval', $idsTicket)));
+        $marcadores = implode(',', array_fill(0, count($ids), '?'));
         $sql = 'SELECT tp.id, tp.ticket_id, tp.usuario_id, tp.creado_en, '
             . 'u.nombre AS usuario_nombre, u.email AS usuario_email, u.foto AS usuario_foto, '
             . 'r.nombre AS rol_nombre '
             . 'FROM ticket_participantes tp '
             . 'INNER JOIN usuarios u ON u.id = tp.usuario_id '
             . 'INNER JOIN roles r ON r.id = u.rol_id '
-            . 'WHERE tp.ticket_id IN (' . $placeholders . ') '
+            . 'WHERE tp.ticket_id IN (' . $marcadores . ') '
             . 'ORDER BY tp.creado_en ASC, tp.id ASC';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($ids);
         return $stmt->fetchAll();
     }
-}
 
+}

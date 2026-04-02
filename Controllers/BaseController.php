@@ -6,17 +6,17 @@ require_once __DIR__ . '/../Config/Csrf.php';
 class BaseController
 {
     // Estos helpers evitan repetir acceso directo a $_SESSION en cada controlador.
-    protected function currentUserId(): int
+    protected function obtenerIdUsuarioActual(): int
     {
         return (int) ($_SESSION['user_id'] ?? 0);
     }
 
-    protected function currentRoleId(): int
+    protected function obtenerIdRolActual(): int
     {
         return (int) ($_SESSION['rol_id'] ?? 0);
     }
 
-    protected function requireLogin(): void
+    protected function requerirSesion(): void
     {
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
@@ -25,9 +25,9 @@ class BaseController
         }
     }
 
-    protected function requireRole(array $roles): void
+    protected function requerirRol(array $roles): void
     {
-        $rolId = $this->currentRoleId();
+        $rolId = $this->obtenerIdRolActual();
         if (!in_array($rolId, $roles, true)) {
             http_response_code(403);
             echo json_encode(['status' => false, 'message' => 'Acceso denegado']);
@@ -35,7 +35,7 @@ class BaseController
         }
     }
 
-    protected function requirePost(): void
+    protected function requerirPost(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
@@ -44,12 +44,12 @@ class BaseController
         }
 
         // Toda operacion POST queda protegida contra CSRF antes de procesar datos.
-        if (!Csrf::isValidRequest()) {
-            $this->jsonError('Token CSRF invalido.', 403);
+        if (!Csrf::esSolicitudValida()) {
+            $this->responderErrorJson('Token CSRF invalido.', 403);
         }
     }
 
-    protected function requestData(): array
+    protected function obtenerDatosSolicitud(): array
     {
         // La API acepta tanto formularios clasicos como JSON enviado desde fetch().
         $raw = file_get_contents('php://input');
@@ -61,13 +61,13 @@ class BaseController
         return is_array($payload) ? $payload : $_POST;
     }
 
-    protected function jsonOk(string $message, array $data = []): void
+    protected function responderOkJson(string $message, array $data = []): void
     {
         echo json_encode(['status' => true, 'message' => $message, 'data' => $data]);
         exit;
     }
 
-    protected function jsonError(string $message, int $statusCode = 400): void
+    protected function responderErrorJson(string $message, int $statusCode = 400): void
     {
         http_response_code($statusCode);
         echo json_encode(['status' => false, 'message' => $message]);

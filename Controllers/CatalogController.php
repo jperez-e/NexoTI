@@ -6,85 +6,85 @@ require_once __DIR__ . '/../Models/CatalogModel.php';
 
 abstract class CatalogController extends BaseController
 {
-    protected CatalogModel $model;
+    protected CatalogModel $modelo;
 
-    abstract protected function listMessage(): string;
-    abstract protected function createMessage(): string;
-    abstract protected function updateMessage(): string;
-    abstract protected function deleteMessage(): string;
-    abstract protected function invalidDataMessage(): string;
-    abstract protected function invalidEntityMessage(): string;
-
-    /**
-     * @return array<string, mixed>
-     */
-    abstract protected function buildCreatePayload(array $payload): array;
+    abstract protected function mensajeListado(): string;
+    abstract protected function mensajeCreacion(): string;
+    abstract protected function mensajeActualizacion(): string;
+    abstract protected function mensajeEliminacion(): string;
+    abstract protected function mensajeDatosInvalidos(): string;
+    abstract protected function mensajeEntidadInvalida(): string;
 
     /**
      * @return array<string, mixed>
      */
-    abstract protected function buildUpdatePayload(array $payload): array;
+    abstract protected function construirCargaCrear(array $datos): array;
 
-    abstract protected function isCreatePayloadValid(array $payload): bool;
-    abstract protected function isUpdatePayloadValid(int $id, array $payload): bool;
+    /**
+     * @return array<string, mixed>
+     */
+    abstract protected function construirCargaActualizar(array $datos): array;
 
-    public function list(): void
+    abstract protected function esValidaCargaCrear(array $datos): bool;
+    abstract protected function esValidaCargaActualizar(int $id, array $datos): bool;
+
+    public function listar(): void
     {
-        $this->requireLogin();
-        $this->jsonOk($this->listMessage(), $this->model->getAll());
+        $this->requerirSesion();
+        $this->responderOkJson($this->mensajeListado(), $this->modelo->obtenerTodos());
     }
 
-    public function create(): void
+    public function crear(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->requerirPost();
 
-        $payload = $this->buildCreatePayload($this->requestData());
-        if (!$this->isCreatePayloadValid($payload)) {
-            $this->jsonError($this->invalidDataMessage());
+        $carga = $this->construirCargaCrear($this->obtenerDatosSolicitud());
+        if (!$this->esValidaCargaCrear($carga)) {
+            $this->responderErrorJson($this->mensajeDatosInvalidos());
         }
 
-        $ok = $this->model->insert($payload);
-        $ok ? $this->jsonOk($this->createMessage()) : $this->jsonError('No se pudo crear');
+        $ok = $this->modelo->insertar($carga);
+        $ok ? $this->responderOkJson($this->mensajeCreacion()) : $this->responderErrorJson('No se pudo crear');
     }
 
-    public function update(): void
+    public function actualizar(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->requerirPost();
 
-        $request = $this->requestData();
-        $id = (int) ($request['id'] ?? 0);
-        $payload = $this->buildUpdatePayload($request);
+        $datos = $this->obtenerDatosSolicitud();
+        $id = (int) ($datos['id'] ?? 0);
+        $carga = $this->construirCargaActualizar($datos);
 
-        if (!$this->isUpdatePayloadValid($id, $payload)) {
-            $this->jsonError($this->invalidDataMessage());
+        if (!$this->esValidaCargaActualizar($id, $carga)) {
+            $this->responderErrorJson($this->mensajeDatosInvalidos());
         }
 
-        $ok = $this->model->update($id, $payload);
-        $ok ? $this->jsonOk($this->updateMessage()) : $this->jsonError('No se pudo actualizar');
+        $ok = $this->modelo->actualizar($id, $carga);
+        $ok ? $this->responderOkJson($this->mensajeActualizacion()) : $this->responderErrorJson('No se pudo actualizar');
     }
 
-    public function delete(): void
+    public function eliminar(): void
     {
-        $this->requireLogin();
-        $this->requireRole([1]);
-        $this->requirePost();
+        $this->requerirSesion();
+        $this->requerirRol([1]);
+        $this->requerirPost();
 
-        $payload = $this->requestData();
-        $id = (int) ($payload['id'] ?? 0);
+        $datos = $this->obtenerDatosSolicitud();
+        $id = (int) ($datos['id'] ?? 0);
         if ($id <= 0) {
-            $this->jsonError($this->invalidEntityMessage());
+            $this->responderErrorJson($this->mensajeEntidadInvalida());
         }
 
-        $ok = $this->model->delete($id);
-        $ok ? $this->jsonOk($this->deleteMessage()) : $this->jsonError('No se pudo eliminar');
+        $ok = $this->modelo->eliminar($id);
+        $ok ? $this->responderOkJson($this->mensajeEliminacion()) : $this->responderErrorJson('No se pudo eliminar');
     }
 
-    protected function sanitizeText(array $payload, string $field): string
+    protected function sanearTexto(array $datos, string $campo): string
     {
-        return trim(strip_tags((string) ($payload[$field] ?? '')));
+        return trim(strip_tags((string) ($datos[$campo] ?? '')));
     }
 }

@@ -1,28 +1,28 @@
-let editingId = 0;
-let rolesCache = [];
+let idEdicion = 0;
+let cacheRoles = [];
 
-function getNode(id) {
+function obtenerNodo(id) {
     return document.getElementById(id);
 }
 
-function setButtonContent(button, iconName, label) {
+function establecerContenidoBoton(button, iconName, label) {
     if (!button) {
         return;
     }
     button.innerHTML = window.UiIcons ? window.UiIcons.buttonContent(iconName, label) : label;
 }
 
-async function fetchJSON(url, options = {}) {
+async function obtenerJson(url, options = {}) {
     const response = await fetch(url, options);
     return response.json();
 }
 
-function getCsrfToken() {
-    const node = getNode('csrf-token');
+function obtenerTokenCsrf() {
+    const node = obtenerNodo('csrf-token');
     return node ? node.value : '';
 }
 
-function setButtonLoading(button, loading, loadingText) {
+function establecerBotonCargando(button, loading, loadingText) {
     if (!button) {
         return;
     }
@@ -40,7 +40,7 @@ function setButtonLoading(button, loading, loadingText) {
     button.classList.remove('is-loading');
 }
 
-function ensureToastStack() {
+function asegurarPilaToasts() {
     let stack = document.querySelector('.toast-stack');
     if (stack) {
         return stack;
@@ -52,8 +52,8 @@ function ensureToastStack() {
     return stack;
 }
 
-function showToast(title, text, type) {
-    const stack = ensureToastStack();
+function mostrarToast(title, text, type) {
+    const stack = asegurarPilaToasts();
     const toast = document.createElement('div');
     toast.className = 'toast' + (type ? ' ' + type : '');
     toast.innerHTML = '<strong>' + title + '</strong><span>' + text + '</span>';
@@ -63,7 +63,7 @@ function showToast(title, text, type) {
     }, 3600);
 }
 
-function clearMessageLater(node, delay) {
+function limpiarMensajeLuego(node, delay) {
     if (!node) {
         return;
     }
@@ -78,8 +78,8 @@ function clearMessageLater(node, delay) {
     }, delay);
 }
 
-function showMessage(text, type, allowToast = true) {
-    const node = getNode('form-message');
+function mostrarMensaje(text, type, allowToast = true) {
+    const node = obtenerNodo('form-message');
     if (!node) {
         return;
     }
@@ -87,18 +87,18 @@ function showMessage(text, type, allowToast = true) {
     node.textContent = text;
     node.className = type ? 'message ' + type : 'message';
     if (allowToast && text !== '' && type) {
-        clearMessageLater(node, 4000);
-        showToast(type === 'success' ? 'Operación completada' : 'Atención', text, type);
+        limpiarMensajeLuego(node, 4000);
+        mostrarToast(type === 'success' ? 'Operación completada' : 'Atención', text, type);
     }
 }
 
-function ensureFormTools() {
-    const form = getNode('rol-form');
+function asegurarHerramientasFormulario() {
+    const form = obtenerNodo('rol-form');
     const actions = form.querySelector('.actions');
     const title = form.closest('.card').querySelector('h2');
     title.id = 'form-title';
 
-    if (!getNode('rol-id')) {
+    if (!obtenerNodo('rol-id')) {
         const hidden = document.createElement('input');
         hidden.type = 'hidden';
         hidden.id = 'rol-id';
@@ -106,39 +106,39 @@ function ensureFormTools() {
         form.prepend(hidden);
     }
 
-    if (!getNode('cancel-btn')) {
+    if (!obtenerNodo('cancel-btn')) {
         const cancel = document.createElement('button');
         cancel.type = 'button';
         cancel.id = 'cancel-btn';
         cancel.className = 'btn ghost hidden';
-        setButtonContent(cancel, 'close', 'Cancelar edición');
-        actions.insertBefore(cancel, getNode('form-message'));
+        establecerContenidoBoton(cancel, 'close', 'Cancelar edición');
+        actions.insertBefore(cancel, obtenerNodo('form-message'));
     }
 }
 
-function resetForm() {
-    editingId = 0;
-    getNode('rol-form').reset();
-    getNode('rol-id').value = '';
-    getNode('form-title').textContent = 'Nuevo rol';
-    setButtonContent(getNode('submit-btn'), 'save', 'Guardar rol');
-    getNode('cancel-btn').classList.add('hidden');
-    showMessage('', '');
+function reiniciarFormulario() {
+    idEdicion = 0;
+    obtenerNodo('rol-form').reset();
+    obtenerNodo('rol-id').value = '';
+    obtenerNodo('form-title').textContent = 'Nuevo rol';
+    establecerContenidoBoton(obtenerNodo('submit-btn'), 'save', 'Guardar rol');
+    obtenerNodo('cancel-btn').classList.add('hidden');
+    mostrarMensaje('', '');
 }
 
-function startEdit(row) {
-    editingId = Number(row.id);
-    getNode('rol-id').value = row.id;
-    getNode('nombre').value = row.nombre;
-    getNode('form-title').textContent = 'Editar rol';
-    setButtonContent(getNode('submit-btn'), 'save', 'Actualizar rol');
-    getNode('cancel-btn').classList.remove('hidden');
-    showMessage('', '');
+function iniciarEdicion(row) {
+    idEdicion = Number(row.id);
+    obtenerNodo('rol-id').value = row.id;
+    obtenerNodo('nombre').value = row.nombre;
+    obtenerNodo('form-title').textContent = 'Editar rol';
+    establecerContenidoBoton(obtenerNodo('submit-btn'), 'save', 'Actualizar rol');
+    obtenerNodo('cancel-btn').classList.remove('hidden');
+    mostrarMensaje('', '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function renderRoles(list) {
-    const container = getNode('roles-list');
+function renderizarRoles(list) {
+    const container = obtenerNodo('roles-list');
     container.innerHTML = '';
 
     if (list.length === 0) {
@@ -159,44 +159,44 @@ function renderRoles(list) {
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
         editBtn.className = 'btn ghost';
-        setButtonContent(editBtn, 'edit', 'Editar');
+        establecerContenidoBoton(editBtn, 'edit', 'Editar');
         editBtn.addEventListener('click', function () {
-            startEdit(row);
+            iniciarEdicion(row);
         });
 
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn danger';
-        setButtonContent(deleteBtn, 'delete', 'Eliminar');
+        establecerContenidoBoton(deleteBtn, 'delete', 'Eliminar');
         deleteBtn.addEventListener('click', async function () {
             const ok = window.confirm('Se eliminará el rol ' + row.nombre + '. ¿Deseas continuar?');
             if (!ok) {
                 return;
             }
 
-            setButtonLoading(deleteBtn, true, 'Eliminando...');
+            establecerBotonCargando(deleteBtn, true, 'Eliminando...');
             try {
-                const data = await fetchJSON('api.php?c=rol&m=delete', {
+                const data = await obtenerJson('api.php?c=rol&m=eliminar', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-Token': getCsrfToken(),
+                        'X-CSRF-Token': obtenerTokenCsrf(),
                     },
                     body: JSON.stringify({ id: row.id }),
                 });
                 if (!data.status) {
-                    showMessage(data.message ? data.message : 'No se pudo eliminar el rol.', 'error', false);
+                    mostrarMensaje(data.message ? data.message : 'No se pudo eliminar el rol.', 'error', false);
                 } else {
-                    showMessage('', '', false);
+                    mostrarMensaje('', '', false);
                 }
                 if (data.status) {
-                    if (editingId === Number(row.id)) {
-                        resetForm();
+                    if (idEdicion === Number(row.id)) {
+                        reiniciarFormulario();
                     }
-                    await loadRoles();
+                    await cargarRoles();
                 }
             } finally {
-                setButtonLoading(deleteBtn, false);
+                establecerBotonCargando(deleteBtn, false);
             }
         });
 
@@ -208,62 +208,62 @@ function renderRoles(list) {
     });
 }
 
-async function loadRoles() {
-    const data = await fetchJSON('api.php?c=rol&m=list');
-    rolesCache = data.data ? data.data : [];
-    renderRoles(rolesCache);
+async function cargarRoles() {
+    const data = await obtenerJson('api.php?c=rol&m=listar');
+    cacheRoles = data.data ? data.data : [];
+    renderizarRoles(cacheRoles);
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    ensureFormTools();
-    resetForm();
-    await loadRoles();
+    asegurarHerramientasFormulario();
+    reiniciarFormulario();
+    await cargarRoles();
 
-    getNode('refresh-btn').addEventListener('click', async function () {
+    obtenerNodo('refresh-btn').addEventListener('click', async function () {
         const button = this;
-        setButtonLoading(button, true, 'Actualizando...');
+        establecerBotonCargando(button, true, 'Actualizando...');
         try {
-            await loadRoles();
+            await cargarRoles();
         } finally {
-            setButtonLoading(button, false);
+            establecerBotonCargando(button, false);
         }
     });
 
-    getNode('cancel-btn').addEventListener('click', resetForm);
+    obtenerNodo('cancel-btn').addEventListener('click', reiniciarFormulario);
 
-    getNode('rol-form').addEventListener('submit', async function (event) {
+    obtenerNodo('rol-form').addEventListener('submit', async function (event) {
         event.preventDefault();
 
         const form = event.target;
-        const submitButton = getNode('submit-btn');
+        const submitButton = obtenerNodo('submit-btn');
         const formData = new FormData(form);
-        formData.set('_token', getCsrfToken());
+        formData.set('_token', obtenerTokenCsrf());
 
-        const url = editingId > 0 ? 'api.php?c=rol&m=update' : 'api.php?c=rol&m=create';
-        if (editingId > 0) {
-            formData.set('id', String(editingId));
+        const url = idEdicion > 0 ? 'api.php?c=rol&m=actualizar' : 'api.php?c=rol&m=crear';
+        if (idEdicion > 0) {
+            formData.set('id', String(idEdicion));
         }
 
-        setButtonLoading(submitButton, true, editingId > 0 ? 'Actualizando...' : 'Guardando...');
+        establecerBotonCargando(submitButton, true, idEdicion > 0 ? 'Actualizando...' : 'Guardando...');
         try {
-            const data = await fetchJSON(url, {
+            const data = await obtenerJson(url, {
                 method: 'POST',
                 body: formData,
             });
             if (data.status) {
-                showMessage('', '');
-                showToast(
-                    editingId > 0 ? 'Rol actualizado' : 'Rol registrado',
+                mostrarMensaje('', '');
+                mostrarToast(
+                    idEdicion > 0 ? 'Rol actualizado' : 'Rol registrado',
                     data.message ? data.message : 'Proceso completado.',
                     'success'
                 );
-                resetForm();
-                await loadRoles();
+                reiniciarFormulario();
+                await cargarRoles();
             } else {
-                showMessage(data.message ? data.message : 'No se pudo completar la operación.', 'error');
+                mostrarMensaje(data.message ? data.message : 'No se pudo completar la operación.', 'error');
             }
         } finally {
-            setButtonLoading(submitButton, false);
+            establecerBotonCargando(submitButton, false);
         }
     });
 });

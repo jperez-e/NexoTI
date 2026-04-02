@@ -9,17 +9,17 @@ class UsuarioModel
 
     public function __construct()
     {
-        $this->db = Conexion::get();
+        $this->db = Conexion::obtener();
     }
 
-    public function insert(string $nombre, string $email, string $claveHash, int $rolId, int $activo = 1): bool
+    public function insertar(string $nombre, string $email, string $claveHash, int $rolId, int $activo = 1): bool
     {
         $sql = 'INSERT INTO usuarios (nombre, email, clave_hash, rol_id, activo) VALUES (?, ?, ?, ?, ?)';
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$nombre, $email, $claveHash, $rolId, $activo]);
     }
 
-    public function update(int $id, string $nombre, string $email, int $rolId, ?string $claveHash = null, int $activo = 1): bool
+    public function actualizar(int $id, string $nombre, string $email, int $rolId, ?string $claveHash = null, int $activo = 1): bool
     {
         // La clave solo se actualiza si el administrador escribe una nueva; si queda vacia, se conserva la actual.
         if ($claveHash !== null) {
@@ -33,21 +33,21 @@ class UsuarioModel
         return $stmt->execute([$nombre, $email, $rolId, $activo, $id]);
     }
 
-    public function delete(int $id): bool
+    public function eliminar(int $id): bool
     {
         $sql = 'DELETE FROM usuarios WHERE id = ?';
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id]);
     }
 
-    public function updateFoto(int $id, string $foto): bool
+    public function actualizarFoto(int $id, string $foto): bool
     {
         $sql = 'UPDATE usuarios SET foto = ? WHERE id = ?';
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$foto, $id]);
     }
 
-    public function getAll(): array
+    public function obtenerTodos(): array
     {
         // Se hace JOIN con roles para que la interfaz muestre el nombre del rol y no solo el id numerico.
         $sql = 'SELECT u.id, u.nombre, u.email, u.rol_id, r.nombre AS rol_nombre, u.activo, u.foto, u.creado_en '
@@ -57,7 +57,7 @@ class UsuarioModel
         return $this->db->query($sql)->fetchAll();
     }
 
-    public function getByRol(int $rolId): array
+    public function obtenerPorRol(int $rolId): array
     {
         $sql = 'SELECT u.id, u.nombre, u.email, u.rol_id, r.nombre AS rol_nombre, u.activo '
             . 'FROM usuarios u '
@@ -69,7 +69,7 @@ class UsuarioModel
         return $stmt->fetchAll();
     }
 
-    public function getParticipantCandidates(): array
+    public function obtenerCandidatosParticipantes(): array
     {
         $sql = 'SELECT u.id, u.nombre, u.email, u.rol_id, r.nombre AS rol_nombre, u.activo, u.foto '
             . 'FROM usuarios u '
@@ -79,13 +79,13 @@ class UsuarioModel
         return $this->db->query($sql)->fetchAll();
     }
 
-    public function getAdminIds(): array
+    public function obtenerIdsAdmin(): array
     {
-        $rows = $this->getByRol(1);
+        $rows = $this->obtenerPorRol(1);
         return array_map(static fn (array $row): int => (int) ($row['id'] ?? 0), $rows);
     }
 
-    public function getById(int $id): ?array
+    public function obtenerPorId(int $id): ?array
     {
         $sql = 'SELECT u.id, u.nombre, u.email, u.rol_id, r.nombre AS rol_nombre, u.activo, u.foto '
             . 'FROM usuarios u '
@@ -97,7 +97,7 @@ class UsuarioModel
         return $row ?: null;
     }
 
-    public function findByLogin(string $login): ?array
+    public function buscarPorLogin(string $login): ?array
     {
         $sql = 'SELECT id, nombre, email, clave_hash, rol_id, activo, foto FROM usuarios WHERE email = :login LIMIT 1';
         $stmt = $this->db->prepare($sql);
