@@ -40,6 +40,29 @@ function setButtonContent(button, iconName, label) {
     button.innerHTML = window.UiIcons ? window.UiIcons.buttonContent(iconName, label) : label;
 }
 
+function ensureToastStack() {
+    let stack = document.querySelector('.toast-stack');
+    if (stack) {
+        return stack;
+    }
+
+    stack = document.createElement('div');
+    stack.className = 'toast-stack';
+    document.body.appendChild(stack);
+    return stack;
+}
+
+function showToast(title, text, type) {
+    const stack = ensureToastStack();
+    const toast = document.createElement('div');
+    toast.className = 'toast' + (type ? ' ' + type : '');
+    toast.innerHTML = '<strong>' + title + '</strong><span>' + text + '</span>';
+    stack.appendChild(toast);
+    window.setTimeout(function () {
+        toast.remove();
+    }, 3600);
+}
+
 function clearMessageLater(node, delay) {
     if (!node) {
         return;
@@ -55,12 +78,12 @@ function clearMessageLater(node, delay) {
     }, delay);
 }
   
-function showMessage(text, type) {  
+function showMessage(text, type, allowToast = true) {  
     const node = getNode('form-message');  
     if (!node) { return; }  
     node.textContent = text;  
     node.className = type ? 'message ' + type : 'message';  
-    if (text !== '' && type) {
+    if (allowToast && text !== '' && type) {
         clearMessageLater(node, 4000);
     }
 }  
@@ -165,7 +188,11 @@ function renderUsuarios(list) {
             setButtonLoading(deleteBtn, true, 'Eliminando...');
             try {
                 const data = await fetchJSON('api.php?c=usuario&m=delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrfToken() }, body: JSON.stringify({ id: row.id }) });  
-                showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
+                if (!data.status) {
+                    showMessage(data.message ? data.message : 'No se pudo eliminar el usuario.', 'error', false);
+                } else {
+                    showMessage('', '', false);
+                }
                 if (data.status) {  
                     if (editingId === Number(row.id)) { resetForm(); }  
                     await loadUsuarios();  
@@ -219,10 +246,17 @@ document.addEventListener('DOMContentLoaded', async function () {
         setButtonLoading(submitButton, true, editingId > 0 ? 'Actualizando...' : 'Guardando...');
         try {
             const data = await fetchJSON(url, { method: 'POST', body: formData });  
-            showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');  
             if (data.status) {  
+                showMessage('', '');
+                showToast(
+                    editingId > 0 ? 'Usuario actualizado' : 'Usuario registrado',
+                    data.message ? data.message : 'Proceso completado.',
+                    'success'
+                );
                 resetForm();  
                 await loadUsuarios();  
+            } else {
+                showMessage(data.message ? data.message : 'No se pudo completar la operación.', 'error');
             }
         } finally {
             setButtonLoading(submitButton, false);

@@ -78,7 +78,7 @@ function clearMessageLater(node, delay) {
     }, delay);
 }
 
-function showMessage(text, type) {
+function showMessage(text, type, allowToast = true) {
     const node = getNode('form-message');
     if (!node) {
         return;
@@ -86,7 +86,7 @@ function showMessage(text, type) {
 
     node.textContent = text;
     node.className = type ? 'message ' + type : 'message';
-    if (text !== '' && type) {
+    if (allowToast && text !== '' && type) {
         clearMessageLater(node, 4000);
         showToast(type === 'success' ? 'Operación completada' : 'Atención', text, type);
     }
@@ -184,7 +184,11 @@ function renderEstados(list) {
                     },
                     body: JSON.stringify({ id: row.id }),
                 });
-                showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');
+                if (!data.status) {
+                    showMessage(data.message ? data.message : 'No se pudo eliminar el estado.', 'error', false);
+                } else {
+                    showMessage('', '', false);
+                }
                 if (data.status) {
                     if (editingId === Number(row.id)) {
                         resetForm();
@@ -246,10 +250,17 @@ document.addEventListener('DOMContentLoaded', async function () {
                 method: 'POST',
                 body: formData,
             });
-            showMessage(data.message ? data.message : '', data.status ? 'success' : 'error');
             if (data.status) {
+                showMessage('', '');
+                showToast(
+                    editingId > 0 ? 'Estado actualizado' : 'Estado registrado',
+                    data.message ? data.message : 'Proceso completado.',
+                    'success'
+                );
                 resetForm();
                 await loadEstados();
+            } else {
+                showMessage(data.message ? data.message : 'No se pudo completar la operación.', 'error');
             }
         } finally {
             setButtonLoading(submitButton, false);

@@ -302,6 +302,7 @@ function buildInlineReply(ticket, messageNode, toggleButton) {
     setButtonContent(cancelButton, 'close', 'Cancelar');
     cancelButton.addEventListener('click', function () {
         preserveTicketPosition(ticket.id, function () {
+            openReplyTicketId = null;
             textarea.value = '';
             attachmentInput.value = '';
             box.classList.remove('is-open');
@@ -416,10 +417,16 @@ function buildInlineActions(ticket) {
     replyButton.setAttribute('aria-expanded', 'false');
     setButtonContent(replyButton, 'reply', 'Responder');
     const reply = buildInlineReply(ticket, messageNode, replyButton);
+    if (String(openReplyTicketId || '') === String(ticket.id)) {
+        reply.box.classList.add('is-open');
+        replyButton.setAttribute('aria-expanded', 'true');
+        setButtonContent(replyButton, 'reply', 'Ocultar respuesta');
+    }
     replyButton.setAttribute('aria-controls', reply.box.id);
     replyButton.addEventListener('click', function () {
         const scrollTop = window.scrollY;
         const isOpen = reply.box.classList.toggle('is-open');
+        openReplyTicketId = isOpen ? String(ticket.id) : null;
         setButtonContent(replyButton, 'reply', isOpen ? 'Ocultar respuesta' : 'Responder');
         replyButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         window.requestAnimationFrame(function () {
@@ -594,6 +601,9 @@ function renderTickets(tickets) {
         const summary = buildTicketSummary(ticket, isExpanded);
         summary.addEventListener('click', function () {
             preserveTicketPosition(ticket.id, async function () {
+                if (isExpanded) {
+                    openReplyTicketId = null;
+                }
                 expandedTicketId = isExpanded ? null : ticket.id;
                 await loadExpandedTicketData(expandedTicketId);
                 renderTickets(pageTickets);

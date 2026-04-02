@@ -101,9 +101,7 @@ async function submitInlineReply(ticket, textarea, stateSelect, attachmentInput,
         if (attachmentInput) {
             attachmentInput.value = '';
         }
-        replyBox.classList.remove('is-open');
-        toggleButton.setAttribute('aria-expanded', 'false');
-        setButtonContent(toggleButton, 'reply', 'Responder');
+        openReplyTicketId = String(ticket.id);
         await preserveTicketPosition(ticket.id, async function () {
             await refreshTicketsView();
         });
@@ -138,6 +136,9 @@ async function loadTickets() {
 
     if (expandedTicketId !== null && !pageTickets.some(function (ticket) { return String(ticket.id) === String(expandedTicketId); })) {
         expandedTicketId = null;
+    }
+    if (openReplyTicketId !== null && !pageTickets.some(function (ticket) { return String(ticket.id) === String(openReplyTicketId); })) {
+        openReplyTicketId = null;
     }
     await loadExpandedTicketData(expandedTicketId);
     renderTickets(pageTickets);

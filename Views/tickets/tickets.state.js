@@ -8,6 +8,7 @@ let availableTechnicians = [];
 let notificationItems = [];
 let notificationTotal = 0;
 let expandedTicketId = null;
+let openReplyTicketId = null;
 let activeStatusFilter = 'todos';
 let activeAssignmentFilter = 'todos';
 let currentTicketPage = 1;

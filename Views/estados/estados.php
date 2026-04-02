@@ -10,7 +10,7 @@
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/estados/estados.js?v=2' defer></script>
+    <script src='/NexoTI/Views/estados/estados.js?v=3' defer></script>
 </head>
 <body> 
     <div class='layout'> 

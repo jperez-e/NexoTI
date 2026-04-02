@@ -137,7 +137,12 @@ function setupCreateForm() {
         try {
             const response = await fetch('api.php?c=ticket&m=create', { method: 'POST', body: formData });
             const data = await response.json();
-            setMessage(dom.formMessage, data.message ? data.message : 'Proceso completado.', data.status ? 'success' : 'error', 'Creacion de ticket');
+            if (data.status) {
+                setMessage(dom.formMessage, '', '');
+                showToast('Creación de ticket', data.message ? data.message : 'Proceso completado.', 'success');
+            } else {
+                setMessage(dom.formMessage, data.message ? data.message : 'Proceso completado.', 'error', 'Creación de ticket');
+            }
             if (data.status) {
                 dom.ticketForm.reset();
                 setDefaultOccurrence();
