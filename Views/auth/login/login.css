@@ -213,14 +213,17 @@ button:hover {
 .error {
     color: #b91c1c;
     font-size: 0.95rem;
+    line-height: 1.35;
+    max-height: 120px;
+    overflow: hidden;
     animation: mostrarError 5s;
     animation-fill-mode: forwards;
 }
 
 @keyframes mostrarError {
-    0% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
+    0% { opacity: 1; max-height: 120px; margin: 0; }
+    80% { opacity: 1; max-height: 120px; margin: 0; }
+    100% { opacity: 0; max-height: 0; margin: 0; }
 }
 
 .m365-btn {
