@@ -68,7 +68,7 @@ class ComentarioModel
             . 'INNER JOIN usuarios u ON u.id = c.usuario_id '
             . 'INNER JOIN roles r ON r.id = u.rol_id '
             . 'INNER JOIN tickets t ON t.id = c.ticket_id '
-            . 'WHERE (t.tecnico_id = ? OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = ?)) '
+            . 'WHERE (t.tecnico_id = ? OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = ?) OR EXISTS (SELECT 1 FROM usuarios uc WHERE uc.id = t.usuario_id AND uc.rol_id = 2)) '
             . 'ORDER BY c.fecha DESC, c.id DESC';
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$tecnicoId, $tecnicoId]);

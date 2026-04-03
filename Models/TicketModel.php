@@ -153,9 +153,10 @@ class TicketModel
   
     public function obtenerPorTecnico(int $tecnicoId): array  
     {  
-        $sql = $this->consultaBase() . ' WHERE t.tecnico_id = ? ORDER BY t.id DESC';  
+        // Un tecnico ve tickets asignados y tambien tickets creados por el mismo.
+        $sql = $this->consultaBase() . ' WHERE (t.tecnico_id = ? OR t.usuario_id = ?) ORDER BY t.id DESC';  
         $stmt = $this->db->prepare($sql);  
-        $stmt->execute([$tecnicoId]);  
+        $stmt->execute([$tecnicoId, $tecnicoId]);  
         return $stmt->fetchAll();  
     }  
 
@@ -361,7 +362,9 @@ class TicketModel
         if ($rolId === 2) {
             $params[] = $userId;
             $params[] = $userId;
-            return ['(t.tecnico_id = ? OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = ?))'];
+            $params[] = $userId;
+            $params[] = 2;
+            return ['(t.tecnico_id = ? OR t.usuario_id = ? OR EXISTS (SELECT 1 FROM ticket_participantes tp WHERE tp.ticket_id = t.id AND tp.usuario_id = ?) OR EXISTS (SELECT 1 FROM usuarios uc WHERE uc.id = t.usuario_id AND uc.rol_id = ?))'];
         }
 
         return [];
@@ -376,10 +379,12 @@ class TicketModel
 
         if ($rolId === 2) {
             $params[] = $userId;
+            $params[] = $userId;
+            $params[] = 2;
             $params[] = 'abierto';
             $params[] = 'en proceso';
             $params[] = 'resuelto';
-            return ' WHERE t.tecnico_id = ? AND LOWER(e.nombre) IN (?, ?, ?)';
+            return ' WHERE (t.tecnico_id = ? OR t.usuario_id = ? OR EXISTS (SELECT 1 FROM usuarios uc WHERE uc.id = t.usuario_id AND uc.rol_id = ?)) AND LOWER(e.nombre) IN (?, ?, ?)';
         }
 
         $params[] = $userId;

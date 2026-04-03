@@ -11,7 +11,7 @@ $etiquetaRol = $idRolActual === 1 ? 'Administrador' : ($idRolActual === 2 ? 'Té
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Reportes</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css?v=6'>
+    <link rel='stylesheet' href='/NexoTI/Views/reportes/reportes.css?v=8'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
@@ -22,25 +22,16 @@ $etiquetaRol = $idRolActual === 1 ? 'Administrador' : ($idRolActual === 2 ? 'Té
         <?php require __DIR__ . '/../partials/sidebar.php'; ?>
         <div class='content'>
             <header class='topbar'>
-                <h1>Reportes y Exportación</h1>
-                <p>Vista para <strong id='role-label'><?php echo htmlspecialchars($etiquetaRol, ENT_QUOTES, 'UTF-8'); ?></strong>. Los datos se filtran automáticamente según tu alcance.</p>
+                <div class='topbar-head'>
+                    <h1>Reportes y Exportación</h1>
+                    <a class='btn ghost' href='/NexoTI/index.php?r=home'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3 3 10v11h6v-7h6v7h6V10l-9-7z' fill='currentColor'></path></svg></span><span class='btn-label'>Volver al inicio</span></a>
+                </div>
             </header>
             <main class='reports'>
-                <section class='hero-card'>
-                    <div>
-                        <span class='section-kicker'>Dashboard</span>
-                        <h2>Indicadores operativos por rol</h2>
-                        <p>Analiza volumen, tiempos de atención, distribución por estado y evolución mensual de tickets.</p>
-                    </div>
-                    <a class='btn ghost' href='/NexoTI/index.php?r=home'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3 3 10v11h6v-7h6v7h6V10l-9-7z' fill='currentColor'></path></svg></span><span class='btn-label'>Volver al inicio</span></a>
-                </section>
-
-                <section class='card filters-card'>
-                    <div class='section-head'>
-                        <div>
-                            <span class='section-kicker'>Filtros</span>
-                            <h2>Rango de fechas</h2>
-                        </div>
+                <section class='hero-card filters-card reportes-header'>
+                    <div class='reportes-header-title'>
+                        <h2>Filtrar por rango de fechas</h2>
+                        <p>Selecciona un período para actualizar métricas, historial y exportaciones.</p>
                     </div>
                     <div class='filter-grid'>
                         <label>
@@ -76,10 +67,8 @@ $etiquetaRol = $idRolActual === 1 ? 'Administrador' : ($idRolActual === 2 ? 'Té
                     <div class='section-head'>
                         <div>
                             <span class='section-kicker'>Exportación</span>
-                            <h2>Descargas del área actual</h2>
                         </div>
                     </div>
-                    <p>Los archivos incluyen solo tickets visibles para tu rol y respetan el rango de fechas seleccionado.</p>
                     <div class='actions'>
                         <a class='btn primary' id='export-csv' href='/NexoTI/api.php?c=reporte&m=ticketsCsv'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 16 7 11h3V4h4v7h3l-5 5zm-7 2h14v2H5v-2z' fill='currentColor'></path></svg></span><span class='btn-label'>Descargar CSV</span></a>
                         <a class='btn ghost' id='export-excel' href='/NexoTI/api.php?c=reporte&m=ticketsExcel'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 3h10l4 4v14H5V3zm9 1.5V8h3.5L14 4.5zM8 12h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V8z' fill='currentColor'></path></svg></span><span class='btn-label'>Descargar Excel</span></a>

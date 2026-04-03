@@ -19,7 +19,7 @@
             <header class='page-header'>  
                 <div>  
                     <h1>Usuarios</h1>  
-                    <p>El administrador crea, edita y elimina usuarios del sistema.</p>  
+                    <p>Crea, edita y elimina usuarios del sistema.</p>  
                 </div>  
                 <a class='btn' href='/NexoTI/index.php?r=home'><span class='btn-label'>Volver al inicio</span></a>  
             </header>  

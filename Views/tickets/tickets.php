@@ -31,10 +31,10 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.state.js?v=5' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.api.js?v=5' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.render.js?v=5' defer></script>
-    <script src='/NexoTI/Views/tickets/tickets.events.js?v=5' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.state.js?v=6' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.api.js?v=6' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.render.js?v=6' defer></script>
+    <script src='/NexoTI/Views/tickets/tickets.events.js?v=6' defer></script>
 </head>
 <body
     data-user-id='<?php echo (int) $userId; ?>'
@@ -84,8 +84,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
             <div class='page-body'>
                 <header class='page-header'>
                     <div>
-                        <h1>Tickets de Soporte</h1>
-                        <p>Registra, asigna y gestiona solicitudes.</p>
+                        <h1>Gestionar solicitudes</h1>
                     </div>
                     <a class='btn' href='/NexoTI/index.php?r=home'><span class='btn-label'>Volver al inicio</span></a>
                 </header>
@@ -107,7 +106,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                                 Prioridad
                                 <select name='prioridad_id' id='prioridad_id' required></select>
                             </label>
-                            <?php if (!$isUser): ?>
+                            <?php if ($isAdmin): ?>
                             <label>
                                 Estado
                                 <select name='estado_id' id='estado_id' required></select>
@@ -164,7 +163,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                                 <option value='todos'>Todos los estados</option>
                             </select>
                         </label>
-                        <?php if (!$isTech): ?>
+                        <?php if (!$isUser): ?>
                         <label class='filter-field'>
                             Asignación
                             <select id='assignment-filter-select'>

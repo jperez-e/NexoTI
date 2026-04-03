@@ -68,6 +68,9 @@ class TicketController extends BaseController
         $sessionUserId = $this->obtenerIdUsuarioActual();
         $rolId = $this->obtenerIdRolActual();
         $usuarioId = (int) ($_POST['usuario_id'] ?? $sessionUserId);
+        if ($rolId !== 1) {
+            $usuarioId = $sessionUserId;
+        }
         $fechaCreacion = null;
         if ($fechaOcurrenciaRaw !== '') {
             $date = \DateTime::createFromFormat('Y-m-d\TH:i', $fechaOcurrenciaRaw);
@@ -76,8 +79,8 @@ class TicketController extends BaseController
             }
             $fechaCreacion = $date->format('Y-m-d H:i:s');
         }
-        if ($rolId === 3) {
-            // Regla de negocio: los tickets creados por el usuario final siempre nacen abiertos.
+        if ($rolId === 3 || $rolId === 2) {
+            // Regla de negocio: los tickets creados por usuario final o tecnico siempre nacen abiertos.
             $usuarioId = $sessionUserId;
             $estadoInicialId = $this->model->obtenerIdEstadoPorNombre('Abierto');
             if ($estadoInicialId !== null) {
@@ -309,7 +312,13 @@ class TicketController extends BaseController
             return true;
         }
         if ($rolId === 2) {
-            return (int) ($ticket['tecnico_id'] ?? 0) === $userId;
+            if ((int) ($ticket['tecnico_id'] ?? 0) === $userId) {
+                return true;
+            }
+            if ((int) ($ticket['usuario_id'] ?? 0) === $userId) {
+                return true;
+            }
+            return $this->ticketCreadoPorTecnico($ticket);
         }
 
         return (int) ($ticket['usuario_id'] ?? 0) === $userId;
@@ -327,6 +336,16 @@ class TicketController extends BaseController
         }
 
         return (int) ($ticket['tecnico_id'] ?? 0) === $this->obtenerIdUsuarioActual();
+    }
+
+    private function ticketCreadoPorTecnico(array $ticket): bool
+    {
+        $creadorId = (int) ($ticket['usuario_id'] ?? 0);
+        if ($creadorId <= 0) {
+            return false;
+        }
+        $creador = $this->usuarios->obtenerPorId($creadorId);
+        return (int) ($creador['rol_id'] ?? 0) === 2;
     }
 
     private function normalizarAdjuntos(): array
@@ -400,7 +419,7 @@ class TicketController extends BaseController
     public function asignar(): void
     {
         $this->requerirSesion();
-        $this->requerirRol([1]);
+        $this->requerirRol([1, 2]);
         $this->requerirPost();
 
         $payload = $this->obtenerDatosSolicitud();
@@ -412,6 +431,39 @@ class TicketController extends BaseController
 
         if ($ticketId <= 0 || $estadoId <= 0) {
             $this->responderErrorJson('Datos incompletos.');
+        }
+
+        $ticket = $this->model->obtenerPorId($ticketId);
+        if (!$ticket) {
+            $this->responderErrorJson('Ticket no encontrado.', 404);
+        }
+
+        $rolActual = $this->obtenerIdRolActual();
+        $usuarioActual = $this->obtenerIdUsuarioActual();
+
+        if ($tecnicoId !== null && $tecnicoId > 0) {
+            $tecnicoDestino = $this->usuarios->obtenerPorId($tecnicoId);
+            if (!$tecnicoDestino || (int) ($tecnicoDestino['rol_id'] ?? 0) !== 2 || (int) ($tecnicoDestino['activo'] ?? 0) !== 1) {
+                $this->responderErrorJson('Selecciona un técnico válido.');
+            }
+        }
+
+        if ($rolActual === 2) {
+            if (!$this->ticketCreadoPorTecnico($ticket)) {
+                $this->responderErrorJson('Solo puedes reasignar tickets creados por técnicos.', 403);
+            }
+
+            $esCreador = (int) ($ticket['usuario_id'] ?? 0) === $usuarioActual;
+            $esResponsable = (int) ($ticket['tecnico_id'] ?? 0) === $usuarioActual;
+            if (!$esCreador && !$esResponsable) {
+                $this->responderErrorJson('No puedes reasignar este ticket.', 403);
+            }
+            if ($tecnicoId === null || $tecnicoId <= 0) {
+                $this->responderErrorJson('Debes seleccionar el técnico responsable.');
+            }
+            if ($esCreador && $tecnicoId === $usuarioActual) {
+                $this->responderErrorJson('Si creaste este ticket debes asignarlo a otro técnico.');
+            }
         }
 
         if (!$this->model->asignar($ticketId, $tecnicoId, $estadoId)) {
@@ -453,7 +505,7 @@ class TicketController extends BaseController
 
         $rolId = $this->obtenerIdRolActual();
         $userId = $this->obtenerIdUsuarioActual();
-        if ($rolId === 2 && (int) $ticket['tecnico_id'] !== $userId) {
+        if ($rolId === 2 && !$this->puedeAccederTicket($ticket)) {
             $this->responderErrorJson('No puedes actualizar este ticket.', 403);
         }
 
@@ -473,7 +525,7 @@ class TicketController extends BaseController
     public function cerrarTicket(): void
     {
         $this->requerirSesion();
-        $this->requerirRol([3]);
+        $this->requerirRol([1, 2, 3]);
         $this->requerirPost();
 
         $payload = $this->obtenerDatosSolicitud();
@@ -489,7 +541,11 @@ class TicketController extends BaseController
         }
 
         $userId = $this->obtenerIdUsuarioActual();
-        if ((int) $ticket['usuario_id'] !== $userId) {
+        $rolId = $this->obtenerIdRolActual();
+        if ($rolId === 3 && (int) $ticket['usuario_id'] !== $userId) {
+            $this->responderErrorJson('No puedes cerrar este ticket.', 403);
+        }
+        if ($rolId === 2 && !$this->puedeAccederTicket($ticket)) {
             $this->responderErrorJson('No puedes cerrar este ticket.', 403);
         }
 
@@ -504,8 +560,13 @@ class TicketController extends BaseController
             $this->responderErrorJson('No se pudo cerrar el ticket.');
         }
 
-        // Dejamos trazabilidad funcional en el hilo: el usuario final confirma que acepta la solucion.
-        $this->comentarios->insertar($ticketId, $userId, 'El usuario aceptó la solución y confirmó el cierre del ticket.');
+        if ($rolId === 3) {
+            $this->comentarios->insertar($ticketId, $userId, 'El usuario aceptó la solución y confirmó el cierre del ticket.');
+        } elseif ($rolId === 2) {
+            $this->comentarios->insertar($ticketId, $userId, 'El técnico confirmó el cierre del ticket.');
+        } else {
+            $this->comentarios->insertar($ticketId, $userId, 'El administrador confirmó el cierre del ticket.');
+        }
 
         $this->notifications->notificarCierre($ticket, $userId);
 

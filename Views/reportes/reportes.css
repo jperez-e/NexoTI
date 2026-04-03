@@ -36,9 +36,16 @@ body {
     color: #0f172a;
 }
 
+.topbar-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
 .topbar h1 {
     margin: 0;
-    font-size: 2rem;
+    font-size: clamp(2rem, 2.7vw, 2.4rem);
     color: #0f172a;
 }
 
@@ -77,8 +84,26 @@ body {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.92));
 }
 
+.reportes-header {
+    display: grid;
+    gap: 18px;
+}
+
+.reportes-header-title h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #0f172a;
+}
+
+.reportes-header-title p {
+    margin: 8px 0 0;
+    color: #475569;
+    max-width: 760px;
+    line-height: 1.45;
+}
+
 .hero-card h2 {
-    margin: 10px 0 8px;
+    margin: 0;
 }
 
 .hero-card p {
@@ -161,7 +186,7 @@ body {
 .filters-card .filter-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 14px;
 }
 
 .filters-card label {
@@ -170,6 +195,19 @@ body {
     color: #1e3a8a;
     font-weight: 700;
     font-size: 0.9rem;
+    padding: 12px;
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.filters-card input[type='date'] {
+    min-height: 42px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+    color: #0f172a;
 }
 
 .actions {
@@ -177,6 +215,10 @@ body {
     flex-wrap: wrap;
     gap: 12px;
     margin-top: 16px;
+}
+
+.reportes-header .actions {
+    margin-top: 0;
 }
 
 .export-card,
@@ -321,6 +363,15 @@ body {
 @media (max-width: 760px) {
     .topbar {
         padding: 22px;
+    }
+
+    .topbar-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .topbar-head > .btn {
+        justify-content: center;
     }
 
     .hero-card {

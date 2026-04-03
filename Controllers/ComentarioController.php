@@ -5,6 +5,7 @@ require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../Models/ComentarioModel.php';
 require_once __DIR__ . '/../Models/TicketModel.php';
 require_once __DIR__ . '/../Models/TicketParticipanteModel.php';
+require_once __DIR__ . '/../Models/UsuarioModel.php';
 require_once __DIR__ . '/../Services/NotificationService.php';
 
 class ComentarioController extends BaseController
@@ -12,6 +13,7 @@ class ComentarioController extends BaseController
     private ComentarioModel $model;
     private TicketModel $tickets;
     private TicketParticipanteModel $participantes;
+    private UsuarioModel $usuarios;
     private NotificationService $notifications;
 
     public function __construct()
@@ -19,6 +21,7 @@ class ComentarioController extends BaseController
         $this->model = new ComentarioModel();
         $this->tickets = new TicketModel();
         $this->participantes = new TicketParticipanteModel();
+        $this->usuarios = new UsuarioModel();
         $this->notifications = new NotificationService();
     }
 
@@ -70,7 +73,13 @@ class ComentarioController extends BaseController
         if ($rolId === 3 && (int) $ticket['usuario_id'] !== $userId && !$esParticipante) {
             $this->responderErrorJson('No puedes comentar este ticket.', 403);
         }
-        if ($rolId === 2 && (int) ($ticket['tecnico_id'] ?? 0) !== $userId && !$esParticipante) {
+        if (
+            $rolId === 2
+            && (int) ($ticket['tecnico_id'] ?? 0) !== $userId
+            && (int) ($ticket['usuario_id'] ?? 0) !== $userId
+            && !$esParticipante
+            && !$this->ticketCreadoPorTecnico($ticket)
+        ) {
             $this->responderErrorJson('No puedes comentar este ticket.', 403);
         }
 
@@ -82,5 +91,15 @@ class ComentarioController extends BaseController
         $commentId = $this->model->obtenerUltimoIdInsertado();
         $this->notifications->notificarRespuesta($ticket, $userId, $comentario);
         $this->responderOkJson('Comentario creado', ['id' => $commentId]);
+    }
+
+    private function ticketCreadoPorTecnico(array $ticket): bool
+    {
+        $creadorId = (int) ($ticket['usuario_id'] ?? 0);
+        if ($creadorId <= 0) {
+            return false;
+        }
+        $creador = $this->usuarios->obtenerPorId($creadorId);
+        return (int) ($creador['rol_id'] ?? 0) === 2;
     }
 }

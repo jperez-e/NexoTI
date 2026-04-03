@@ -172,18 +172,6 @@ function configurarFormularioCerrar() {
 }
 
 function configurarFiltrosListado() {
-    if (esUsuarioTecnico()) {
-        filtroAsignacionActivo = 'asignados';
-        if (domElementos.assignmentFilterSelect) {
-            domElementos.assignmentFilterSelect.value = 'asignados';
-            domElementos.assignmentFilterSelect.disabled = true;
-            const field = domElementos.assignmentFilterSelect.closest('.filter-field');
-            if (field) {
-                field.style.display = 'none';
-            }
-        }
-    }
-
     if (domElementos.statusFilterSelect) {
         domElementos.statusFilterSelect.value = filtroEstadoActivo;
         domElementos.statusFilterSelect.addEventListener('change', async function () {

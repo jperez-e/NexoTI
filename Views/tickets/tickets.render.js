@@ -264,8 +264,11 @@ function construirHiloTicket(ticket) {
     comments.forEach(function (comment) {
         const commentText = String(comment.comentario || '').trim();
         const normalizedCommentText = normalizarNombreEstado(commentText);
-        const isClosureAccepted = normalizedCommentText.includes('acepto la solucion')
+        const isClosureAcceptedByUser = normalizedCommentText.includes('acepto la solucion')
             && normalizedCommentText.includes('confirmo el cierre');
+        const isClosureConfirmedByTech = normalizedCommentText.includes('tecnico confirmo el cierre del ticket');
+        const isClosureConfirmedByAdmin = normalizedCommentText.includes('administrador confirmo el cierre del ticket');
+        const isClosureAccepted = isClosureAcceptedByUser || isClosureConfirmedByTech || isClosureConfirmedByAdmin;
         wrapper.appendChild(construirEntradaHilo({
             name: comment.usuario_nombre || 'Usuario',
             roleName: comment.rol_nombre || 'Usuario',
@@ -369,7 +372,7 @@ function construirRespuestaEnLinea(ticket, messageNode, toggleButton) {
     identity.appendChild(construirInsigniaRol(datoBody('roleName')));
     body.appendChild(identity);
     let stateSelect = null;
-    if (esUsuarioTecnico()) {
+    if (esUsuarioTecnico() || esUsuarioAdmin()) {
         const stateLabel = document.createElement('label');
         stateLabel.className = 'reply-state';
         stateLabel.textContent = 'Estado';
@@ -451,7 +454,13 @@ function construirAsignacionEnLinea(ticket) {
     emptyOption.value = '';
     emptyOption.textContent = 'Sin asignar';
     techSelect.appendChild(emptyOption);
+    const esCreadorTecnico = normalizarEtiquetaRol(ticket.usuario_rol_nombre || '') === 'Técnico';
+    const idActual = idUsuarioActual();
+    const bloquearAutoAsignacion = esUsuarioTecnico() && esCreadorTecnico && Number(ticket.usuario_id || 0) === idActual;
     tecnicosDisponibles.forEach(function (tecnico) {
+        if (bloquearAutoAsignacion && Number(tecnico.id || 0) === idActual) {
+            return;
+        }
         const option = document.createElement('option');
         option.value = tecnico.id;
         option.textContent = tecnico.nombre + ' (' + tecnico.email + ')';
@@ -503,10 +512,27 @@ function construirAsignacionEnLinea(ticket) {
     return panel;
 }
 
+function puedeGestionarAsignacionEnLinea(ticket) {
+    if (esUsuarioAdmin()) {
+        return true;
+    }
+    if (!esUsuarioTecnico()) {
+        return false;
+    }
+
+    const esCreadorTecnico = normalizarEtiquetaRol(ticket.usuario_rol_nombre || '') === 'Técnico';
+    if (!esCreadorTecnico) {
+        return false;
+    }
+
+    const idActual = idUsuarioActual();
+    return Number(ticket.usuario_id || 0) === idActual || Number(ticket.tecnico_id || 0) === idActual;
+}
+
 function construirAccionesEnLinea(ticket) {
     const wrapper = document.createElement('div');
     wrapper.className = 'inline-tools';
-    if (esUsuarioAdmin()) {
+    if (puedeGestionarAsignacionEnLinea(ticket)) {
         wrapper.appendChild(construirAsignacionEnLinea(ticket));
     }
     const actions = document.createElement('div');
@@ -558,7 +584,7 @@ function construirAccionesEnLinea(ticket) {
         });
         actions.appendChild(deleteButton);
     }
-    if (esUsuarioFinal() && String(ticket.estado_nombre).toLowerCase() === 'resuelto') {
+    if ((esUsuarioFinal() || esUsuarioTecnico() || esUsuarioAdmin()) && normalizarNombreEstado(ticket.estado_nombre || '') === 'resuelto') {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'btn primary';
@@ -747,9 +773,7 @@ function actualizarInfoResultados() {
     const statusLabel = domElementos.statusFilterSelect && domElementos.statusFilterSelect.selectedOptions[0]
         ? domElementos.statusFilterSelect.selectedOptions[0].textContent
         : (filtroEstadoActivo === 'todos' ? 'Todos los estados' : filtroEstadoActivo);
-    const assignmentLabel = esUsuarioTecnico()
-        ? 'Asignados'
-        : (domElementos.assignmentFilterSelect && domElementos.assignmentFilterSelect.selectedOptions[0]
+    const assignmentLabel = (domElementos.assignmentFilterSelect && domElementos.assignmentFilterSelect.selectedOptions[0]
         ? domElementos.assignmentFilterSelect.selectedOptions[0].textContent
         : (filtroAsignacionActivo === 'todos' ? 'Todos' : filtroAsignacionActivo));
     if (query === '') {
@@ -770,4 +794,140 @@ function actualizarPaginadorTickets() {
     domElementos.ticketsPageInfo.textContent = 'Página ' + metaTicketActual.page + ' de ' + metaTicketActual.total_pages + ' - ' + metaTicketActual.total + ' ticket(s)';
     domElementos.ticketsPrev.disabled = metaTicketActual.page <= 1;
     domElementos.ticketsNext.disabled = metaTicketActual.page >= metaTicketActual.total_pages;
+}
+ 
+/* Mejora visual del listado: indicadores dinamicos y bloque visual. */ 
+function asegurarPanelVivoTickets() { 
+    if (!domElementos.ticketsList) { return null; } 
+    var panel = porId('ticket-highlights'); 
+    if (panel) { return panel; } 
+    var card = domElementos.ticketsList.closest('.card'); 
+    if (!card) { return null; } 
+    panel = document.createElement('div'); 
+    panel.className = 'ticket-highlights'; 
+    panel.id = 'ticket-highlights'; 
+    panel.setAttribute('aria-live', 'polite'); 
+    var defs = [ 
+        { id: 'total', clase: 'highlight-total', titulo: 'Total encontrados', detalle: 'Pagina actual: 0' }, 
+        { id: 'open', clase: 'highlight-open', titulo: 'Abiertos', detalle: 'Requieren seguimiento' }, 
+        { id: 'progress', clase: 'highlight-progress', titulo: 'En proceso', detalle: 'Atencion tecnica activa' }, 
+        { id: 'closed', clase: 'highlight-closed', titulo: 'Cerrados o resueltos', detalle: 'Sin asignar: 0' } 
+    ];
+    defs.forEach(function (item) { 
+        var article = document.createElement('article'); 
+        article.className = 'highlight-card ' + item.clase; 
+        var title = document.createElement('p'); 
+        title.textContent = item.titulo; 
+        var value = document.createElement('strong'); 
+        value.id = 'stat-' + item.id; 
+        value.textContent = '0'; 
+        var detail = document.createElement('small'); 
+        if (item.id === 'closed') { 
+            detail.id = 'stat-unassigned'; 
+        } else if (item.id === 'total') { 
+            detail.id = 'stat-page'; 
+        } 
+        detail.textContent = item.detalle; 
+        article.appendChild(title); 
+        article.appendChild(value); 
+        article.appendChild(detail); 
+        panel.appendChild(article); 
+    }); 
+    var filters = card.querySelector('.list-filters'); 
+    if (!filters) { 
+        card.insertBefore(panel, domElementos.ticketsList); 
+        return panel; 
+    } 
+    if (!filters.parentNode) { 
+        card.insertBefore(panel, domElementos.ticketsList); 
+        return panel; 
+    } 
+    if (filters.nextSibling) { 
+        filters.parentNode.insertBefore(panel, filters.nextSibling); 
+    } else { 
+        filters.parentNode.appendChild(panel); 
+    } 
+    return panel; 
+}
+ 
+function obtenerEstadoNormalizadoTicket(ticket) { 
+    if (!ticket) { return ''; } 
+    var estado = ticket.estado_nombre ? ticket.estado_nombre : ''; 
+    return normalizarNombreEstado(estado); 
+} 
+ 
+function contarEstadoTicketVivo(lista, primerEstado, segundoEstado) { 
+    return lista.filter(function (ticket) { 
+        var estado = obtenerEstadoNormalizadoTicket(ticket); 
+        if (estado === primerEstado) { return true; } 
+        if (segundoEstado !== '' && estado === segundoEstado) { return true; } 
+        return false; 
+    }).length; 
+} 
+ 
+function actualizarIndicadoresVivosTickets(tickets) { 
+    var panel = asegurarPanelVivoTickets(); 
+    if (!panel) { return; } 
+    var lista = Array.isArray(tickets) ? tickets : []; 
+    var total = Number(metaTicketActual.total); 
+    if (!Number.isFinite(total)) { 
+        total = lista.length; 
+    } 
+    if (total <= 0) { 
+        total = lista.length; 
+    } 
+    var cantidadPagina = lista.length; 
+    var abiertos = contarEstadoTicketVivo(lista, 'abierto', ''); 
+    var enProceso = contarEstadoTicketVivo(lista, 'en proceso', 'en progreso'); 
+    var cerrados = contarEstadoTicketVivo(lista, 'cerrado', 'resuelto'); 
+    var sinAsignar = lista.filter(function (ticket) { 
+        return Number(ticket && ticket.tecnico_id ? ticket.tecnico_id : 0) <= 0; 
+    }).length; 
+    var totalNode = porId('stat-total'); 
+    var openNode = porId('stat-open'); 
+    var progressNode = porId('stat-progress'); 
+    var closedNode = porId('stat-closed'); 
+    var pageNode = porId('stat-page'); 
+    var unassignedNode = porId('stat-unassigned'); 
+    if (totalNode) { totalNode.textContent = String(total); } 
+    if (openNode) { openNode.textContent = String(abiertos); } 
+    if (progressNode) { progressNode.textContent = String(enProceso); } 
+    if (closedNode) { closedNode.textContent = String(cerrados); } 
+    if (pageNode) { pageNode.textContent = 'Pagina actual: ' + cantidadPagina; } 
+    if (unassignedNode) { unassignedNode.textContent = 'Sin asignar: ' + sinAsignar; } 
+} 
+ 
+if (typeof window.__ticketsVivosHookeado === 'undefined') { 
+    window.__ticketsVivosHookeado = true; 
+    var renderizarTicketsBase = renderizarTickets; 
+    renderizarTickets = function (tickets) { 
+        renderizarTicketsBase(tickets); 
+        actualizarIndicadoresVivosTickets(tickets); 
+    }; 
+}
+ 
+function decorarEstadoVacioTickets() { 
+    if (!domElementos.ticketsList) { return; } 
+    var lista = domElementos.ticketsList.querySelector('.ticket-list'); 
+    if (lista) { return; } 
+    var empty = domElementos.ticketsList.querySelector('.empty'); 
+    if (!empty) { return; } 
+    var box = document.createElement('div'); 
+    box.className = 'list-empty'; 
+    var title = document.createElement('strong'); 
+    title.textContent = 'No hay tickets para mostrar'; 
+    var text = document.createElement('p'); 
+    text.textContent = empty.textContent ? empty.textContent : 'Ajusta filtros o crea un nuevo ticket.'; 
+    box.appendChild(title); 
+    box.appendChild(text); 
+    empty.replaceWith(box); 
+} 
+ 
+if (typeof window.__ticketsVivosDecorador === 'undefined') { 
+    window.__ticketsVivosDecorador = true; 
+    var renderizarTicketsDecorado = renderizarTickets; 
+    renderizarTickets = function (tickets) { 
+        renderizarTicketsDecorado(tickets); 
+        decorarEstadoVacioTickets(); 
+    }; 
 }

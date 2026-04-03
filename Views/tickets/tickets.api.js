@@ -43,7 +43,8 @@ async function enviarRespuestaEnLinea(ticket, areaTexto, selectEstado, entradaAd
     const comentario = areaTexto.value.trim();
     const idEstadoSeleccionado = selectEstado ? String(selectEstado.value) : '';
     const idEstadoActual = ticket.estado_id ? String(ticket.estado_id) : '';
-    const debeActualizarEstado = esUsuarioTecnico() && idEstadoSeleccionado !== '' && idEstadoSeleccionado !== idEstadoActual;
+    const puedeActualizarEstado = esUsuarioTecnico() || esUsuarioAdmin();
+    const debeActualizarEstado = puedeActualizarEstado && idEstadoSeleccionado !== '' && idEstadoSeleccionado !== idEstadoActual;
     const archivos = entradaAdjuntos ? Array.from(entradaAdjuntos.files || []) : [];
 
     if (comentario === '' && !debeActualizarEstado && archivos.length === 0) {

@@ -25,8 +25,7 @@
                 <section class='hero'>  
                     <div class='hero-copy'>
                         <span class='hero-kicker'>Centro de operaciones</span>
-                        <h2>Panel de control de soporte TI</h2>  
-                        <p>Consulta el estado del servicio, revisa actividad reciente y accede rápido a los módulos principales.</p>
+                        <h2>Panel de control de soporte TI</h2> 
                     </div>
                     <div class='hero-actions'>
                         <a class='btn primary' href='/NexoTI/index.php?r=tickets'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M4 6h16v5a2 2 0 0 0 0 4v5H4v-5a2 2 0 0 0 0-4V6zm4 4v4h8v-4H8z' fill='currentColor'></path></svg></span><span class='btn-label'>Ir a tickets</span></a>
@@ -55,21 +54,6 @@
                         </article>
                     </div>
                 </section>
-                <section class='summary summary-panels'>  
-                    <div class='card action-card'>  
-                        <h3>Flujo principal</h3>  
-                        <ul>  
-                            <li>Registrar incidencia y dar seguimiento al ticket</li>  
-                            <li>Asignar y responder según el rol del usuario</li>  
-                            <li>Confirmar solución y cerrar el caso</li>  
-                        </ul>  
-                    </div>  
-                    <div class='card report-card'>  
-                        <h3>Área de reportes</h3>  
-                        <p>Consulta resúmenes, historial y exportaciones filtradas por tu área de trabajo.</p>
-                        <a class='btn ghost' href='/NexoTI/index.php?r=reportes'><span class='btn-icon'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 3h10l4 4v14H5V3zm9 1.5V8h3.5L14 4.5zM8 12h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V8z' fill='currentColor'></path></svg></span><span class='btn-label'>Abrir reportes</span></a>
-                    </div>  
-                </section>  
             </main>  
         </div>  
     </div>  
