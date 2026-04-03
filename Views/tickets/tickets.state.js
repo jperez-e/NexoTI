@@ -140,9 +140,10 @@ function inicialesDesdeNombre(name) {
 }
 
 function normalizarEtiquetaRol(roleName) {
-    const value = String(roleName || '').toLowerCase();
-    if (value.includes('admin')) { return 'Admin'; }
-    if (value.includes('tecn')) { return 'Técnico'; }
+    const value = String(roleName || '').toLowerCase().trim();
+    if (value === '1' || value.includes('admin')) { return 'Admin'; }
+    if (value === '2' || value.includes('tecn') || value.includes('agent') || value.includes('soporte')) { return 'Técnico'; }
+    if (value === '3' || value.includes('usuario') || value.includes('cliente')) { return 'Usuario'; }
     return 'Usuario';
 }
 

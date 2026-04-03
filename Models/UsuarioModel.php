@@ -47,6 +47,13 @@ class UsuarioModel
         return $stmt->execute([$foto, $id]);
     }
 
+    public function actualizarClave(int $id, string $claveHash): bool
+    {
+        $sql = 'UPDATE usuarios SET clave_hash = ? WHERE id = ?';
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$claveHash, $id]);
+    }
+
     public function obtenerTodos(): array
     {
         // Se hace JOIN con roles para que la interfaz muestre el nombre del rol y no solo el id numerico.
@@ -95,6 +102,18 @@ class UsuarioModel
         $stmt->execute([$id]);
         $row = $stmt->fetch();
         return $row ?: null;
+    }
+
+    public function obtenerClaveHashPorId(int $id): ?string
+    {
+        $sql = 'SELECT clave_hash FROM usuarios WHERE id = ? LIMIT 1';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        if (!$row || !isset($row['clave_hash'])) {
+            return null;
+        }
+        return (string) $row['clave_hash'];
     }
 
     public function buscarPorLogin(string $login): ?array

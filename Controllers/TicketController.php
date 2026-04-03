@@ -505,8 +505,13 @@ class TicketController extends BaseController
 
         $rolId = $this->obtenerIdRolActual();
         $userId = $this->obtenerIdUsuarioActual();
-        if ($rolId === 2 && !$this->puedeAccederTicket($ticket)) {
-            $this->responderErrorJson('No puedes actualizar este ticket.', 403);
+        if ($rolId === 2) {
+            if (!$this->puedeAccederTicket($ticket)) {
+                $this->responderErrorJson('No puedes actualizar este ticket.', 403);
+            }
+            if ((int) ($ticket['tecnico_id'] ?? 0) !== $userId) {
+                $this->responderErrorJson('Solo el técnico asignado puede cambiar el estado.', 403);
+            }
         }
 
         $cerradoId = $this->model->obtenerIdEstadoPorNombre('Cerrado');

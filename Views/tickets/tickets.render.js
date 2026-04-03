@@ -6,13 +6,9 @@ function construirParticipante(name, roleName, photoUrl, helperText, options) {
     content.className = 'participant-content';
     const title = document.createElement('strong');
     title.textContent = name;
-    const role = document.createElement('span');
-    role.className = 'participant-role';
-    role.textContent = normalizarEtiquetaRol(roleName);
     const helper = document.createElement('small');
     helper.textContent = helperText;
     content.appendChild(title);
-    content.appendChild(role);
     content.appendChild(helper);
     item.appendChild(crearAvatar(name, photoUrl, 'participant-avatar'));
     item.appendChild(content);
@@ -62,7 +58,7 @@ function construirPanelParticipantes(ticket) {
     } else if (extrasOrdenados.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'participants-empty';
-        empty.textContent = 'Sin técnico asignado aún.';
+        empty.textContent = 'Sin responsable asignado aún.';
         list.appendChild(empty);
     }
     const participantMessage = document.createElement('span');
@@ -72,12 +68,11 @@ function construirPanelParticipantes(ticket) {
     participantMessage.setAttribute('aria-hidden', 'true');
 
     extrasOrdenados.forEach(function (participant) {
-        const esTecnico = normalizarEtiquetaRol(participant.rol_nombre || '') === 'Técnico';
         list.appendChild(construirParticipante(
             participant.usuario_nombre || 'Participante',
             participant.rol_nombre || 'Usuario',
             resolverFoto(participant.usuario_foto),
-            esTecnico ? 'Técnico participante' : 'Participante adicional',
+            'Participante adicional',
             canManageParticipants ? {
                 removable: true,
                 onRemove: function (button) {
@@ -87,54 +82,110 @@ function construirPanelParticipantes(ticket) {
         ));
     });
 
-    if (canManageParticipants) {
-        const manager = document.createElement('div');
-        manager.className = 'participants-manager';
-        const managerLabel = document.createElement('label');
-        managerLabel.className = 'participants-manager-label';
-        managerLabel.textContent = 'Agregar participante';
-        const select = document.createElement('select');
-        const usedIds = {};
-        usedIds[String(baseUserId)] = true;
-        if (baseTechId > 0) {
-            usedIds[String(baseTechId)] = true;
-        }
-        extrasOrdenados.forEach(function (participant) {
-            usedIds[String(participant.usuario_id)] = true;
-        });
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Selecciona técnico o usuario';
-        select.appendChild(placeholder);
-        candidatosParticipantes.forEach(function (candidate) {
-            if (!rolParticipantePermitido(candidate.rol_id) || usedIds[String(candidate.id)]) {
-                return;
-            }
-            const option = document.createElement('option');
-            option.value = String(candidate.id);
-            option.textContent = candidate.nombre + ' · ' + (candidate.rol_nombre || '');
-            select.appendChild(option);
-        });
-        managerLabel.appendChild(select);
-        const addButton = document.createElement('button');
-        addButton.type = 'button';
-        addButton.className = 'btn primary';
-        establecerContenidoBoton(addButton, 'users', 'Agregar');
-        addButton.addEventListener('click', function () {
-            agregarParticipanteEnLinea(ticket, select, participantMessage, addButton);
-        });
-        manager.appendChild(managerLabel);
-        manager.appendChild(addButton);
-        panel.appendChild(head);
-        panel.appendChild(list);
-        panel.appendChild(manager);
-        panel.appendChild(participantMessage);
-        return panel;
-    }
     panel.appendChild(head);
     panel.appendChild(list);
+    if (puedeGestionarAsignacionEnLinea(ticket)) {
+        panel.appendChild(construirAsignacionEnLinea(ticket, extrasOrdenados));
+    }
     panel.appendChild(participantMessage);
     return panel;
+}
+
+function construirSelectorParticipantesAsignacion(ticket, extrasOrdenados, selectResponsable) {
+    const label = document.createElement('label');
+    label.className = 'inline-assign-field inline-assign-field-participants';
+    label.textContent = 'Participantes';
+
+    const details = document.createElement('details');
+    details.className = 'assign-multi';
+    const summary = document.createElement('summary');
+    summary.className = 'assign-multi-toggle';
+    const summaryLabel = document.createElement('span');
+    const summaryMeta = document.createElement('small');
+    summary.appendChild(summaryLabel);
+    summary.appendChild(summaryMeta);
+
+    const menu = document.createElement('div');
+    menu.className = 'assign-multi-menu';
+    const empty = document.createElement('p');
+    empty.className = 'assign-multi-empty';
+    empty.textContent = 'Sin candidatos disponibles.';
+
+    const baseUserId = Number(ticket.usuario_id || 0);
+    const seleccionados = new Set(extrasOrdenados
+        .map(function (participant) { return Number(participant.usuario_id || 0); })
+        .filter(function (idUsuario) { return idUsuario > 0; }));
+    const opciones = [];
+
+    candidatosParticipantes.forEach(function (candidate) {
+        const idUsuario = Number(candidate.id || 0);
+        if (idUsuario <= 0 || idUsuario === baseUserId || !rolParticipantePermitido(candidate.rol_id)) {
+            return;
+        }
+
+        const option = document.createElement('label');
+        option.className = 'assign-option';
+        const check = document.createElement('input');
+        check.type = 'checkbox';
+        check.className = 'assign-option-check';
+        check.value = String(idUsuario);
+        check.checked = seleccionados.has(idUsuario);
+        const text = document.createElement('span');
+        text.className = 'assign-option-text';
+        text.textContent = candidate.nombre + ' · ' + normalizarEtiquetaRol(candidate.rol_nombre || candidate.rol_id || 'Usuario');
+        option.appendChild(check);
+        option.appendChild(text);
+        menu.appendChild(option);
+        opciones.push({ id: idUsuario, check: check, option: option });
+    });
+
+    if (opciones.length === 0) {
+        menu.appendChild(empty);
+    }
+
+    function actualizarResumen() {
+        const totalSeleccionados = opciones.reduce(function (total, item) {
+            return total + (item.check.checked ? 1 : 0);
+        }, 0);
+        summaryLabel.textContent = totalSeleccionados > 0 ? String(totalSeleccionados) + ' participante(s) seleccionado(s)' : 'Seleccionar participantes';
+        summaryMeta.textContent = 'Opcional';
+    }
+
+    function bloquearResponsableSeleccionado() {
+        const idResponsable = Number(selectResponsable ? selectResponsable.value : 0);
+        opciones.forEach(function (item) {
+            const bloqueado = idResponsable > 0 && item.id === idResponsable;
+            item.check.disabled = bloqueado;
+            item.option.classList.toggle('is-disabled', bloqueado);
+            if (bloqueado && item.check.checked) {
+                item.check.checked = false;
+            }
+        });
+        actualizarResumen();
+    }
+
+    opciones.forEach(function (item) {
+        item.check.addEventListener('change', function () {
+            actualizarResumen();
+        });
+    });
+    if (selectResponsable) {
+        selectResponsable.addEventListener('change', bloquearResponsableSeleccionado);
+    }
+    bloquearResponsableSeleccionado();
+
+    details.appendChild(summary);
+    details.appendChild(menu);
+    label.appendChild(details);
+
+    return {
+        node: label,
+        obtenerSeleccionados: function () {
+            return opciones
+                .filter(function (item) { return item.check.checked && !item.check.disabled; })
+                .map(function (item) { return item.id; });
+        },
+    };
 }
 
 function construirEntradaHilo(entry) {
@@ -250,7 +301,7 @@ function construirHiloTicket(ticket) {
         .reverse();
     wrapper.appendChild(construirEntradaHilo({
         name: ticket.usuario_nombre || 'Usuario',
-        roleName: ticket.usuario_rol_nombre || 'Usuario',
+        roleName: ticket.usuario_rol_id || ticket.usuario_rol_nombre || 'Usuario',
         photoUrl: resolverFoto(ticket.usuario_foto),
         dateText: ticket.fecha_creacion,
         bodyText: String(ticket.descripcion || '').trim() || 'Sin descripción.',
@@ -372,10 +423,20 @@ function construirRespuestaEnLinea(ticket, messageNode, toggleButton) {
     identity.appendChild(construirInsigniaRol(datoBody('roleName')));
     body.appendChild(identity);
     let stateSelect = null;
-    if (esUsuarioTecnico() || esUsuarioAdmin()) {
-        const stateLabel = document.createElement('label');
-        stateLabel.className = 'reply-state';
-        stateLabel.textContent = 'Estado';
+    const tecnicoAsignadoActual = Number(ticket.tecnico_id || 0) === idUsuarioActual();
+    const puedeCambiarEstadoRespuesta = esUsuarioAdmin() || (esUsuarioTecnico() && tecnicoAsignadoActual);
+    if (puedeCambiarEstadoRespuesta) {
+        const stateLabel = document.createElement('details');
+        stateLabel.className = 'reply-state reply-state-collapsible';
+        const stateToggle = document.createElement('summary');
+        stateToggle.className = 'reply-state-toggle';
+        const stateToggleText = document.createElement('span');
+        stateToggleText.className = 'reply-state-toggle-text';
+        const stateToggleCaret = document.createElement('span');
+        stateToggleCaret.className = 'reply-state-toggle-caret';
+        stateToggleCaret.setAttribute('aria-hidden', 'true');
+        stateToggle.appendChild(stateToggleText);
+        stateToggle.appendChild(stateToggleCaret);
         stateSelect = document.createElement('select');
         estadosDisponibles.filter(function (status) {
             return String(status.nombre).toLowerCase() !== 'cerrado';
@@ -386,7 +447,22 @@ function construirRespuestaEnLinea(ticket, messageNode, toggleButton) {
             if (String(status.id) === String(ticket.estado_id)) { option.selected = true; }
             stateSelect.appendChild(option);
         });
-        stateLabel.appendChild(stateSelect);
+        const stateBody = document.createElement('div');
+        stateBody.className = 'reply-state-body';
+        stateBody.appendChild(stateSelect);
+        const actualizarEstadoSeleccionado = function () {
+            const selected = stateSelect && stateSelect.selectedOptions && stateSelect.selectedOptions[0]
+                ? stateSelect.selectedOptions[0].textContent
+                : 'Sin estado';
+            stateToggleText.textContent = 'Estado: ' + selected;
+        };
+        stateSelect.addEventListener('change', function () {
+            actualizarEstadoSeleccionado();
+            stateLabel.open = false;
+        });
+        actualizarEstadoSeleccionado();
+        stateLabel.appendChild(stateToggle);
+        stateLabel.appendChild(stateBody);
         body.appendChild(stateLabel);
     }
     const textarea = document.createElement('textarea');
@@ -435,30 +511,42 @@ function construirRespuestaEnLinea(ticket, messageNode, toggleButton) {
     return { box: box, textarea: textarea };
 }
 
-function construirAsignacionEnLinea(ticket) {
+function construirAsignacionEnLinea(ticket, extrasOrdenados) {
     const panel = document.createElement('div');
     panel.className = 'inline-assign';
+    if (!esUsuarioAdmin()) {
+        panel.classList.add('inline-assign-compact');
+    }
+    const estaColapsado = Number(ticket.tecnico_id || 0) > 0;
+    panel.classList.toggle('is-collapsed', estaColapsado);
 
-    const title = document.createElement('p');
-    title.className = 'inline-assign-title';
-    title.textContent = 'Asignación del ticket';
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'inline-assign-title inline-assign-toggle';
+    toggle.setAttribute('aria-expanded', estaColapsado ? 'false' : 'true');
+    toggle.innerHTML = '<span>Asignación del ticket</span><span class="inline-assign-caret" aria-hidden="true"></span>';
+
+    const body = document.createElement('div');
+    body.className = 'inline-assign-body';
 
     const grid = document.createElement('div');
     grid.className = 'inline-assign-grid';
 
     const techLabel = document.createElement('label');
     techLabel.className = 'inline-assign-field';
-    techLabel.textContent = 'Técnico';
+    techLabel.textContent = 'Responsable';
     const techSelect = document.createElement('select');
     const emptyOption = document.createElement('option');
     emptyOption.value = '';
-    emptyOption.textContent = 'Sin asignar';
+    emptyOption.textContent = 'Sin responsable';
     techSelect.appendChild(emptyOption);
-    const esCreadorTecnico = normalizarEtiquetaRol(ticket.usuario_rol_nombre || '') === 'Técnico';
     const idActual = idUsuarioActual();
-    const bloquearAutoAsignacion = esUsuarioTecnico() && esCreadorTecnico && Number(ticket.usuario_id || 0) === idActual;
+    const idSolicitante = Number(ticket.usuario_id || 0);
     tecnicosDisponibles.forEach(function (tecnico) {
-        if (bloquearAutoAsignacion && Number(tecnico.id || 0) === idActual) {
+        const idTecnico = Number(tecnico.id || 0);
+        const ocultarTecnicoActual = esUsuarioTecnico() && idTecnico === idActual;
+        const ocultarSolicitante = esUsuarioTecnico() && idSolicitante > 0 && idTecnico === idSolicitante;
+        if (ocultarTecnicoActual || ocultarSolicitante) {
             return;
         }
         const option = document.createElement('option');
@@ -471,23 +559,28 @@ function construirAsignacionEnLinea(ticket) {
     });
     techLabel.appendChild(techSelect);
 
-    const stateLabel = document.createElement('label');
-    stateLabel.className = 'inline-assign-field';
-    stateLabel.textContent = 'Estado';
-    const stateSelect = document.createElement('select');
-    estadosDisponibles.forEach(function (status) {
-        const option = document.createElement('option');
-        option.value = status.id;
-        option.textContent = status.nombre;
-        if (String(status.id) === String(ticket.estado_id || '')) {
-            option.selected = true;
-        }
-        stateSelect.appendChild(option);
-    });
-    stateLabel.appendChild(stateSelect);
-
     grid.appendChild(techLabel);
-    grid.appendChild(stateLabel);
+    const selectorParticipantes = construirSelectorParticipantesAsignacion(ticket, Array.isArray(extrasOrdenados) ? extrasOrdenados : [], techSelect);
+    grid.appendChild(selectorParticipantes.node);
+
+    let stateSelect = null;
+    if (esUsuarioAdmin()) {
+        const stateLabel = document.createElement('label');
+        stateLabel.className = 'inline-assign-field';
+        stateLabel.textContent = 'Estado';
+        stateSelect = document.createElement('select');
+        estadosDisponibles.forEach(function (status) {
+            const option = document.createElement('option');
+            option.value = status.id;
+            option.textContent = status.nombre;
+            if (String(status.id) === String(ticket.estado_id || '')) {
+                option.selected = true;
+            }
+            stateSelect.appendChild(option);
+        });
+        stateLabel.appendChild(stateSelect);
+        grid.appendChild(stateLabel);
+    }
 
     const footer = document.createElement('div');
     footer.className = 'inline-assign-actions';
@@ -501,14 +594,31 @@ function construirAsignacionEnLinea(ticket) {
     assignButton.className = 'btn primary';
     establecerContenidoBoton(assignButton, 'refresh', 'Guardar asignación');
     assignButton.addEventListener('click', function () {
-        guardarAsignacionEnLinea(ticket, techSelect, stateSelect, messageNode, assignButton);
+        guardarAsignacionEnLinea(
+            ticket,
+            techSelect,
+            stateSelect,
+            selectorParticipantes.obtenerSeleccionados,
+            messageNode,
+            assignButton,
+            function () {
+                panel.classList.add('is-collapsed');
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+        );
     });
     footer.appendChild(assignButton);
     footer.appendChild(messageNode);
 
-    panel.appendChild(title);
-    panel.appendChild(grid);
-    panel.appendChild(footer);
+    toggle.addEventListener('click', function () {
+        const collapsed = panel.classList.toggle('is-collapsed');
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    });
+
+    body.appendChild(grid);
+    body.appendChild(footer);
+    panel.appendChild(toggle);
+    panel.appendChild(body);
     return panel;
 }
 
@@ -520,7 +630,7 @@ function puedeGestionarAsignacionEnLinea(ticket) {
         return false;
     }
 
-    const esCreadorTecnico = normalizarEtiquetaRol(ticket.usuario_rol_nombre || '') === 'Técnico';
+    const esCreadorTecnico = normalizarEtiquetaRol(ticket.usuario_rol_id || ticket.usuario_rol_nombre || '') === 'Técnico';
     if (!esCreadorTecnico) {
         return false;
     }
@@ -532,9 +642,6 @@ function puedeGestionarAsignacionEnLinea(ticket) {
 function construirAccionesEnLinea(ticket) {
     const wrapper = document.createElement('div');
     wrapper.className = 'inline-tools';
-    if (puedeGestionarAsignacionEnLinea(ticket)) {
-        wrapper.appendChild(construirAsignacionEnLinea(ticket));
-    }
     const actions = document.createElement('div');
     actions.className = 'inline-actions';
     const messageNode = document.createElement('span');

@@ -222,9 +222,9 @@ async function cargarTecnicos() {
     tecnicosDisponibles = Array.isArray(tecnicos) ? tecnicos.slice() : [];
 }
 
-async function guardarAsignacionEnLinea(ticket, selectTecnico, selectEstado, nodoMensaje, botonAsignar) {
+async function guardarAsignacionEnLinea(ticket, selectTecnico, selectEstado, obtenerIdsParticipantes, nodoMensaje, botonAsignar, alGuardarExitoso) {
     const idTicket = Number(ticket.id || 0);
-    const idEstado = Number(selectEstado ? selectEstado.value : 0);
+    const idEstado = Number(selectEstado ? selectEstado.value : (ticket && ticket.estado_id ? ticket.estado_id : 0));
     const tecnicoRaw = selectTecnico ? selectTecnico.value : '';
     const idTecnico = tecnicoRaw === '' ? '' : Number(tecnicoRaw);
 
@@ -244,7 +244,54 @@ async function guardarAsignacionEnLinea(ticket, selectTecnico, selectEstado, nod
             establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo actualizar la asignación.', 'error');
             return;
         }
-        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Asignación actualizada.', 'success');
+
+        const idsObjetivoRaw = typeof obtenerIdsParticipantes === 'function' ? obtenerIdsParticipantes() : [];
+        const idsObjetivo = Array.from(new Set((Array.isArray(idsObjetivoRaw) ? idsObjetivoRaw : [])
+            .map(function (value) { return Number(value || 0); })
+            .filter(function (value) { return value > 0; })));
+        const idSolicitante = Number(ticket && ticket.usuario_id ? ticket.usuario_id : 0);
+        const idResponsable = tecnicoRaw === '' ? 0 : (idTecnico > 0 ? idTecnico : 0);
+        const objetivoFiltrado = idsObjetivo.filter(function (idUsuario) {
+            return idUsuario !== idSolicitante && idUsuario !== idResponsable;
+        });
+
+        const idsActuales = Array.from(new Set(participantesPorTicket(ticket.id)
+            .map(function (participant) { return Number(participant.usuario_id || 0); })
+            .filter(function (idUsuario) { return idUsuario > 0 && idUsuario !== idSolicitante && idUsuario !== idResponsable; })));
+
+        for (const idUsuario of idsActuales) {
+            if (objetivoFiltrado.indexOf(idUsuario) !== -1) {
+                continue;
+            }
+            const respuestaQuitar = await enviarJson('api.php?c=ticket&m=quitarParticipante', {
+                ticket_id: idTicket,
+                usuario_id: idUsuario,
+            });
+            if (!respuestaQuitar.status) {
+                establecerMensajeEnLinea(nodoMensaje, respuestaQuitar.message ? respuestaQuitar.message : 'No se pudo actualizar participantes.', 'error');
+                return;
+            }
+        }
+
+        for (const idUsuario of objetivoFiltrado) {
+            if (idsActuales.indexOf(idUsuario) !== -1) {
+                continue;
+            }
+            const respuestaAgregar = await enviarJson('api.php?c=ticket&m=agregarParticipante', {
+                ticket_id: idTicket,
+                usuario_id: idUsuario,
+            });
+            if (!respuestaAgregar.status) {
+                establecerMensajeEnLinea(nodoMensaje, respuestaAgregar.message ? respuestaAgregar.message : 'No se pudo actualizar participantes.', 'error');
+                return;
+            }
+        }
+
+        establecerMensajeEnLinea(nodoMensaje, '', '');
+        mostrarToast('Asignación', datos.message ? datos.message : 'Asignación actualizada.', 'success');
+        if (typeof alGuardarExitoso === 'function') {
+            alGuardarExitoso();
+        }
         await preservarPosicionTicket(idTicket, async function () {
             await refrescarVistaTickets();
         });

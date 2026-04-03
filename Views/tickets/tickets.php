@@ -8,6 +8,7 @@ $isTech = $rolId === 2;
 $isUser = $rolId === 3;
 $nombreUsuario = (string) ($_SESSION['nombre'] ?? 'Usuario');
 $rolNombre = (string) ($_SESSION['rol_nombre'] ?? ($isAdmin ? 'Admin' : ($isTech ? 'Técnico' : 'Usuario')));
+$rolClaseTopbar = $isAdmin ? 'admin' : ($isTech ? 'tecnico' : 'usuario');
 $foto = (string) ($_SESSION['foto'] ?? '');
 $fotoUrl = $foto !== '' ? '/NexoTI/' . ltrim($foto, '/') : '';
 $parts = preg_split('/\s+/', trim($nombreUsuario));
@@ -26,7 +27,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>
     <title>NexoTI - Tickets</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=13'>
+    <link rel='stylesheet' href='/NexoTI/Views/tickets/tickets.css?v=14'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
@@ -63,7 +64,10 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             <span class='btn-label'>Notificaciones</span>
                             <span class='notice-count' id='notice-count'>0</span>
                         </button>
-                        <span class='user-name'><?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?></span>
+                        <div class='user-identity'>
+                            <span class='user-name'><?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?></span>
+                            <span class='role-badge role-<?php echo $rolClaseTopbar; ?> user-role-badge'><?php echo htmlspecialchars($rolNombre, ENT_QUOTES, 'UTF-8'); ?></span>
+                        </div>
                         <div class='avatar-wrapper'>
                             <button class='avatar-btn' id='avatar-btn' type='button' aria-haspopup='menu' aria-expanded='false' aria-controls='avatar-menu' aria-label='Abrir menú de perfil'>
                                 <?php if ($fotoUrl !== ''): ?>
@@ -163,7 +167,6 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                                 <option value='todos'>Todos los estados</option>
                             </select>
                         </label>
-                        <?php if (!$isUser): ?>
                         <label class='filter-field'>
                             Asignación
                             <select id='assignment-filter-select'>
@@ -172,7 +175,6 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                                 <option value='sin_asignar'>Sin asignar</option>
                             </select>
                         </label>
-                        <?php endif; ?>
                     </div>
                     <div id='tickets-list' class='list'></div>
                     <div class='pager' id='tickets-pager'>

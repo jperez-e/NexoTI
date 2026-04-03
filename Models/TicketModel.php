@@ -75,8 +75,8 @@ class TicketModel
     {  
         // Esta consulta base centraliza todos los JOIN necesarios para mostrar el ticket completo en la interfaz.
         return 'SELECT t.id, t.codigo, t.titulo, t.descripcion, ' .  
-            't.usuario_id, u.nombre AS usuario_nombre, u.foto AS usuario_foto, ru.nombre AS usuario_rol_nombre, ' .  
-            't.tecnico_id, ut.nombre AS tecnico_nombre, ut.foto AS tecnico_foto, rt.nombre AS tecnico_rol_nombre, ' .  
+            't.usuario_id, u.nombre AS usuario_nombre, u.foto AS usuario_foto, u.rol_id AS usuario_rol_id, ru.nombre AS usuario_rol_nombre, ' .  
+            't.tecnico_id, ut.nombre AS tecnico_nombre, ut.foto AS tecnico_foto, ut.rol_id AS tecnico_rol_id, rt.nombre AS tecnico_rol_nombre, ' .  
             't.categoria_id, c.nombre AS categoria_nombre, ' .  
             't.prioridad_id, p.nombre AS prioridad_nombre, ' .  
             't.estado_id, e.nombre AS estado_nombre, ' .  
