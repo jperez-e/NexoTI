@@ -49,7 +49,6 @@
                <span class=m365-icon aria-hidden=true></span>
                 Entrar con M365/Microsoft
              </button>
-            <div class=register>Solicita tu usuario al administrador del sistema.</div>  
         </section>  
     </div>  
 </body>  

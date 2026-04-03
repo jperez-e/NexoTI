@@ -50,3 +50,4 @@ function iconoBarraLateral(string $nombre): string
         <a class='nav-link logout' href='/NexoTI/index.php?r=logout'><span class='nav-icon'><?php echo iconoBarraLateral('cerrar_sesion'); ?></span><span>Cerrar sesión</span></a>
     <?php endif; ?>
 </aside>
+<script src='/NexoTI/Views/partials/logout-confirm.js'></script>
