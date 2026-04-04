@@ -126,6 +126,28 @@ class NotificationService
         );
     }
 
+    public function notificarCambioEstadoPorTecnico(array $ticket, int $idActor): void
+    {
+        $idUsuario = (int) ($ticket['usuario_id'] ?? 0);
+        if ($idUsuario <= 0 || $idUsuario === $idActor) {
+            return;
+        }
+
+        $usuario = $this->usuarios->obtenerPorId($idUsuario);
+        if (!$usuario || (int) ($usuario['rol_id'] ?? 0) !== 3) {
+            return;
+        }
+
+        $this->notificarUsuarios(
+            [$idUsuario],
+            (int) ($ticket['id'] ?? 0),
+            $idActor,
+            'estado',
+            'Estado del ticket actualizado',
+            $this->construirResumenTicket($ticket) . ' fue actualizado por el técnico.'
+        );
+    }
+
     /**
      * @param int[] $idsDestinatarios
      */

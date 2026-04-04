@@ -524,6 +524,10 @@ class TicketController extends BaseController
             $this->responderErrorJson('No se pudo actualizar el estado.');
         }
 
+        if ($rolId === 2) {
+            $this->notifications->notificarCambioEstadoPorTecnico($ticket, $userId);
+        }
+
         $this->responderOkJson('Estado actualizado');
     }
 

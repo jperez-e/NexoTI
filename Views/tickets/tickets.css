@@ -344,30 +344,6 @@ textarea {
     font-size: 0.9rem;  
 }  
  
-.btn {  
-    display: inline-flex;  
-    align-items: center;  
-    justify-content: center;  
-    padding: 10px 16px;  
-    border-radius: 10px;  
-    border: 1px solid var(--line);  
-    background: #ffffff;  
-    color: #0f172a;  
-    text-decoration: none;  
-    font-weight: 600;  
-    cursor: pointer;  
-}  
- 
-.btn.primary {  
-    background: var(--accent);  
-    border-color: var(--accent);  
-    color: #ffffff;  
-}  
- 
-.btn.ghost {  
-    background: #f8fafc;  
-}  
- 
 @media (max-width: 720px) {  
     .grid {  
         grid-template-columns: 1fr;  
@@ -968,6 +944,14 @@ textarea {
 .notice-action:hover {
     color: #1d4ed8;
     text-decoration: underline;
+}
+
+.notice-action:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.95),
+        0 0 0 6px rgba(37, 99, 235, 0.3);
+    border-radius: 10px;
 }
 
 .ticket-head-main {
