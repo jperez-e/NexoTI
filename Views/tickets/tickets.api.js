@@ -17,6 +17,23 @@ async function cargarDatosTicketExpandido(idTicket) {
     ]);
 }
 
+function obtenerMensajeApi(datos, mensajePorDefecto) {
+    return datos && datos.message ? datos.message : mensajePorDefecto;
+}
+
+function esRespuestaOk(datos) {
+    return Boolean(datos && datos.status);
+}
+
+async function conBotonCargando(boton, texto, tarea) {
+    establecerBotonCargando(boton, true, texto);
+    try {
+        return await tarea();
+    } finally {
+        establecerBotonCargando(boton, false);
+    }
+}
+
 async function subirAdjuntosTicket(idTicket, archivos, idComentario) {
     if (!archivos || archivos.length === 0) {
         return { status: true, data: { count: 0 } };
@@ -51,13 +68,12 @@ async function enviarRespuestaEnLinea(ticket, areaTexto, selectEstado, entradaAd
         establecerMensajeEnLinea(nodoMensaje, 'Escribe una respuesta, selecciona un nuevo estado o agrega evidencia.', 'error');
         return;
     }
-    establecerBotonCargando(botonEnviar, true, 'Enviando...');
-    try {
+    await conBotonCargando(botonEnviar, 'Enviando...', async function () {
         let respuestaEstado = { status: true };
         if (debeActualizarEstado) {
             respuestaEstado = await enviarJson('api.php?c=ticket&m=actualizarEstado', { ticket_id: ticket.id, estado_id: idEstadoSeleccionado });
-            if (!respuestaEstado.status) {
-                establecerMensajeEnLinea(nodoMensaje, respuestaEstado.message ? respuestaEstado.message : 'No se pudo actualizar el estado.', 'error');
+            if (!esRespuestaOk(respuestaEstado)) {
+                establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(respuestaEstado, 'No se pudo actualizar el estado.'), 'error');
                 return;
             }
         }
@@ -65,8 +81,8 @@ async function enviarRespuestaEnLinea(ticket, areaTexto, selectEstado, entradaAd
         let idComentario = null;
         if (comentario !== '') {
             respuestaComentario = await enviarJson('api.php?c=comentario&m=crear', { ticket_id: ticket.id, comentario: comentario });
-            if (!respuestaComentario.status) {
-                establecerMensajeEnLinea(nodoMensaje, respuestaComentario.message ? respuestaComentario.message : 'No se pudo enviar la respuesta.', 'error');
+            if (!esRespuestaOk(respuestaComentario)) {
+                establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(respuestaComentario, 'No se pudo enviar la respuesta.'), 'error');
                 return;
             }
             idComentario = respuestaComentario.data && respuestaComentario.data.id ? Number(respuestaComentario.data.id) : null;
@@ -74,8 +90,8 @@ async function enviarRespuestaEnLinea(ticket, areaTexto, selectEstado, entradaAd
         let respuestaAdjuntos = { status: true, data: { count: 0 } };
         if (archivos.length > 0) {
             respuestaAdjuntos = await subirAdjuntosTicket(ticket.id, archivos, idComentario);
-            if (!respuestaAdjuntos.status) {
-                establecerMensajeEnLinea(nodoMensaje, respuestaAdjuntos.message ? respuestaAdjuntos.message : 'No se pudieron cargar los adjuntos.', 'error');
+            if (!esRespuestaOk(respuestaAdjuntos)) {
+                establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(respuestaAdjuntos, 'No se pudieron cargar los adjuntos.'), 'error');
                 return;
             }
         }
@@ -108,9 +124,7 @@ async function enviarRespuestaEnLinea(ticket, areaTexto, selectEstado, entradaAd
         await preservarPosicionTicket(ticket.id, async function () {
             await refrescarVistaTickets();
         });
-    } finally {
-        establecerBotonCargando(botonEnviar, false);
-    }
+    });
 }
 
 async function cargarTickets() {
@@ -233,15 +247,14 @@ async function guardarAsignacionEnLinea(ticket, selectTecnico, selectEstado, obt
         return;
     }
 
-    establecerBotonCargando(botonAsignar, true, 'Guardando...');
-    try {
+    await conBotonCargando(botonAsignar, 'Guardando...', async function () {
         const datos = await enviarJson('api.php?c=ticket&m=asignar', {
             ticket_id: idTicket,
             tecnico_id: idTecnico,
             estado_id: idEstado,
         });
-        if (!datos.status) {
-            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo actualizar la asignación.', 'error');
+        if (!esRespuestaOk(datos)) {
+            establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'No se pudo actualizar la asignación.'), 'error');
             return;
         }
 
@@ -267,8 +280,8 @@ async function guardarAsignacionEnLinea(ticket, selectTecnico, selectEstado, obt
                 ticket_id: idTicket,
                 usuario_id: idUsuario,
             });
-            if (!respuestaQuitar.status) {
-                establecerMensajeEnLinea(nodoMensaje, respuestaQuitar.message ? respuestaQuitar.message : 'No se pudo actualizar participantes.', 'error');
+            if (!esRespuestaOk(respuestaQuitar)) {
+                establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(respuestaQuitar, 'No se pudo actualizar participantes.'), 'error');
                 return;
             }
         }
@@ -281,23 +294,21 @@ async function guardarAsignacionEnLinea(ticket, selectTecnico, selectEstado, obt
                 ticket_id: idTicket,
                 usuario_id: idUsuario,
             });
-            if (!respuestaAgregar.status) {
-                establecerMensajeEnLinea(nodoMensaje, respuestaAgregar.message ? respuestaAgregar.message : 'No se pudo actualizar participantes.', 'error');
+            if (!esRespuestaOk(respuestaAgregar)) {
+                establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(respuestaAgregar, 'No se pudo actualizar participantes.'), 'error');
                 return;
             }
         }
 
         establecerMensajeEnLinea(nodoMensaje, '', '');
-        mostrarToast('Asignación', datos.message ? datos.message : 'Asignación actualizada.', 'success');
+        mostrarToast('Asignación', obtenerMensajeApi(datos, 'Asignación actualizada.'), 'success');
         if (typeof alGuardarExitoso === 'function') {
             alGuardarExitoso();
         }
         await preservarPosicionTicket(idTicket, async function () {
             await refrescarVistaTickets();
         });
-    } finally {
-        establecerBotonCargando(botonAsignar, false);
-    }
+    });
 }
 
 async function cerrarTicketEnLinea(idTicket, nodoMensaje, botonCerrar) {
@@ -307,21 +318,18 @@ async function cerrarTicketEnLinea(idTicket, nodoMensaje, botonCerrar) {
         return;
     }
 
-    establecerBotonCargando(botonCerrar, true, 'Cerrando...');
-    try {
+    await conBotonCargando(botonCerrar, 'Cerrando...', async function () {
         const datos = await enviarJson('api.php?c=ticket&m=cerrarTicket', { ticket_id: id });
-        if (!datos.status) {
-            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo cerrar el ticket.', 'error');
+        if (!esRespuestaOk(datos)) {
+            establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'No se pudo cerrar el ticket.'), 'error');
             return;
         }
 
-        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Ticket cerrado.', 'success');
+        establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'Ticket cerrado.'), 'success');
         await preservarPosicionTicket(id, async function () {
             await refrescarVistaTickets();
         });
-    } finally {
-        establecerBotonCargando(botonCerrar, false);
-    }
+    });
 }
 
 async function eliminarTicketEnLinea(idTicket, nodoMensaje, botonEliminar) {
@@ -336,11 +344,10 @@ async function eliminarTicketEnLinea(idTicket, nodoMensaje, botonEliminar) {
         return;
     }
 
-    establecerBotonCargando(botonEliminar, true, 'Eliminando...');
-    try {
+    await conBotonCargando(botonEliminar, 'Eliminando...', async function () {
         const datos = await enviarJson('api.php?c=ticket&m=eliminar', { ticket_id: id });
-        if (!datos.status) {
-            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo eliminar el ticket.', 'error');
+        if (!esRespuestaOk(datos)) {
+            establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'No se pudo eliminar el ticket.'), 'error');
             return;
         }
 
@@ -350,13 +357,11 @@ async function eliminarTicketEnLinea(idTicket, nodoMensaje, botonEliminar) {
         if (String(idTicketRespuestaAbierta || '') === String(id)) {
             idTicketRespuestaAbierta = null;
         }
-        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Ticket eliminado.', 'success');
+        establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'Ticket eliminado.'), 'success');
         await preservarPosicionElemento(domElementos.ticketsList, async function () {
             await refrescarVistaTickets();
         });
-    } finally {
-        establecerBotonCargando(botonEliminar, false);
-    }
+    });
 }
 
 async function agregarParticipanteEnLinea(ticket, select, nodoMensaje, boton) {
@@ -372,23 +377,20 @@ async function agregarParticipanteEnLinea(ticket, select, nodoMensaje, boton) {
         return;
     }
 
-    establecerBotonCargando(boton, true, 'Agregando...');
-    try {
+    await conBotonCargando(boton, 'Agregando...', async function () {
         const datos = await enviarJson('api.php?c=ticket&m=agregarParticipante', {
             ticket_id: Number(ticket.id),
             usuario_id: idUsuario,
         });
-        if (!datos.status) {
-            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo agregar el participante.', 'error');
+        if (!esRespuestaOk(datos)) {
+            establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'No se pudo agregar el participante.'), 'error');
             return;
         }
-        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Participante agregado.', 'success');
+        establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'Participante agregado.'), 'success');
         await preservarPosicionTicket(ticket.id, async function () {
             await refrescarVistaTickets();
         });
-    } finally {
-        establecerBotonCargando(boton, false);
-    }
+    });
 }
 
 async function quitarParticipanteEnLinea(ticket, idUsuario, nodoMensaje, boton) {
@@ -398,21 +400,18 @@ async function quitarParticipanteEnLinea(ticket, idUsuario, nodoMensaje, boton) 
         return;
     }
 
-    establecerBotonCargando(boton, true, 'Quitando...');
-    try {
+    await conBotonCargando(boton, 'Quitando...', async function () {
         const datos = await enviarJson('api.php?c=ticket&m=quitarParticipante', {
             ticket_id: Number(ticket.id),
             usuario_id: id,
         });
-        if (!datos.status) {
-            establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'No se pudo quitar el participante.', 'error');
+        if (!esRespuestaOk(datos)) {
+            establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'No se pudo quitar el participante.'), 'error');
             return;
         }
-        establecerMensajeEnLinea(nodoMensaje, datos.message ? datos.message : 'Participante removido.', 'success');
+        establecerMensajeEnLinea(nodoMensaje, obtenerMensajeApi(datos, 'Participante removido.'), 'success');
         await preservarPosicionTicket(ticket.id, async function () {
             await refrescarVistaTickets();
         });
-    } finally {
-        establecerBotonCargando(boton, false);
-    }
+    });
 }

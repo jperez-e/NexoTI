@@ -32,6 +32,7 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
+    <script src='/NexoTI/Views/partials/ui-core.js' defer></script>
     <script src='/NexoTI/Views/tickets/tickets.state.js?v=6' defer></script>
     <script src='/NexoTI/Views/tickets/tickets.api.js?v=6' defer></script>
     <script src='/NexoTI/Views/tickets/tickets.render.js?v=6' defer></script>

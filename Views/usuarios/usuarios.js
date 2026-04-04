@@ -1,265 +1,332 @@
-let idEdicion = 0;  
-let cacheUsuarios = [];  
-  
-async function obtenerJson(url, options = {}) {  
-    const response = await fetch(url, options);  
-    return response.json();  
-}  
+let idEdicion = 0;
+let cacheUsuarios = [];
 
-function establecerBotonCargando(button, loading, loadingText) {
-    if (!button) {
+function obtenerUi() {
+    if (!window.NexoUI) {
+        throw new Error('NexoUI no está disponible. Incluye ui-core.js antes de usuarios.js.');
+    }
+    return window.NexoUI;
+}
+
+function mostrarMensaje(texto, tipo, permitirToast) {
+    const ui = obtenerUi();
+    const nodo = ui.obtenerNodo('form-message');
+    ui.mostrarMensajeEnNodo(nodo, texto, tipo, {
+        baseClass: 'message',
+        allowToast: permitirToast !== false,
+        autoClearMs: 4000,
+        toastTitle: tipo === 'success' ? 'Operación completada' : 'Atención',
+    });
+}
+
+function asegurarHerramientasFormulario() {
+    const ui = obtenerUi();
+    const form = ui.obtenerNodo('usuario-form');
+    if (!form) {
         return;
     }
 
-    if (loading) {
-        button.dataset.labelHtml = button.innerHTML;
-        button.textContent = loadingText;
-        button.disabled = true;
-        button.classList.add('is-loading');
+    const actions = form.querySelector('.actions');
+    const title = form.closest('.card').querySelector('h2');
+    if (title) {
+        title.id = 'form-title';
+    }
+
+    const password = form.querySelector('input[name="password"]');
+    if (password) {
+        password.required = false;
+    }
+
+    if (!ui.obtenerNodo('cancel-btn') && actions) {
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.id = 'cancel-btn';
+        cancel.className = 'btn ghost hidden';
+        ui.establecerContenidoBoton(cancel, 'close', 'Cancelar edición');
+        actions.insertBefore(cancel, ui.obtenerNodo('form-message'));
+    }
+
+    if (!ui.obtenerNodo('usuario-id')) {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.id = 'usuario-id';
+        hidden.name = 'id';
+        form.prepend(hidden);
+    }
+}
+
+function llenarRoles(roles) {
+    const ui = obtenerUi();
+    const select = ui.obtenerNodo('rol-select');
+    if (!select) {
         return;
     }
 
-    button.innerHTML = button.dataset.labelHtml ? button.dataset.labelHtml : button.innerHTML;
-    button.disabled = false;
-    button.classList.remove('is-loading');
+    select.innerHTML = '';
+    const opcionInicial = document.createElement('option');
+    opcionInicial.value = '';
+    opcionInicial.textContent = 'Seleccione un rol';
+    select.appendChild(opcionInicial);
+
+    roles.forEach(function (row) {
+        const option = document.createElement('option');
+        option.value = row.id;
+        option.textContent = row.nombre;
+        select.appendChild(option);
+    });
 }
 
-function obtenerTokenCsrf() {
-    const node = obtenerNodo('csrf-token');
-    return node ? node.value : '';
-}
-  
-function obtenerNodo(id) {  
-    return document.getElementById(id);  
-}  
+function reiniciarFormulario() {
+    const ui = obtenerUi();
+    idEdicion = 0;
 
-function establecerContenidoBoton(button, iconName, label) {
-    if (!button) {
+    const form = ui.obtenerNodo('usuario-form');
+    if (form) {
+        form.reset();
+    }
+
+    const idNode = ui.obtenerNodo('usuario-id');
+    if (idNode) {
+        idNode.value = '';
+    }
+
+    const submitBtn = ui.obtenerNodo('submit-btn');
+    if (submitBtn) {
+        ui.establecerContenidoBoton(submitBtn, 'save', 'Crear usuario');
+    }
+
+    const title = ui.obtenerNodo('form-title');
+    if (title) {
+        title.textContent = 'Registrar usuario';
+    }
+
+    const cancelBtn = ui.obtenerNodo('cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.classList.add('hidden');
+    }
+
+    mostrarMensaje('', '', false);
+}
+
+function iniciarEdicion(usuario) {
+    const ui = obtenerUi();
+    idEdicion = Number(usuario.id);
+
+    const idNode = ui.obtenerNodo('usuario-id');
+    if (idNode) {
+        idNode.value = usuario.id;
+    }
+
+    const nombre = ui.obtenerNodo('nombre');
+    if (nombre) {
+        nombre.value = usuario.nombre;
+    }
+
+    const email = ui.obtenerNodo('email');
+    if (email) {
+        email.value = usuario.email;
+    }
+
+    const password = ui.obtenerNodo('password');
+    if (password) {
+        password.value = '';
+    }
+
+    const rol = ui.obtenerNodo('rol-select');
+    if (rol) {
+        rol.value = usuario.rol_id;
+    }
+
+    const submitBtn = ui.obtenerNodo('submit-btn');
+    if (submitBtn) {
+        ui.establecerContenidoBoton(submitBtn, 'save', 'Actualizar usuario');
+    }
+
+    const title = ui.obtenerNodo('form-title');
+    if (title) {
+        title.textContent = 'Editar usuario';
+    }
+
+    const cancelBtn = ui.obtenerNodo('cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.classList.remove('hidden');
+    }
+
+    mostrarMensaje('', '', false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function eliminarUsuario(usuario, deleteBtn) {
+    const ui = obtenerUi();
+    const confirmar = window.confirm('Se eliminará el usuario ' + usuario.nombre + '. ¿Deseas continuar?');
+    if (!confirmar) {
         return;
     }
-    button.innerHTML = window.UiIcons ? window.UiIcons.buttonContent(iconName, label) : label;
-}
 
-function asegurarPilaToasts() {
-    let stack = document.querySelector('.toast-stack');
-    if (stack) {
-        return stack;
-    }
+    ui.establecerBotonCargando(deleteBtn, true, 'Eliminando...');
+    try {
+        const data = await ui.obtenerJson('api.php?c=usuario&m=eliminar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': ui.obtenerTokenCsrf(),
+            },
+            body: JSON.stringify({ id: usuario.id }),
+        });
 
-    stack = document.createElement('div');
-    stack.className = 'toast-stack';
-    document.body.appendChild(stack);
-    return stack;
-}
-
-function mostrarToast(title, text, type) {
-    const stack = asegurarPilaToasts();
-    const toast = document.createElement('div');
-    toast.className = 'toast' + (type ? ' ' + type : '');
-    toast.innerHTML = '<strong>' + title + '</strong><span>' + text + '</span>';
-    stack.appendChild(toast);
-    window.setTimeout(function () {
-        toast.remove();
-    }, 3600);
-}
-
-function limpiarMensajeLuego(node, delay) {
-    if (!node) {
-        return;
-    }
-
-    if (node._messageTimer) {
-        clearTimeout(node._messageTimer);
-    }
-
-    node._messageTimer = window.setTimeout(function () {
-        node.textContent = '';
-        node.className = 'message';
-    }, delay);
-}
-  
-function mostrarMensaje(text, type, allowToast = true) {  
-    const node = obtenerNodo('form-message');  
-    if (!node) { return; }  
-    node.textContent = text;  
-    node.className = type ? 'message ' + type : 'message';  
-    if (allowToast && text !== '' && type) {
-        limpiarMensajeLuego(node, 4000);
-    }
-}  
-  
-function asegurarHerramientasFormulario() {  
-    const form = obtenerNodo('usuario-form');  
-    if (!form) { return; }  
-    const actions = form.querySelector('.actions');  
-    const title = form.closest('.card').querySelector('h2');  
-    if (title) { title.id = 'form-title'; }  
-    const password = form.querySelector('input[name=\"password\"]');  
-    if (password) { password.required = false; } 
-    if (!obtenerNodo('cancel-btn') && actions) {  
-        const cancel = document.createElement('button');  
-        cancel.type = 'button';  
-        cancel.id = 'cancel-btn';  
-        cancel.className = 'btn ghost hidden';  
-        establecerContenidoBoton(cancel, 'close', 'Cancelar edición');
-        actions.insertBefore(cancel, obtenerNodo('form-message'));  
-    }  
-    if (!obtenerNodo('usuario-id')) {  
-        const hidden = document.createElement('input');  
-        hidden.type = 'hidden';  
-        hidden.id = 'usuario-id';  
-        hidden.name = 'id';  
-        form.prepend(hidden);  
-    }  
-} 
-  
-function llenarRoles(roles) {  
-    const select = obtenerNodo('rol-select');  
-    if (!select) { return; }  
-    select.innerHTML = '';  
-    const first = document.createElement('option');  
-    first.value = '';  
-    first.textContent = 'Seleccione un rol';  
-    select.appendChild(first);  
-    roles.forEach(function (row) {  
-        const option = document.createElement('option');  
-        option.value = row.id;  
-        option.textContent = row.nombre;  
-        select.appendChild(option);  
-    });  
-}  
-  
-function reiniciarFormulario() {  
-    idEdicion = 0;  
-    const form = obtenerNodo('usuario-form');  
-    form.reset();  
-    obtenerNodo('usuario-id').value = '';  
-    obtenerNodo('submit-btn') ? establecerContenidoBoton(obtenerNodo('submit-btn'), 'save', 'Crear usuario') : null;  
-    obtenerNodo('form-title') ? obtenerNodo('form-title').textContent = 'Registrar usuario' : null;  
-    obtenerNodo('cancel-btn') ? obtenerNodo('cancel-btn').classList.add('hidden') : null;  
-    mostrarMensaje('', '');  
-} 
-  
-function iniciarEdicion(user) {  
-    idEdicion = Number(user.id);  
-    obtenerNodo('usuario-id').value = user.id;  
-    obtenerNodo('nombre') ? obtenerNodo('nombre').value = user.nombre : null;  
-    obtenerNodo('email') ? obtenerNodo('email').value = user.email : null;  
-    obtenerNodo('password') ? obtenerNodo('password').value = '' : null;  
-    obtenerNodo('rol-select') ? obtenerNodo('rol-select').value = user.rol_id : null;  
-    obtenerNodo('submit-btn') ? establecerContenidoBoton(obtenerNodo('submit-btn'), 'save', 'Actualizar usuario') : null;  
-    obtenerNodo('form-title') ? obtenerNodo('form-title').textContent = 'Editar usuario' : null;  
-    obtenerNodo('cancel-btn') ? obtenerNodo('cancel-btn').classList.remove('hidden') : null;  
-    mostrarMensaje('', '');  
-    window.scrollTo({ top: 0, behavior: 'smooth' });  
-}  
-  
-function renderizarUsuarios(lista) {  
-    const contenedor = obtenerNodo('usuarios-list');  
-    if (!contenedor) { return; }  
-    contenedor.innerHTML = '';  
-    if (lista.length === 0) {  
-        contenedor.innerHTML = '<p class=\"message\">No hay usuarios registrados.</p>';  
-        return;  
-    }  
-    lista.forEach(function (row) {  
-        const item = document.createElement('div');  
-        item.className = 'item'; 
-        const title = document.createElement('h3');  
-        title.textContent = row.nombre;  
-        const meta = document.createElement('p');  
-        meta.textContent = 'Correo: ' + row.email + ' - Rol: ' + row.rol_nombre + ' - Activo: ' + (Number(row.activo) === 1 ? 'Si' : 'No');  
-        const actions = document.createElement('div');  
-        actions.className = 'item-actions';  
-        const editBtn = document.createElement('button');  
-        editBtn.type = 'button';  
-        editBtn.className = 'btn ghost';  
-        establecerContenidoBoton(editBtn, 'edit', 'Editar');
-        editBtn.addEventListener('click', function () {  
-            iniciarEdicion(row);  
-        });  
-        const deleteBtn = document.createElement('button');  
-        deleteBtn.type = 'button';  
-        deleteBtn.className = 'btn danger';  
-        establecerContenidoBoton(deleteBtn, 'delete', 'Eliminar');
-        deleteBtn.addEventListener('click', async function () {  
-            const ok = window.confirm('Se eliminará el usuario ' + row.nombre + '. ¿Deseas continuar?');  
-            if (!ok) { return; }  
-            establecerBotonCargando(deleteBtn, true, 'Eliminando...');
-            try {
-                const data = await obtenerJson('api.php?c=usuario&m=eliminar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': obtenerTokenCsrf() }, body: JSON.stringify({ id: row.id }) });  
-                if (!data.status) {
-                    mostrarMensaje(data.message ? data.message : 'No se pudo eliminar el usuario.', 'error', false);
-                } else {
-                    mostrarMensaje('', '', false);
-                }
-                if (data.status) {  
-                    if (idEdicion === Number(row.id)) { reiniciarFormulario(); }  
-                    await cargarUsuarios();  
-                }
-            } finally {
-                establecerBotonCargando(deleteBtn, false);
-            }
-        }); 
-        actions.appendChild(editBtn);  
-        actions.appendChild(deleteBtn);  
-        item.appendChild(title);  
-        item.appendChild(meta);  
-        item.appendChild(actions);  
-        contenedor.appendChild(item);  
-    });  
-}  
-  
-async function cargarRoles() {  
-    const data = await obtenerJson('api.php?c=rol&m=listar');  
-    llenarRoles(data.data ? data.data : []);  
-}  
-  
-async function cargarUsuarios() {  
-    const data = await obtenerJson('api.php?c=usuario&m=listar');  
-    cacheUsuarios = data.data ? data.data : [];  
-    renderizarUsuarios(cacheUsuarios);  
-}  
-  
-document.addEventListener('DOMContentLoaded', async function () {  
-    asegurarHerramientasFormulario();  
-    reiniciarFormulario();  
-    await cargarRoles();  
-    await cargarUsuarios();  
-    obtenerNodo('refresh-btn').addEventListener('click', async function () {
-        const button = this;
-        establecerBotonCargando(button, true, 'Actualizando...');
-        try {
-            await cargarUsuarios();
-        } finally {
-            establecerBotonCargando(button, false);
+        if (!data.status) {
+            mostrarMensaje(data.message ? data.message : 'No se pudo eliminar el usuario.', 'error', false);
+            return;
         }
-    });  
-    obtenerNodo('cancel-btn').addEventListener('click', reiniciarFormulario);  
-    obtenerNodo('usuario-form').addEventListener('submit', async function (event) {  
-        event.preventDefault();  
-        const formData = new FormData(obtenerNodo('usuario-form'));  
-        const submitButton = obtenerNodo('submit-btn');
-        formData.set('_token', obtenerTokenCsrf());
-        const url = idEdicion > 0 ? 'api.php?c=usuario&m=actualizar' : 'api.php?c=usuario&m=crear';  
-        if (idEdicion > 0) { formData.set('id', String(idEdicion)); } 
-        establecerBotonCargando(submitButton, true, idEdicion > 0 ? 'Actualizando...' : 'Guardando...');
-        try {
-            const data = await obtenerJson(url, { method: 'POST', body: formData });  
-            if (data.status) {  
-                mostrarMensaje('', '');
-                mostrarToast(
-                    idEdicion > 0 ? 'Usuario actualizado' : 'Usuario registrado',
-                    data.message ? data.message : 'Proceso completado.',
-                    'success'
-                );
-                reiniciarFormulario();  
-                await cargarUsuarios();  
-            } else {
-                mostrarMensaje(data.message ? data.message : 'No se pudo completar la operación.', 'error');
-            }
-        } finally {
-            establecerBotonCargando(submitButton, false);
+
+        mostrarMensaje('', '', false);
+        if (idEdicion === Number(usuario.id)) {
+            reiniciarFormulario();
         }
-    });  
-}); 
+        await cargarUsuarios();
+    } finally {
+        ui.establecerBotonCargando(deleteBtn, false);
+    }
+}
+
+function renderizarUsuarios(lista) {
+    const ui = obtenerUi();
+    const contenedor = ui.obtenerNodo('usuarios-list');
+    if (!contenedor) {
+        return;
+    }
+
+    contenedor.innerHTML = '';
+    if (!lista.length) {
+        contenedor.innerHTML = '<p class="message">No hay usuarios registrados.</p>';
+        return;
+    }
+
+    lista.forEach(function (row) {
+        const item = document.createElement('div');
+        item.className = 'item';
+
+        const title = document.createElement('h3');
+        title.textContent = row.nombre;
+
+        const meta = document.createElement('p');
+        meta.textContent = 'Correo: ' + row.email + ' - Rol: ' + row.rol_nombre + ' - Activo: ' + (Number(row.activo) === 1 ? 'Si' : 'No');
+
+        const actions = document.createElement('div');
+        actions.className = 'item-actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'btn ghost';
+        ui.establecerContenidoBoton(editBtn, 'edit', 'Editar');
+        editBtn.addEventListener('click', function () {
+            iniciarEdicion(row);
+        });
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn danger';
+        ui.establecerContenidoBoton(deleteBtn, 'delete', 'Eliminar');
+        deleteBtn.addEventListener('click', function () {
+            eliminarUsuario(row, deleteBtn);
+        });
+
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+        item.appendChild(title);
+        item.appendChild(meta);
+        item.appendChild(actions);
+        contenedor.appendChild(item);
+    });
+}
+
+async function cargarRoles() {
+    const ui = obtenerUi();
+    const data = await ui.obtenerJson('api.php?c=rol&m=listar');
+    llenarRoles(data.data ? data.data : []);
+}
+
+async function cargarUsuarios() {
+    const ui = obtenerUi();
+    const data = await ui.obtenerJson('api.php?c=usuario&m=listar');
+    cacheUsuarios = data.data ? data.data : [];
+    renderizarUsuarios(cacheUsuarios);
+}
+
+async function guardarUsuario(event) {
+    event.preventDefault();
+    const ui = obtenerUi();
+    const form = ui.obtenerNodo('usuario-form');
+    const submitBtn = ui.obtenerNodo('submit-btn');
+    if (!form || !submitBtn) {
+        return;
+    }
+
+    const formData = new FormData(form);
+    formData.set('_token', ui.obtenerTokenCsrf());
+
+    const editando = idEdicion > 0;
+    if (editando) {
+        formData.set('id', String(idEdicion));
+    }
+
+    const url = editando ? 'api.php?c=usuario&m=actualizar' : 'api.php?c=usuario&m=crear';
+    ui.establecerBotonCargando(submitBtn, true, editando ? 'Actualizando...' : 'Guardando...');
+    try {
+        const data = await ui.obtenerJson(url, { method: 'POST', body: formData });
+        if (!data.status) {
+            mostrarMensaje(data.message ? data.message : 'No se pudo completar la operación.', 'error', true);
+            return;
+        }
+
+        mostrarMensaje('', '', false);
+        ui.mostrarToast(
+            editando ? 'Usuario actualizado' : 'Usuario registrado',
+            data.message ? data.message : 'Proceso completado.',
+            'success'
+        );
+        reiniciarFormulario();
+        await cargarUsuarios();
+    } finally {
+        ui.establecerBotonCargando(submitBtn, false);
+    }
+}
+
+async function refrescarListado() {
+    const ui = obtenerUi();
+    const refreshBtn = ui.obtenerNodo('refresh-btn');
+    if (!refreshBtn) {
+        await cargarUsuarios();
+        return;
+    }
+
+    ui.establecerBotonCargando(refreshBtn, true, 'Actualizando...');
+    try {
+        await cargarUsuarios();
+    } finally {
+        ui.establecerBotonCargando(refreshBtn, false);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
+    const ui = obtenerUi();
+    asegurarHerramientasFormulario();
+    reiniciarFormulario();
+    await cargarRoles();
+    await cargarUsuarios();
+
+    const refreshBtn = ui.obtenerNodo('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', refrescarListado);
+    }
+
+    const cancelBtn = ui.obtenerNodo('cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', reiniciarFormulario);
+    }
+
+    const form = ui.obtenerNodo('usuario-form');
+    if (form) {
+        form.addEventListener('submit', guardarUsuario);
+    }
+});

@@ -29,7 +29,13 @@ const domElementos = {};
 
 function porId(id) { return document.getElementById(id); }
 function datoBody(name) { return document.body.dataset[name] ? String(document.body.dataset[name]) : ''; }
-function obtenerTokenCsrf() { const node = porId('csrf-token'); return node ? node.value : ''; }
+function obtenerUiCore() { return window.NexoUI ? window.NexoUI : null; }
+function obtenerTokenCsrf() {
+    const ui = obtenerUiCore();
+    if (ui) { return ui.obtenerTokenCsrf(); }
+    const node = porId('csrf-token');
+    return node ? node.value : '';
+}
 function idUsuarioActual() { return Number(document.body.dataset.userId || 0); }
 function idRolActual() { return Number(document.body.dataset.roleId || 0); }
 function esUsuarioAdmin() { return idRolActual() === 1; }
@@ -61,6 +67,11 @@ async function enviarJson(url, payload) {
 }
 
 function establecerBotonCargando(button, loading, loadingText) {
+    const ui = obtenerUiCore();
+    if (ui) {
+        ui.establecerBotonCargando(button, loading, loadingText);
+        return;
+    }
     if (!button) { return; }
     if (loading) {
         button.dataset.labelHtml = button.innerHTML;
@@ -75,6 +86,15 @@ function establecerBotonCargando(button, loading, loadingText) {
 }
 
 function asegurarPilaToasts() {
+    const ui = obtenerUiCore();
+    if (ui) {
+        let stack = document.querySelector('.toast-stack');
+        if (stack) { return stack; }
+        stack = document.createElement('div');
+        stack.className = 'toast-stack';
+        document.body.appendChild(stack);
+        return stack;
+    }
     let stack = document.querySelector('.toast-stack');
     if (stack) { return stack; }
     stack = document.createElement('div');
@@ -84,6 +104,11 @@ function asegurarPilaToasts() {
 }
 
 function mostrarToast(title, text, type) {
+    const ui = obtenerUiCore();
+    if (ui) {
+        ui.mostrarToast(title, text, type);
+        return;
+    }
     const stack = asegurarPilaToasts();
     const toast = document.createElement('div');
     toast.className = 'toast' + (type ? ' ' + type : '');
@@ -93,6 +118,11 @@ function mostrarToast(title, text, type) {
 }
 
 function limpiarMensajeLuego(node, baseClass, delay) {
+    const ui = obtenerUiCore();
+    if (ui) {
+        ui.limpiarMensajeLuego(node, delay, baseClass);
+        return;
+    }
     if (!node) { return; }
     if (node._messageTimer) { clearTimeout(node._messageTimer); }
     node._messageTimer = window.setTimeout(function () {

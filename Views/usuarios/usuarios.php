@@ -10,6 +10,7 @@
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
+    <script src='/NexoTI/Views/partials/ui-core.js' defer></script>
     <script src='/NexoTI/Views/usuarios/usuarios.js?v=3' defer></script>  
 </head>  
 <body>  
