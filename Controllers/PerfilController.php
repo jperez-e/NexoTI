@@ -1,4 +1,6 @@
 <?php
+// Este archivo PHP define el controlador de Perfil.
+// Gestiona solicitudes HTTP, valida reglas de acceso y coordina la respuesta JSON o de vista según la operación.
 declare(strict_types=1);
 
 require_once __DIR__ . '/BaseController.php';
@@ -43,40 +45,59 @@ class PerfilController extends BaseController
             return;
         }
 
-        $mensaje = null;
-        $error = null;
         $usuarioId = (int) $_SESSION['user_id'];
-
-        $passwordActual = trim((string) ($_POST['password_actual'] ?? ''));
-        $passwordNueva = trim((string) ($_POST['password_nueva'] ?? ''));
-        $passwordConfirmacion = trim((string) ($_POST['password_confirmacion'] ?? ''));
-        $solicitaCambioClave = ($passwordActual !== '' || $passwordNueva !== '' || $passwordConfirmacion !== '');
         $solicitaCambioFoto = isset($_FILES['foto']) && (int) ($_FILES['foto']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
 
-        if (!$solicitaCambioClave && !$solicitaCambioFoto) {
-            $this->mostrar(null, 'No se detectaron cambios para guardar.');
+        if (!$solicitaCambioFoto) {
+            $this->mostrar(null, 'Selecciona una imagen para actualizar tu perfil.');
             return;
         }
 
-        if ($solicitaCambioClave) {
-            $resultadoClave = $this->actualizarClavePerfil($usuarioId, $passwordActual, $passwordNueva, $passwordConfirmacion);
-            if ($resultadoClave['error'] !== null) {
-                $error = $resultadoClave['error'];
-            } elseif ($resultadoClave['mensaje'] !== null) {
-                $mensaje = $resultadoClave['mensaje'];
-            }
-        }
-
-        if ($solicitaCambioFoto) {
-            $resultadoFoto = $this->actualizarFotoPerfil($usuarioId);
-            if ($resultadoFoto['error'] !== null) {
-                $error = $resultadoFoto['error'];
-            } elseif ($resultadoFoto['mensaje'] !== null) {
-                $mensaje = $mensaje !== null ? $mensaje . ' ' . $resultadoFoto['mensaje'] : $resultadoFoto['mensaje'];
-            }
-        }
+        $resultadoFoto = $this->actualizarFotoPerfil($usuarioId);
+        $mensaje = $resultadoFoto['error'] === null ? $resultadoFoto['mensaje'] : null;
+        $error = $resultadoFoto['error'];
 
         $this->mostrar($mensaje, $error);
+    }
+
+    public function mostrarCambiarClave(?string $mensaje = null, ?string $error = null): void
+    {
+        $this->requerirSesion();
+        $usuario = $this->usuarios->obtenerPorId((int) $_SESSION['user_id']);
+        if (!$usuario) {
+            http_response_code(404);
+            echo 'Usuario no encontrado.';
+            return;
+        }
+
+        $message = $mensaje;
+        require __DIR__ . '/../Views/perfil/cambiar-clave.php';
+    }
+
+    public function actualizarClave(): void
+    {
+        $this->requerirSesion();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->mostrarCambiarClave();
+            return;
+        }
+
+        if (!Csrf::esSolicitudValida()) {
+            $this->mostrarCambiarClave(null, 'La sesion del formulario expiro. Intenta de nuevo.');
+            return;
+        }
+
+        $usuarioId = (int) $_SESSION['user_id'];
+        $passwordActual = trim((string) ($_POST['password_actual'] ?? ''));
+        $passwordNueva = trim((string) ($_POST['password_nueva'] ?? ''));
+        $passwordConfirmacion = trim((string) ($_POST['password_confirmacion'] ?? ''));
+
+        $resultadoClave = $this->actualizarClavePerfil($usuarioId, $passwordActual, $passwordNueva, $passwordConfirmacion);
+        $mensaje = $resultadoClave['error'] === null ? $resultadoClave['mensaje'] : null;
+        $error = $resultadoClave['error'];
+
+        $this->mostrarCambiarClave($mensaje, $error);
     }
 
     private function actualizarClavePerfil(int $usuarioId, string $passwordActual, string $passwordNueva, string $passwordConfirmacion): array

@@ -1,0 +1,166 @@
+:root {
+    --bg: #183153;
+    --panel: #ffffff;
+    --accent: #2563eb;
+    --text: #10213a;
+    --line: #d8e0ec;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Trebuchet MS, Segoe UI, sans-serif;
+    color: var(--text);
+    background: linear-gradient(160deg, #12243d, #214a75);
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+}
+
+.page {
+    padding: 32px 24px 56px;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    color: #ffffff;
+}
+
+.card {
+    background: var(--panel);
+    border-radius: 20px;
+    box-shadow: 0 24px 46px rgba(8, 15, 30, 0.2);
+}
+
+.security-card {
+    display: grid;
+    gap: 18px;
+    padding: 28px;
+    max-width: 720px;
+}
+
+.flash-stack {
+    display: grid;
+    gap: 10px;
+}
+
+.message {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.message.success {
+    background: #e8f8ef;
+    color: #18794e;
+}
+
+.message.error {
+    background: #fdecec;
+    color: #b42318;
+}
+
+.security-form {
+    display: grid;
+    gap: 14px;
+}
+
+.security-form label {
+    display: grid;
+    gap: 8px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.password-input-wrap {
+    position: relative;
+}
+
+.password-input-wrap input[type='password'],
+.password-input-wrap input[type='text'] {
+    width: 100%;
+    padding: 12px 52px 12px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.password-toggle:hover,
+.password-toggle:active,
+.password-toggle:focus-visible {
+    border: 0;
+    outline: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+    fill: #64748b;
+}
+
+.password-toggle .icon-eye-off {
+    display: none;
+}
+
+.password-toggle .icon-eye {
+    display: inline-flex;
+}
+
+.password-toggle.is-visible .icon-eye {
+    display: none;
+}
+
+.password-toggle.is-visible .icon-eye-off {
+    display: inline-flex;
+}
+
+.password-input-wrap:focus-within .password-toggle svg {
+    fill: #2563eb;
+}
+
+.security-submit {
+    width: fit-content;
+    min-width: 210px;
+}
+
+@media (max-width: 920px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .security-card {
+        padding: 22px;
+    }
+}

@@ -68,6 +68,8 @@ if ($ruta === '' || $ruta === 'home') {
 $rutasControlador = [
     'perfil' => [$perfil, 'mostrar'],
     'perfil-update' => [$perfil, 'actualizar'],
+    'cambiar-clave' => [$perfil, 'mostrarCambiarClave'],
+    'cambiar-clave-update' => [$perfil, 'actualizarClave'],
     'show-register' => [$autenticacion, 'mostrarRegistro'],
     'register' => [$autenticacion, 'registrar'],
 ];

@@ -38,9 +38,12 @@ body {
 }
 .profile-card {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 340px minmax(0, 1fr);
     gap: 28px;
     padding: 28px;
+    max-width: 1060px;
+    width: 100%;
+    margin: 0 auto;
 }
 .avatar-panel {
     display: grid;
@@ -66,7 +69,7 @@ body {
 }
 .profile-content {
     display: grid;
-    gap: 20px;
+    gap: 16px;
     align-content: start;
 }
 .flash-stack {
@@ -104,67 +107,11 @@ body {
     color: #0f172a;
 }
 .profile-form input[type="file"],
-.profile-form input[type="password"],
 .profile-form input[type="text"] {
     padding: 12px;
     border: 1px solid var(--line);
     border-radius: 12px;
     background: #ffffff;
-}
-.password-input-wrap {
-    position: relative;
-}
-.password-input-wrap input[type="password"],
-.password-input-wrap input[type="text"] {
-    width: 100%;
-    padding-right: 56px;
-}
-.password-toggle {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 38px;
-    height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    background: #f8fafc;
-    cursor: pointer;
-}
-.password-toggle:hover {
-    background: #eff6ff;
-}
-.password-toggle:focus-visible {
-    outline: none;
-    box-shadow:
-        0 0 0 3px rgba(255, 255, 255, 0.95),
-        0 0 0 6px rgba(37, 99, 235, 0.3);
-}
-.password-toggle svg {
-    width: 20px;
-    height: 20px;
-    fill: #1e3a8a;
-}
-.password-toggle .icon-eye-off {
-    display: none;
-}
-.password-toggle .icon-eye {
-    display: inline-flex;
-}
-.password-toggle.is-visible .icon-eye {
-    display: none;
-}
-.password-toggle.is-visible .icon-eye-off {
-    display: inline-flex;
-}
-.password-form {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
 }
 .profile-submit {
     width: fit-content;
@@ -218,18 +165,49 @@ body {
     }
 }
 .profile-data {
- display: grid;
- gap: 10px;
+    display: grid;
+    gap: 12px;
 }
-.profile-data p {
- margin: 0;
+
+.profile-data-row {
+    display: grid;
+    gap: 4px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #d3deed;
 }
+
+.profile-data-row:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.profile-data-label {
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.profile-data-value {
+    font-size: 1.02rem;
+    color: #0f172a;
+    font-weight: 700;
+}
+
 .role-badge {
- display: inline-flex;
- align-items: center;
- padding: 4px 10px;
- border-radius: 999px;
- background: #dbeafe;
- color: #1d4ed8;
- font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+.profile-block-note p {
+    margin: 0;
+    color: #334155;
+    line-height: 1.5;
 }

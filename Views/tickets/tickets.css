@@ -1,3 +1,5 @@
+/*Este archivo CSS define las variables de estilo y las reglas de diseño para la sección de tickets */
+
 :root {  
     --bg: #1f3556;  
     --panel: #ffffff;  
@@ -863,8 +865,60 @@ textarea {
     line-height: 1.45;
 }
 
-.notice-btn {
+.btn.notice-btn {
     position: relative;
+    width: 48px;
+    height: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 48px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.btn.notice-btn:hover {
+    background: linear-gradient(135deg, #2563eb, #60a5fa) !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+.btn.notice-btn:active {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+.btn.notice-btn:focus-visible {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.btn.notice-btn .btn-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+}
+
+.btn.notice-btn .btn-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn.notice-btn .btn-label {
+    display: none;
 }
 
 .notice-count {
@@ -879,6 +933,10 @@ textarea {
     color: #ffffff;
     font-size: 0.76rem;
     font-weight: 800;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    box-shadow: 0 6px 12px rgba(239, 68, 68, 0.28);
 }
 
 .notice-panel {

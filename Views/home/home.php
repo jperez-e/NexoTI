@@ -1,4 +1,6 @@
 <?php
+// Este archivo PHP define una vista del sistema.
+// Renderiza estructura HTML y datos dinámicos para la interfaz según el módulo y rol del usuario.
 declare(strict_types=1);
 
 $nombreUsuario = (string) ($_SESSION['nombre'] ?? 'Usuario');
@@ -23,7 +25,7 @@ if (is_array($partesNombre) && count($partesNombre) > 0 && $partesNombre[0] !== 
     <meta name='viewport' content='width=device-width,initial-scale=1.0'>  
     <title>NexoTI - Inicio</title>
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>  
-    <link rel='stylesheet' href='/NexoTI/Views/home/home.css?v=3'>  
+    <link rel='stylesheet' href='/NexoTI/Views/home/home.css?v=5'>  
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
@@ -39,13 +41,12 @@ if (is_array($partesNombre) && count($partesNombre) > 0 && $partesNombre[0] !== 
                     <p>Panel principal del sistema de tickets</p>  
                 </div>  
                 <div class='topbar-actions'>
-                    <button class='btn ghost notice-btn' id='notice-btn' type='button' aria-haspopup='dialog' aria-expanded='false' aria-controls='notice-panel'>
+                    <button class='btn ghost notice-btn' id='notice-btn' type='button' aria-label='Notificaciones' aria-haspopup='dialog' aria-expanded='false' aria-controls='notice-panel'>
                         <span class='btn-icon'>
                             <svg viewBox='0 0 24 24' aria-hidden='true'>
                                 <path d='M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2z' fill='currentColor'></path>
                             </svg>
                         </span>
-                        <span class='btn-label'>Notificaciones</span>
                         <span class='notice-count hidden' id='notice-count' aria-hidden='true'>0</span>
                     </button>
                     <div class='user-area'>
@@ -63,6 +64,7 @@ if (is_array($partesNombre) && count($partesNombre) > 0 && $partesNombre[0] !== 
                             </button>
                             <div class='avatar-menu' id='avatar-menu' role='menu' aria-hidden='true'>
                                 <a href='/NexoTI/index.php?r=perfil' role='menuitem'>Ajustes de perfil</a>
+                                <a href='/NexoTI/index.php?r=cambiar-clave' role='menuitem'>Cambiar contraseña</a>
                                 <a href='/NexoTI/index.php?r=logout' role='menuitem'>Cerrar sesión</a>
                             </div>
                         </div>
