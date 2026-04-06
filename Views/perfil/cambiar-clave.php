@@ -17,7 +17,7 @@ $errorFlash = $error ?? null;
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
-    <script src='/NexoTI/Views/perfil/cambiar-clave.js?v=1' defer></script>
+    <script src='/NexoTI/Views/perfil/cambiar-clave.js?v=2' defer></script>
 </head>
 <body>
     <div class='layout'>

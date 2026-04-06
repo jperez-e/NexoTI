@@ -71,7 +71,6 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                     <section class='profile-block profile-block-data'>
                         <header class='profile-block-header'>
                             <h2>Datos de cuenta</h2>
-                            <p>Información principal de tu usuario dentro de NexoTI.</p>
                         </header>
                         <div class='profile-data'>
                             <div class='profile-data-row'>
@@ -88,14 +87,6 @@ if (is_array($parts) && count($parts) > 0 && $parts[0] !== '') {
                             </div>
                         </div>
                     </section>
-
-                    <section class='profile-block profile-block-note'>
-                        <header class='profile-block-header'>
-                            <h2>Seguridad</h2>
-                            <p>El cambio de contraseña se gestiona desde el menú del avatar en la parte superior.</p>
-                        </header>
-                    </section>
-
                     <?php if ($mensajeFlash !== null || $errorFlash !== null): ?>
                         <div class='flash-stack'>
                             <?php if ($mensajeFlash !== null): ?>

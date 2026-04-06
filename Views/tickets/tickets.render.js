@@ -746,8 +746,16 @@ function construirResumenTicket(ticket, isExpanded) {
 
     const footer = document.createElement('div');
     footer.className = 'ticket-summary-footer';
-    footer.appendChild(construirMeta('Fecha: ' + formatearFechaTicket(ticket.fecha_creacion)));
-    footer.appendChild(construirMeta('Mensajes: ' + contarComentariosPorTicket(ticket.id)));
+
+    const footerMeta = document.createElement('div');
+    footerMeta.className = 'ticket-summary-meta';
+    const createdMeta = construirMeta('Fecha: ' + formatearFechaTicket(ticket.fecha_creacion));
+    createdMeta.classList.add('ticket-meta-inline');
+    const messagesMeta = construirMeta('Mensajes: ' + contarComentariosPorTicket(ticket.id));
+    messagesMeta.classList.add('ticket-meta-inline');
+    footerMeta.appendChild(createdMeta);
+    footerMeta.appendChild(messagesMeta);
+    footer.appendChild(footerMeta);
 
     const toggle = document.createElement('span');
     toggle.className = 'ticket-toggle';
