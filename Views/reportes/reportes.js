@@ -1,5 +1,10 @@
-// Este archivo JavaScript define la lógica de interfaz del módulo reportes.
-// Maneja eventos, consumo de API y renderizado dinámico del DOM para mejorar la experiencia de usuario.
+// Este código JavaScript se encarga de gestionar la lógica de la sección de reportes en la aplicación,
+// incluyendo la carga de datos, renderizado de tablas, manejo de filtros y paginación. 
+// Utiliza funciones para formatear números, fechas y estados, así como para preservar 
+// la posición del scroll al actualizar los datos. 
+// Además, se conecta a eventos de botones para aplicar filtros y navegar entre páginas de resultados.
+
+
 let filasReporte = [];
 let paginaReporteActual = 1;
 const filasPorPaginaReporte = 5;

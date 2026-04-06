@@ -1,5 +1,8 @@
-// Este archivo JavaScript define utilidades compartidas de interfaz para el sistema.
-// Se reutiliza en múltiples vistas para mantener comportamiento consistente y reducir duplicación de código frontend.
+// Este script se encarga de agregar una confirmación al hacer clic en enlaces que contienen 
+// "r=logout" en su atributo href, para evitar que el usuario cierre sesión accidentalmente. 
+// El mensaje de confirmación se puede personalizar utilizando el atributo data-logout-confirm en el enlace, 
+// o se utilizará un mensaje por defecto si no se proporciona uno.
+
 (() => {
     const CONFIRMACION_POR_DEFECTO = '¿Seguro que deseas cerrar sesión?';
 

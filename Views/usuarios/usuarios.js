@@ -1,5 +1,5 @@
-// Este archivo JavaScript define la lógica de interfaz del módulo usuarios.
-// Maneja eventos, consumo de API y renderizado dinámico del DOM para mejorar la experiencia de usuario.
+
+
 let idEdicion = 0;
 let cacheUsuarios = [];
 
