@@ -1,6 +1,13 @@
-const INTERVALO_NOTIFICACION_VISIBLE_MS = 10000;
-const INTERVALO_NOTIFICACION_OCULTO_MS = 30000;
+// El código JavaScript en este archivo se encarga de gestionar el sistema de notificaciones en la página de inicio de la aplicación.
 
+
+// Se definen constantes para los intervalos de tiempo en los que se consultarán las notificaciones, 
+// diferenciando entre cuando la página está visible y cuando está oculta para optimizar el uso de recursos.
+const INTERVALO_NOTIFICACION_VISIBLE_MS = 10000;  // 10 segundos
+const INTERVALO_NOTIFICACION_OCULTO_MS = 30000;  // 30 segundos
+
+// El objeto `domInicio` actúa como un contenedor para almacenar referencias a los elementos DOM relacionados con las notificaciones 
+// y el menú de avatar.
 const domInicio = {
     noticeButton: null,
     noticePanel: null,
@@ -9,10 +16,13 @@ const domInicio = {
     avatarMenu: null,
 };
 
-let itemsNotificacionesInicio = [];
-let totalNotificacionesInicio = 0;
-let temporizadorNotificacionesInicio = null;
-let consultaNotificacionesInicioEnCurso = false;
+// Las variables de estado — la memoria del sistema de notificaciones 
+// — se declaran en el ámbito global del módulo para facilitar su acceso y manipulación desde 
+// cualquier función relacionada con las notificaciones.
+let itemsNotificacionesInicio = []; // la lista actual de notificaciones obtenida del servidor
+let totalNotificacionesInicio = 0; // el numero del badge rojo.
+let temporizadorNotificacionesInicio = null; // el reloj interno.
+let consultaNotificacionesInicioEnCurso = false; // estamos consultando al servidor en este momento?
 
 function porIdInicio(id) {
     return document.getElementById(id);
@@ -88,6 +98,7 @@ function alternarMenuAvatarInicio(forceState) {
     }
 }
 
+// La función `renderizarPanelNotificacionesInicio` es responsable de actualizar el contenido del panel de notificaciones cada vez que se obtiene nueva información del servidor.
 function renderizarPanelNotificacionesInicio() {
     if (!domInicio.noticePanel || !domInicio.noticeCount) {
         return;
@@ -171,6 +182,10 @@ async function cargarNotificacionesInicio() {
     renderizarPanelNotificacionesInicio();
 }
 
+
+// La función `consultarNotificacionesInicio` se encarga de gestionar la consulta al servidor para 
+// obtener las notificaciones, asegurándose de que no se realicen múltiples consultas simultáneas 
+// y actualizando el estado de las notificaciones una vez que se recibe la respuesta.
 async function consultarNotificacionesInicio() {
     if (consultaNotificacionesInicioEnCurso) {
         return;
@@ -195,6 +210,7 @@ function reiniciarConsultaNotificacionesInicio() {
     }, intervalo);
 }
 
+// La función `configurarInteraccionesInicio` se encarga de establecer los event listeners necesarios para manejar las interacciones del usuario con el panel de notificaciones y el menú de avatar, así como para cerrar estos elementos cuando el usuario haga clic fuera de ellos o presione la tecla Escape.
 function configurarInteraccionesInicio() {
     if (domInicio.noticeButton) {
         domInicio.noticeButton.addEventListener('click', function (event) {

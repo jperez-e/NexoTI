@@ -1,4 +1,6 @@
-<!DOCTYPE html> 
+<!-- Este archivo PHP define la vista de gestión de estados de tickets.
+     Renderiza el listado y las acciones CRUD para mantener los estados disponibles. -->
+<!DOCTYPE html>
 <html lang='es'> 
 <head> 
     <meta charset='UTF-8'> 

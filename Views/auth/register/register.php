@@ -1,4 +1,6 @@
-<!DOCTYPE html> 
+<!-- Este archivo PHP define la vista de registro de usuarios del sistema.
+     Renderiza el formulario de alta con validaciones y campos requeridos para crear cuentas. -->
+<!DOCTYPE html>
 <html lang=es> 
 <head> 
     <meta charset=UTF-8> 

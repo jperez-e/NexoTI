@@ -1,3 +1,12 @@
+// Este archivo JavaScript define la lógica de interfaz del módulo tickets.api.
+// Maneja eventos, consumo de API y renderizado dinámico del DOM para mejorar la experiencia de usuario.
+// Este código JavaScript se encarga de gestionar la lógica de la sección de tickets en la aplicación,
+// incluyendo la carga de datos, renderizado de tickets, manejo de filtros y acciones en línea. 
+// Utiliza funciones para formatear números, fechas y estados, así como para preservar 
+// la posición del scroll al actualizar los datos. 
+// Además, se conecta a eventos de botones para aplicar filtros, asignar técnicos, cerrar o eliminar tickets,
+// agregar o quitar participantes, y enviar respuestas en línea.
+
 async function refrescarVistaTickets() {
     await Promise.all([cargarTickets(), cargarNotificaciones()]);
 }

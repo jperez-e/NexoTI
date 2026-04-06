@@ -1,4 +1,9 @@
 <?php
+// Este archivo PHP genera la interfaz de usuario para la sección de reportes en la aplicación,
+// permitiendo a los usuarios filtrar tickets por rango de fechas, visualizar estadísticas clave,
+// y exportar datos en formatos CSV, Excel o PDF. La página incluye una barra lateral
+// para la navegación, una barra superior con el título y un botón para volver al inicio,
+// y varias secciones que muestran métricas, distribuciones y un historial reciente de tickets.
 declare(strict_types=1);
 
 $idRolActual = (int) ($_SESSION['rol_id'] ?? 0);

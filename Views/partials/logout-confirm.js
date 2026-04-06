@@ -1,3 +1,5 @@
+// Este archivo JavaScript define utilidades compartidas de interfaz para el sistema.
+// Se reutiliza en múltiples vistas para mantener comportamiento consistente y reducir duplicación de código frontend.
 (() => {
     const CONFIRMACION_POR_DEFECTO = '¿Seguro que deseas cerrar sesión?';
 

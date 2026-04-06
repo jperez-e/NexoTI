@@ -1,3 +1,5 @@
+<!-- Este archivo PHP define la vista de inicio de sesión del sistema.
+     Renderiza el formulario de acceso y muestra mensajes de validación para autenticar al usuario. -->
 <!DOCTYPE html>  
 <html lang=es>  
 <head>  
@@ -26,9 +28,21 @@
             <form method=POST action=index.php?r=login>  
                 <input type=hidden name=_token value='<?php echo htmlspecialchars((string) ($_SESSION['csrf_token'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>'>
                 <label for=login>Correo o usuario</label>  
-                <input id=login name=login type=text placeholder=correo@dominio.com required>  
+                <div class=input-with-prefix>
+                    <span class=input-prefix aria-hidden=true>
+                        <svg viewBox='0 0 24 24' role='img' focusable='false'>
+                            <path d='M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z'></path>
+                        </svg>
+                    </span>
+                    <input id=login name=login type=text placeholder=correo@dominio.com required>
+                </div>
                 <label for=password>Contraseña</label>  
-                <div class=password-field>  
+                <div class='password-field input-with-prefix'>  
+                    <span class=input-prefix aria-hidden=true>
+                        <svg viewBox='0 0 24 24' role='img' focusable='false'>
+                            <path d='M17 8h-1V6a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-7-2a2 2 0 1 1 4 0v2h-4V6z'></path>
+                        </svg>
+                    </span>
                     <input id=password name=password type=password required>  
                     <button type=button class=toggle-password id=toggle-password aria-label='Mostrar u ocultar contraseña'>  
                         <span class=icon-eye aria-hidden=true>  

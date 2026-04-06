@@ -1,4 +1,9 @@
 <?php
+// Este archivo PHP genera un reporte en formato PDF de los tickets registrados en el sistema, 
+// utilizando una plantilla HTML que incluye estilos CSS para formatear la presentación del reporte. 
+// El reporte incluye información como el código, título, usuario, técnico asignado, categoría, prioridad, 
+// estado, fecha de creación y fecha de cierre de cada ticket. Además, se incluye el logo de la 
+// aplicación si está disponible.
 declare(strict_types=1);
 
 $logoPath = dirname(__DIR__, 2) . '/favicon.svg';

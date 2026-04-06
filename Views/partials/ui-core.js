@@ -1,3 +1,11 @@
+// Este archivo JavaScript define utilidades compartidas de interfaz para el sistema.
+// Se reutiliza en múltiples vistas para mantener comportamiento consistente y reducir duplicación de código frontend.
+// Este script define un módulo `NexoUI` que proporciona funciones para interactuar con el DOM,
+// realizar solicitudes HTTP, gestionar botones con estados de carga, mostrar toasts de notificación,
+// y mostrar mensajes en nodos específicos. Estas funciones están diseñadas 
+// para ser utilizadas en toda la aplicación
+// para facilitar la manipulación de la interfaz de usuario y la comunicación con el servidor.
+
 (function () {
     function obtenerNodo(id) {
         return document.getElementById(id);

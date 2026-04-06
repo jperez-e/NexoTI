@@ -1,4 +1,7 @@
-<?php  
+<?php
+// Este archivo PHP define el modelo de Ticket.
+// Centraliza el acceso a base de datos para consultas y operaciones de persistencia relacionadas con esta entidad.
+  
 declare(strict_types=1);  
   
 require_once __DIR__ . '/../Config/Conexion.php';  

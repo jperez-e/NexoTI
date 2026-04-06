@@ -1,4 +1,6 @@
-<!DOCTYPE html>  
+<!-- Este archivo PHP define la vista de gestión de usuarios del sistema.
+     Renderiza el listado y las acciones administrativas para crear, editar y eliminar usuarios. -->
+<!DOCTYPE html>
 <html lang='es'>  
 <head>  
     <meta charset='UTF-8'>  

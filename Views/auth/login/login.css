@@ -137,6 +137,48 @@ input {
     font-size: 1rem;
 }
 
+.input-with-prefix {
+    position: relative;
+}
+
+.input-with-prefix input {
+    padding-left: 52px;
+}
+
+.input-prefix {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #737373;
+    background: #f3f4f6;
+    border-right: 1px solid #d9e2f3;
+    border-radius: 10px 0 0 10px;
+    pointer-events: none;
+    transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.input-prefix svg {
+    width: 21px;
+    height: 21px;
+    fill: currentColor;
+}
+
+.input-with-prefix:focus-within .input-prefix {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-right-color: #93c5fd;
+}
+
+.input-with-prefix:focus-within input {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.25);
+}
+
 .password-field {
     position: relative;
 }
@@ -157,9 +199,17 @@ input {
     height: 38px;
     padding: 0;
     border-radius: 8px;
-    border: 1px solid #cbd5f5;
-    background: #f8fafc;
+    border: none;
+    background: transparent;
     cursor: pointer;
+    margin: 0;
+}
+
+.toggle-password:hover,
+.toggle-password:active {
+    background: transparent;
+    box-shadow: none;
+    transform: translateY(-50%);
 }
 
 .toggle-password svg {

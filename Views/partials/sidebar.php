@@ -1,4 +1,6 @@
 <?php
+// Este archivo PHP define una vista del sistema.
+// Renderiza estructura HTML y datos dinámicos para la interfaz según el módulo y rol del usuario.
 declare(strict_types=1);
 
 $idRol = (int) ($_SESSION['rol_id'] ?? 0);

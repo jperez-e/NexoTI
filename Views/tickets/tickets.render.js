@@ -1,3 +1,5 @@
+// Este archivo JavaScript define la lógica de interfaz del módulo tickets.render.
+// Maneja eventos, consumo de API y renderizado dinámico del DOM para mejorar la experiencia de usuario.
 function construirParticipante(name, roleName, photoUrl, helperText, options) {
     const config = options || {};
     const item = document.createElement('div');

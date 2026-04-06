@@ -1,4 +1,6 @@
-<!DOCTYPE html> 
+<!-- Este archivo PHP define la vista de gestión de roles del sistema.
+     Renderiza el listado y las acciones CRUD para administrar permisos por rol. -->
+<!DOCTYPE html>
 <html lang='es'> 
 <head> 
     <meta charset='UTF-8'> 

@@ -1,3 +1,8 @@
+/* Este archivo CSS define las variables de estilo 
+y las reglas de diseño para los botones, mensajes y 
+toasts en la aplicación, proporcionando una apariencia coherente 
+y moderna en toda la interfaz de usuario. */
+
 :root {
     --btn-primary-bg: #2563eb;
     --btn-primary-bg-hover: #1d4ed8;

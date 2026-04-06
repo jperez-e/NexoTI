@@ -1,7 +1,21 @@
 <?php
+/*
+Este archivo PHP define la clase Conexion, 
+que se encarga de gestionar la conexión 
+a la base de datos utilizando PDO.
+La clase implementa el patrón singleton para asegurar que solo exista
+una instancia de conexión a lo largo de la aplicación. 
+Además, carga las variables de entorno desde un archivo .env 
+para configurar los parámetros de conexión, como el host, puerto, 
+nombre de la base de datos, usuario, contraseña y juego de caracteres. 
+La clase proporciona un método estático obtener() 
+para obtener la instancia de PDO configurada y lista para usar 
+en las operaciones de la base de datos en toda la aplicación. 
+*/
+
 declare(strict_types=1);
 
-class Conexion
+class Conexion 
 {
     private static ?PDO $instancia = null;
     private static bool $entornoCargado = false;

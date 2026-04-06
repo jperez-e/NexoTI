@@ -1,4 +1,6 @@
-<!DOCTYPE html> 
+<!-- Este archivo PHP define la vista de gestión de prioridades del sistema.
+     Renderiza el listado y las acciones CRUD para administrar niveles de prioridad. -->
+<!DOCTYPE html>
 <html lang='es'> 
 <head> 
     <meta charset='UTF-8'> 

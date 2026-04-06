@@ -1,4 +1,13 @@
 <?php
+// Este archivo PHP define la clase abstracta CatalogController, 
+// que extiende de BaseController y proporciona una estructura común 
+// para los controladores de catálogo en la aplicación.
+// Los controladores específicos de cada entidad 
+//(como CategoriaController, PrioridadController, etc.) 
+// pueden extender esta clase para implementar 
+// las operaciones de listado, creación, actualización y eliminación de manera consistente.
+// La clase incluye métodos abstractos que deben ser implementados por los controladores hijos 
+// para definir mensajes específicos, construir cargas de datos y validar entradas.
 declare(strict_types=1);
 
 require_once __DIR__ . '/BaseController.php';

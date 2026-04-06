@@ -1,4 +1,12 @@
 <?php
+// Este archivo PHP define la clase BaseController, que proporciona métodos comunes 
+// para manejar sesiones, roles, solicitudes HTTP y respuestas JSON en toda la aplicación.
+// Los controladores específicos de cada entidad (como AuthController, TicketController, etc.) 
+// pueden extender esta clase para reutilizar su funcionalidad y mantener un código más limpio y organizado. 
+// La clase incluye métodos para verificar si un usuario ha iniciado sesión, 
+// si tiene el rol adecuado para acceder. Además, proporciona funciones 
+// para validar que las solicitudes sean POST,
+// obtener datos de la solicitud y responder con JSON en caso de éxito o error.
 declare(strict_types=1);
 
 require_once __DIR__ . '/../Config/Csrf.php';

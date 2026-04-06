@@ -1,4 +1,13 @@
 <?php
+// Este archivo PHP define el controlador para la entidad "Comentario",
+// que maneja las operaciones relacionadas con los comentarios en los tickets de la aplicación.
+// El controlador utiliza varios modelos para interactuar con la base de datos 
+// y una clase de servicio para enviar notificaciones cuando se crea un nuevo comentario.
+// El controlador incluye métodos para listar los comentarios de 
+// acuerdo al rol del usuario y para crear nuevos comentarios, asegurando que 
+// el usuario tenga los permisos necesarios para comentar en el ticket correspondiente. 
+// Además, se implementa una función auxiliar para verificar si un ticket fue creado 
+// por un técnico, lo que afecta los permisos de comentario.
 declare(strict_types=1);
 
 require_once __DIR__ . '/BaseController.php';

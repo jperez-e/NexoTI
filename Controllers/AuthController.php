@@ -1,4 +1,9 @@
-<?php  
+<?php
+// Este archivo PHP define el controlador de autenticación para la aplicación, 
+// gestionando las operaciones de inicio de sesión, registro, cierre de sesión y acceso al dashboard.
+// El controlador utiliza el modelo de usuario para verificar credenciales 
+// y manejar la creación de nuevos usuarios.
+  
 declare(strict_types=1);  
   
 require_once __DIR__ . '/../Config/Csrf.php';  

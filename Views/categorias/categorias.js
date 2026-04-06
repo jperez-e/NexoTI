@@ -1,3 +1,5 @@
+// Este archivo JavaScript define la lógica de interfaz del módulo categorias.
+// Maneja eventos, consumo de API y renderizado dinámico del DOM para mejorar la experiencia de usuario.
 document.addEventListener('DOMContentLoaded', function () {
     window.NexoCatalogo.crearPaginaCatalogo({
         controlador: 'categoria',

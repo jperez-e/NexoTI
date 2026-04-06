@@ -1,3 +1,7 @@
+/* Este archivo CSS define las variables de estilo 
+y las reglas de diseño para la barra lateral (sidebar) de la aplicación, 
+proporcionando una apariencia coherente y moderna en toda la interfaz de usuario. */
+
 .layout { 
     display: grid; 
     grid-template-columns: 240px 1fr; 
@@ -17,6 +21,7 @@
     flex-direction: column;
     gap: 18px; 
 } 
+
  
 .brand { 
     display: flex;

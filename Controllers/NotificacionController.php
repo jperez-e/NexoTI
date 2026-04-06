@@ -1,4 +1,12 @@
 <?php
+// Este archivo PHP define el controlador para la entidad "Notificacion",
+// que maneja las operaciones relacionadas con las notificaciones en la aplicación.
+// El controlador utiliza una clase de servicio para interactuar con la lógica de 
+// negocio relacionada con las notificaciones, como obtener las notificaciones para el panel del usuario, 
+// marcar una notificación como leída o marcar todas las notificaciones como leídas. 
+// El controlador también asegura que el usuario tenga una sesión activa antes de permitir 
+// el acceso a estas operaciones y responde con JSON para indicar el éxito o error de 
+// las acciones realizadas.
 declare(strict_types=1);
 
 require_once __DIR__ . '/BaseController.php';

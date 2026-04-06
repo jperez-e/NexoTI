@@ -1,4 +1,6 @@
 <?php
+// Este archivo PHP define el servicio de Notification.
+// Contiene lógica de negocio reutilizable para mantener los controladores más simples y enfocados en la capa HTTP.
 declare(strict_types=1);
 
 require_once __DIR__ . '/../Models/NotificacionModel.php';

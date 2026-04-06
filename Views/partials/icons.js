@@ -1,3 +1,9 @@
+// Este archivo JavaScript define utilidades compartidas de interfaz para el sistema.
+// Se reutiliza en múltiples vistas para mantener comportamiento consistente y reducir duplicación de código frontend.
+// Este script define un módulo para gestionar iconos SVG en la interfaz de usuario, 
+// proporcionando funciones para obtener el código SVG de un icono dado su nombre o alias, 
+// y para generar el contenido HTML de un botón que incluya un icono y una etiqueta.
+
 (function () {
     const iconos = {
         actualizar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.34-5.66L20 8V3h-5l2.19 2.19A10 10 0 1 0 22 11h-2z" fill="currentColor"></path></svg>',

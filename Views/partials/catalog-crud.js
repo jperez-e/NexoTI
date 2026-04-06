@@ -1,3 +1,8 @@
+// Este archivo JavaScript define utilidades compartidas de interfaz para el sistema.
+// Se reutiliza en múltiples vistas para mantener comportamiento consistente y reducir duplicación de código frontend.
+// Este script proporciona una función para crear páginas de catálogo con operaciones 
+// CRUD (Crear, Leer, Actualizar, Eliminar) utilizando la biblioteca NexoUI.
+
 (function () {
     function valorTexto(value) {
         if (value === null || value === undefined) {

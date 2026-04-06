@@ -1,4 +1,7 @@
-<?php 
+<?php
+// Este archivo PHP define el controlador de Rol.
+// Gestiona solicitudes HTTP, valida reglas de acceso y coordina la respuesta JSON o de vista según la operación.
+ 
 declare(strict_types=1);
 
 require_once __DIR__ . '/CatalogController.php';

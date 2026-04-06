@@ -1,3 +1,5 @@
+// Este archivo JavaScript define la lógica de interfaz del módulo tickets.state.
+// Maneja eventos, consumo de API y renderizado dinámico del DOM para mejorar la experiencia de usuario.
 let ticketsPagina = [];
 let ticketsAsignables = [];
 let ticketsCerrables = [];

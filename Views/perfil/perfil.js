@@ -1,3 +1,7 @@
+// Este archivo JavaScript define la lógica de interfaz del módulo perfil.
+// Maneja eventos, consumo de API y renderizado dinámico del DOM para mejorar la experiencia de usuario.
+// Este código se ejecuta cuando el DOM ha sido completamente cargado y listo para ser manipulado.
+
 document.addEventListener('DOMContentLoaded', function () {
     var toggles = document.querySelectorAll('[data-toggle-password]');
     toggles.forEach(function (button) {
