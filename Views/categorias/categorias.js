@@ -30,5 +30,10 @@ document.addEventListener('DOMContentLoaded', function () {
             toastActualizadoTitulo: 'Categoría actualizada',
             errorOperacion: 'No se pudo completar la operación.',
         },
+        paginacion: {
+            tamano: 6,
+            anteriorTexto: 'Anterior',
+            siguienteTexto: 'Siguiente',
+        },
     });
 });

@@ -7,14 +7,14 @@
     <meta name='viewport' content='width=device-width,initial-scale=1.0'> 
     <title>NexoTI - Categorías</title> 
     <link rel='icon' type='image/svg+xml' href='/NexoTI/favicon.svg'>
-    <link rel='stylesheet' href='/NexoTI/Views/categorias/categorias.css'> 
+    <link rel='stylesheet' href='/NexoTI/Views/categorias/categorias.css?v=2'> 
     <link rel='stylesheet' href='/NexoTI/Views/partials/sidebar.css'>
     <link rel='stylesheet' href='/NexoTI/Views/partials/buttons.css'>
  <link rel='stylesheet' href='/NexoTI/Views/partials/app-shell.css'>
     <script src='/NexoTI/Views/partials/icons.js' defer></script>
     <script src='/NexoTI/Views/partials/ui-core.js' defer></script>
-    <script src='/NexoTI/Views/partials/catalog-crud.js' defer></script>
-    <script src='/NexoTI/Views/categorias/categorias.js?v=3' defer></script> 
+    <script src='/NexoTI/Views/partials/catalog-crud.js?v=2' defer></script>
+    <script src='/NexoTI/Views/categorias/categorias.js?v=4' defer></script> 
 </head> 
 <body> 
     <div class='layout'> 

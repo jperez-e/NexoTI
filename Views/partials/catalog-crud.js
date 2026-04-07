@@ -36,6 +36,17 @@
         const toastCreadoTitulo = mensajes.toastCreadoTitulo || 'Registro creado';
         const toastActualizadoTitulo = mensajes.toastActualizadoTitulo || 'Registro actualizado';
         const errorOperacion = mensajes.errorOperacion || 'No se pudo completar la operación.';
+        const paginacion = cfg.paginacion || null;
+        const paginacionActiva = !!paginacion;
+        const tamanoPagina = paginacionActiva
+            ? Math.max(1, Number(paginacion.tamano || 8))
+            : 0;
+        const textoAnterior = paginacionActiva && paginacion.anteriorTexto
+            ? String(paginacion.anteriorTexto)
+            : 'Anterior';
+        const textoSiguiente = paginacionActiva && paginacion.siguienteTexto
+            ? String(paginacion.siguienteTexto)
+            : 'Siguiente';
 
         const form = ui.obtenerNodo(formId);
         const list = ui.obtenerNodo(listId);
@@ -48,6 +59,13 @@
         let idEdicion = 0;
         let cancelBtn = ui.obtenerNodo('cancel-btn');
         let hiddenField = ui.obtenerNodo(hiddenId);
+        let listadoCompleto = [];
+        let paginaActual = 1;
+        let totalPaginas = 1;
+        let pager = null;
+        let pagerInfo = null;
+        let pagerPrev = null;
+        let pagerNext = null;
 
         if (!form || !list || !submitBtn || !formMessage || !cardTitle || !actions) {
             return;
@@ -119,6 +137,65 @@
             return button;
         }
 
+        function asegurarPaginador() {
+            if (!paginacionActiva || pager) {
+                return;
+            }
+
+            pager = document.createElement('div');
+            pager.className = 'catalog-pager';
+
+            pagerPrev = document.createElement('button');
+            pagerPrev.type = 'button';
+            pagerPrev.className = 'btn ghost';
+            pagerPrev.textContent = textoAnterior;
+            pagerPrev.addEventListener('click', function () {
+                if (paginaActual <= 1) {
+                    return;
+                }
+                paginaActual -= 1;
+                renderizarListado(listadoCompleto);
+            });
+
+            pagerInfo = document.createElement('span');
+            pagerInfo.className = 'catalog-pager-info';
+            pagerInfo.setAttribute('aria-live', 'polite');
+
+            pagerNext = document.createElement('button');
+            pagerNext.type = 'button';
+            pagerNext.className = 'btn ghost';
+            pagerNext.textContent = textoSiguiente;
+            pagerNext.addEventListener('click', function () {
+                if (paginaActual >= totalPaginas) {
+                    return;
+                }
+                paginaActual += 1;
+                renderizarListado(listadoCompleto);
+            });
+
+            pager.appendChild(pagerPrev);
+            pager.appendChild(pagerInfo);
+            pager.appendChild(pagerNext);
+            list.insertAdjacentElement('afterend', pager);
+        }
+
+        function actualizarPaginador() {
+            if (!paginacionActiva || !pager || !pagerInfo || !pagerPrev || !pagerNext) {
+                return;
+            }
+
+            const total = Array.isArray(listadoCompleto) ? listadoCompleto.length : 0;
+            const mostrar = total > tamanoPagina;
+            pager.style.display = mostrar ? 'flex' : 'none';
+            if (!mostrar) {
+                return;
+            }
+
+            pagerInfo.textContent = 'Página ' + paginaActual + ' de ' + totalPaginas + ' · ' + total + ' registro(s)';
+            pagerPrev.disabled = paginaActual <= 1;
+            pagerNext.disabled = paginaActual >= totalPaginas;
+        }
+
         async function eliminarFila(fila, botonEliminar) {
             const confirmacion = typeof confirmarEliminar === 'function'
                 ? confirmarEliminar(fila)
@@ -154,13 +231,30 @@
         }
 
         function renderizarListado(lista) {
+            listadoCompleto = Array.isArray(lista) ? lista.slice() : [];
             list.innerHTML = '';
-            if (!Array.isArray(lista) || lista.length === 0) {
+            if (listadoCompleto.length === 0) {
                 list.innerHTML = '<p class="message">' + listaVacia + '</p>';
+                actualizarPaginador();
                 return;
             }
 
-            lista.forEach(function (fila) {
+            totalPaginas = paginacionActiva
+                ? Math.max(1, Math.ceil(listadoCompleto.length / tamanoPagina))
+                : 1;
+
+            if (paginaActual > totalPaginas) {
+                paginaActual = totalPaginas;
+            }
+            if (paginaActual < 1) {
+                paginaActual = 1;
+            }
+
+            const listaVisible = paginacionActiva
+                ? listadoCompleto.slice((paginaActual - 1) * tamanoPagina, paginaActual * tamanoPagina)
+                : listadoCompleto;
+
+            listaVisible.forEach(function (fila) {
                 const item = document.createElement('div');
                 item.className = 'item';
 
@@ -190,6 +284,8 @@
                 item.appendChild(actionWrap);
                 list.appendChild(item);
             });
+
+            actualizarPaginador();
         }
 
         async function cargarListado() {
@@ -253,6 +349,7 @@
         if (refreshBtn) {
             refreshBtn.addEventListener('click', manejarRefresh);
         }
+        asegurarPaginador();
 
         limpiarFormulario();
         cargarListado();
