@@ -1,8 +1,20 @@
 <?php
-// Este archivo PHP define el controlador de autenticación para la aplicación, 
-// gestionando las operaciones de inicio de sesión, registro, cierre de sesión y acceso al dashboard.
-// El controlador utiliza el modelo de usuario para verificar credenciales 
-// y manejar la creación de nuevos usuarios.
+/*
+Este archivo PHP define la clase AuthController, que se encarga de gestionar 
+la autenticación y autorización de usuarios en la aplicación. 
+La clase proporciona métodos para mostrar el formulario de inicio de sesión, 
+procesar el inicio de sesión, mostrar el formulario de 
+registro (solo para administradores), procesar el registro de 
+nuevos usuarios (solo para administradores), cerrar sesión y mostrar el panel de 
+inicio con información relevante según el rol del usuario. 
+La clase utiliza la clase UsuarioModel para interactuar con la base de datos y 
+validar las credenciales de los usuarios, así como para registrar nuevos usuarios.
+ Además, se implementa protección contra ataques CSRF en los formularios de inicio 
+ de sesión y registro utilizando la clase Csrf. 
+El controlador también maneja la gestión de sesiones para mantener 
+la información del usuario autenticado y asegurar que solo los usuarios autorizados 
+puedan acceder a ciertas funcionalidades, como el registro de nuevos usuarios.
+*/
   
 declare(strict_types=1);  
   

@@ -20,6 +20,11 @@ class Conexion
     private static ?PDO $instancia = null;
     private static bool $entornoCargado = false;
 
+    /*
+        * Carga las variables de entorno desde un archivo .env ubicado en la raíz del proyecto.
+        * Este método se asegura de que el archivo se cargue solo una vez durante la ejecución de la aplicación.
+        * Las variables de entorno se cargan en $_ENV, $_SERVER y mediante putenv para asegurar su disponibilidad en toda la aplicación.    
+    */
     private static function cargarArchivoEntorno(): void
     {
         if (self::$entornoCargado) {
@@ -60,6 +65,11 @@ class Conexion
         self::$entornoCargado = true;
     }
 
+    /*
+        * Obtiene el valor de una variable de entorno, asegurándose de que esté presente y no esté vacía (a menos que se permita vacío).
+        * Si la variable de entorno no está presente o es inválida, se lanza una excepción para alertar sobre la configuración faltante.
+        * Este método se utiliza para obtener los parámetros de conexión a la base de datos desde las variables de entorno cargadas.    
+    */
     private static function entorno(string $clave, bool $permitirVacio = false): string
     {
         self::cargarArchivoEntorno();
@@ -72,12 +82,19 @@ class Conexion
         return (string) $valor;
     }
 
+    /*
+        * Obtiene la instancia de PDO para la conexión a la base de datos.
+        * Si la instancia ya existe, se devuelve la misma para reutilizar la conexión.
+        * Si no existe, se crea una nueva instancia utilizando los parámetros de conexión obtenidos de las variables de entorno.
+        * La conexión se configura con opciones para manejar errores, establecer el modo de obtención de resultados y deshabilitar la emulación de sentencias preparadas.    
+    */
     public static function obtener(): PDO
     {
         if (self::$instancia !== null) {
             return self::$instancia;
         }
 
+        // Obtener los parámetros de conexión desde las variables de entorno  
         $host = self::entorno('NEXOTI_DB_HOST');
         $puerto = self::entorno('NEXOTI_DB_PORT');
         $nombreBaseDatos = self::entorno('NEXOTI_DB_NAME');
@@ -87,12 +104,13 @@ class Conexion
 
         $dsn = "mysql:host={$host};port={$puerto};dbname={$nombreBaseDatos};charset={$juegoCaracteres}";
 
+        // Crear la instancia de PDO con las opciones de configuración adecuadas
         self::$instancia = new PDO($dsn, $usuario, $contrasena, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, 
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, 
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
 
-        return self::$instancia;
+        return self::$instancia; // Devolver la instancia de PDO creada
     }
 }

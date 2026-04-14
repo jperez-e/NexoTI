@@ -1,6 +1,15 @@
 <?php
-// Este archivo PHP define el servicio de Notification.
-// Contiene lógica de negocio reutilizable para mantener los controladores más simples y enfocados en la capa HTTP.
+/*
+este servicio se encarga de gestionar las notificaciones relacionadas a los tickets, 
+incluyendo la creación, asignación, respuestas y cierres. 
+Proporciona métodos para obtener las notificaciones de un usuario, 
+marcar notificaciones como leídas 
+y enviar notificaciones a los usuarios relevantes 
+cuando ocurren eventos importantes en el ciclo de vida de un ticket. 
+El servicio también maneja la lógica para determinar qué usuarios 
+deben recibir notificaciones basándose en su rol y participación en el ticket.
+*/
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../Models/NotificacionModel.php';
@@ -17,6 +26,10 @@ class NotificationService
         $this->usuarios = new UsuarioModel();
     }
 
+    // Devuelve un array con 'count' (cantidad de notificaciones no leídas) 
+    // e 'items' (array de notificaciones recientes).
+    // El parámetro $limite controla cuántas notificaciones 
+    // recientes se devuelven (por defecto 8).
     public function obtenerDatosPanel(int $idUsuario, int $limite = 8): array
     {
         return $this->ejecutarSeguro(
@@ -33,6 +46,9 @@ class NotificationService
         );
     }
 
+    // Marca una notificación específica como leída para un usuario dado.
+    // Devuelve true si la operación fue exitosa, 
+    // false en caso de error o si la notificación no pertenece al usuario.
     public function marcarComoLeida(int $idNotificacion, int $idUsuario): bool
     {
         return $this->ejecutarSeguro(
@@ -43,6 +59,8 @@ class NotificationService
         );
     }
 
+    // Marca todas las notificaciones de un usuario como leídas.
+    // Devuelve true si la operación fue exitosa, false en caso de error.
     public function marcarTodasComoLeidas(int $idUsuario): bool
     {
         return $this->ejecutarSeguro(
@@ -53,6 +71,11 @@ class NotificationService
         );
     }
 
+    // Envía una notificación de asignación a un técnico cuando se le asigna un ticket.
+    // Envía una notificación de creación a los administradores cuando se crea un nuevo ticket.
+    // Envía una notificación de respuesta a los participantes de un ticket cuando se agrega un nuevo comentario.
+    // Envía una notificación de cierre a los participantes de un ticket cuando se cierra un ticket.
+    // Envía una notificación de cambio de estado a los usuarios finales cuando un técnico actualiza el estado de un ticket.
     public function notificarAsignacion(array $ticket, ?int $idTecnico, int $idActor): void
     {
         if ($idTecnico === null || $idTecnico <= 0 || $idTecnico === $idActor) {
@@ -69,6 +92,11 @@ class NotificationService
         );
     }
 
+    // Envía una notificación de creación a los administradores cuando se crea un nuevo ticket.
+// Envía una notificación de respuesta a los participantes de un ticket cuando se agrega un nuevo comentario.
+// Envía una notificación de cierre a los participantes de un ticket cuando se cierra un ticket.
+// Envía una notificación de cambio de estado a los usuarios finales cuando un técnico actualiza el estado de un ticket.
+// Envía una notificación de asignación a un técnico cuando se le asigna un ticket.
     public function notificarCreacion(array $ticket, int $idActor): void
     {
         $destinatarios = $this->obtenerIdsAdminSinActor($idActor);
@@ -87,6 +115,12 @@ class NotificationService
         );
     }
 
+    /*
+        * Envía una notificación de respuesta a los participantes de un ticket cuando se agrega un nuevo comentario.
+        * Envía una notificación de cierre a los participantes de un ticket cuando se cierra un ticket.
+        * Envía una notificación de cambio de estado a los usuarios finales cuando un técnico actualiza el estado de un ticket.
+        * Envía una notificación de asignación a un técnico cuando se le asigna un ticket.  
+    */
     public function notificarRespuesta(array $ticket, int $idActor, string $comentario): void
     {
         $destinatarios = $this->recolectarParticipantesTicket($ticket, $idActor);
@@ -109,6 +143,11 @@ class NotificationService
         );
     }
 
+    /*
+        * Envía una notificación de cierre a los participantes de un ticket cuando se cierra un ticket.
+        * Envía una notificación de cambio de estado a los usuarios finales cuando un técnico actualiza el estado de un ticket.
+        * Envía una notificación de asignación a un técnico cuando se le asigna un ticket.
+    */
     public function notificarCierre(array $ticket, int $idActor): void
     {
         $destinatarios = $this->recolectarParticipantesTicket($ticket, $idActor);
@@ -128,6 +167,10 @@ class NotificationService
         );
     }
 
+    /*
+        * Envía una notificación de cambio de estado a los usuarios finales cuando un técnico actualiza el estado de un ticket.
+        * Envía una notificación de asignación a un técnico cuando se le asigna un ticket.
+    */
     public function notificarCambioEstadoPorTecnico(array $ticket, int $idActor): void
     {
         $idUsuario = (int) ($ticket['usuario_id'] ?? 0);
@@ -150,6 +193,9 @@ class NotificationService
         );
     }
 
+    /*
+        * Envía una notificación de asignación a un técnico cuando se le asigna un ticket.
+    */
     /**
      * @param int[] $idsDestinatarios
      */
@@ -181,6 +227,10 @@ class NotificationService
         }
     }
 
+    /*
+        * Recolecta los IDs de los participantes relevantes de un ticket (usuario final y técnico) 
+        * excluyendo al actor que genera la notificación, para evitar auto-notificaciones.
+    */
     /**
      * @return int[]
      */
@@ -200,7 +250,10 @@ class NotificationService
         return $destinatarios;
     }
 
+    
     /**
+     * Normaliza un array de IDs de destinatarios, eliminando duplicados y valores no válidos.
+     *
      * @param int[] $ids
      * @return int[]
      */
@@ -209,6 +262,10 @@ class NotificationService
         return array_values(array_unique(array_filter(array_map('intval', $ids))));
     }
 
+    /*
+        * Obtiene los IDs de los administradores del sistema, excluyendo al actor que genera la notificación, para evitar auto-notificaciones.
+        * Esto se utiliza principalmente para enviar notificaciones de creación de tickets a los administradores sin incluir al usuario que creó el ticket.
+    */
     /**
      * @return int[]
      */
@@ -223,6 +280,10 @@ class NotificationService
         return $this->normalizarDestinatarios($ids);
     }
 
+    /*
+        * Normaliza los filtros de búsqueda, asegurando que tengan valores válidos y consistentes.
+        * Esto ayuda a evitar errores en la capa de datos y proporciona una experiencia de búsqueda más predecible.
+    */  
     /**
      * @template T
      * @param callable():T $operacion
@@ -238,6 +299,10 @@ class NotificationService
         }
     }
 
+    /*
+        * Construye un resumen legible de un ticket para usar en las notificaciones, combinando el código y el título del ticket.
+        * Si el título está vacío, se devuelve solo el código. De lo contrario, se devuelve "Código - Título".
+    */
     private function construirResumenTicket(array $ticket): string
     {
         $codigo = trim((string) ($ticket['codigo'] ?? 'Ticket'));
