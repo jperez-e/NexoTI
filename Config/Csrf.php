@@ -1,15 +1,4 @@
 <?php
-/*
-  Clase para gestionar tokens CSRF.
-    Proporciona métodos para generar un token único por sesión,
-    obtener el token enviado en la solicitud y 
-    validar que el token de la solicitud 
-    coincida con el token almacenado en la sesión. 
-    Esto ayuda a proteger la aplicación contra 
-    ataques de falsificación de solicitudes 
-    entre sitios (CSRF) al asegurar que las 
-    solicitudes POST provengan de fuentes legítimas.
- */
 
 declare(strict_types=1);
 
